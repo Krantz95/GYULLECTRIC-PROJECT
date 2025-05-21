@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <link th:href="@{/css/bootstrap.css}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <title>귤렉트릭</title>
+</head>
+
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- 대시보드 page 상단 알림바 삽입 위치 -->
+        <div layout:fragment="alert"></div>
+
+        <nav class="d-lg-none" th:replace="~{fragments/offcanvas :: offcanvas}"></nav>
+        <div class="col-lg-2 p-0 d-none d-lg-block">
+            <div th:replace="~{fragments/navbar :: navbarFragment}"></div>
+        </div>
+
+        <!-- 본문 용 레이아웃 -->
+        <div class="col-lg-10 px-3">
+            <div layout:fragment="content"></div>
+        </div>
+    </div>
+</div>
+<!-- footer를 container-fluid 밖으로 빼기 -->
+<footer th:replace="~{fragments/footer::footerFragment}"></footer>
+<!-- 자바스크립트 -->
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- 차트JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!--스크립트-->
+<th:block layout:fragment="script"></th:block>
+</body>
+</html>
+

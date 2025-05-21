@@ -1,0 +1,438 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap');
+
+
+/* 전체 글꼴은 한글, 숫자는 Noto Sans KR 폰트 적용 */
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 18px;
+    background-color: #FFFBEA;
+}
+
+/* 영어만 Rubik으로 쓰고 싶다면 en-font로 따로지정, 일부면 <span>으로 활용 */
+.en-font {
+    font-family: 'Rubik', sans-serif; !important;
+}
+
+/* 서브타이틀 ex.페이지 상단 ORDER_재고관리 + 아래주황밑줄까지 */
+.subtitle_css {
+    border-bottom: 1px solid #F37221;
+    padding-bottom: 8px; /* pb-2 (아래 여백) */
+    font-size: 24px;
+}
+
+/* 네비게이션 디자인 */
+.navbar_css {
+    background-color: #F37221;
+    font-family: 'Source Sans Pro', 'Rubik', sans-serif;
+    font-size: 18px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    height: 100%;              /* 세로 늘리기 */
+    min-height: 100vh;         /* 화면보다 작을 때는 최소 100vh */
+}
+
+/* 폼 양식 sm, lg 구분 */
+.form_sm_css {
+    background-color: #ffffff;
+    border: 2px solid #F37221;
+    max-width: 600px;
+    width: 100%;
+    border-radius: 16px;
+    padding: 80px 60px;
+}
+.form_lg_css {
+    background-color: #ffffff;
+    border: 2px solid #F37221;
+    max-width: 800px;
+    width: 100%;
+    border-radius: 16px;
+    padding: 80px 60px;
+}
+
+/* 폼내 입력칸 input칸 하나씩 지정 : 주황테두리 + 라운드 있음 */
+.line_css {
+    width: 100%;
+    border: 1px solid #FF5900;
+    height: 50px; /* 원하는 고정 높이로 설정 */
+    padding: 10px; /* 입력란 내부여백 키움 */
+    border-radius: 8px;
+}
+/* 폼내 입력칸 input칸 하나씩 지정 : 주황테두리 + 라운드 없음 */
+.line2_css {
+    width: 100%;
+    border: 1px solid #FF5900;
+    height: 50px;
+    padding: 10px;
+    border-radius: 0; /* 테두리 라운드 없음*/
+}
+
+/******************** 버튼 css**********************/
+/* 버튼 : 주황배경+검정글씨+테두리라운드*/
+.btn_orange {
+    background-color: #FF5900;       /* 배경색: 오렌지 */
+    border: none;                    /* 기본 테두리 제거 */
+    border-radius: 20px;             /* 모서리 둥글게 */
+    padding: 15px 30px;
+    width: 160px;                    /* 버튼 가로 길이 고정 */
+    white-space: nowrap;            /* 텍스트 줄바꿈 방지 */
+    display: flex;                  /* 가로 세로 딱 중앙에 텍스트 배치 */
+    align-items: center;            /* 수직 방향으로 가운데 정렬 */
+    justify-content: center;        /* 수평 방향으로 가운데 정렬 */
+}
+
+/* '검색' 버튼 : 주황배경+검정글씨+테두리라운드 없음*/
+.btn_search {
+    background-color: #FF9100;       /* 배경색: 오렌지 */
+    border: none;                    /* 기본 테두리 제거 */
+    width: 100px;                    /* 버튼 가로 길이 고정 */
+    height: 50px;
+    padding: 10px;
+    border-radius: 0; /* 테두리 라운드 없음*/
+    white-space: nowrap;            /* 텍스트 줄바꿈 방지 */
+    display: flex;                  /* 가로 세로 딱 중앙에 텍스트 배치 */
+    align-items: center;            /* 수직 방향으로 가운데 정렬 */
+    justify-content: center;        /* 수평 방향으로 가운데 정렬 */
+}
+
+
+/* 버튼 : 검정배경+흰색글씨+테두리라운드*/
+.btn_black {
+    background-color: #000000;       /* 배경색: 오렌지 */
+    color: white;                    /* 흰색글씨 */
+    border: none;                    /* 기본 테두리 제거 */
+    border-radius: 20px;             /* 모서리 둥글게 */
+    padding: 15px 30px;
+    width: 160px;                    /* 버튼 가로 길이 고정 */
+    white-space: nowrap;            /* 텍스트 줄바꿈 방지 */
+    display: flex;                  /* 가로 세로 딱 중앙에 텍스트 배치 */
+    align-items: center;            /* 수직 방향으로 가운데 정렬 */
+    justify-content: center;        /* 수평 방향으로 가운데 정렬 */
+    text-decoration: none;          /* a링크에보이는 밑줄 제거*/
+}
+/* 버튼 : 빨간배경+흰글씨 (취소/삭제용) */
+.btn_red {
+    background-color: #FF0000;       /* 배경색: 오렌지 */
+    color: white;                    /* 흰색글씨 */
+    border: none;                    /* 기본 테두리 제거 */
+    border-radius: 15px;             /* 모서리 둥글게 */
+    padding: 15px 30px;
+    width: 80px;                    /* 버튼 가로 길이 고정 */
+    height: 40px;
+    white-space: nowrap;            /* 텍스트 줄바꿈 방지 */
+    display: flex;                  /* 가로 세로 딱 중앙에 텍스트 배치 */
+    margin: 0 auto;                 /* 가로 세로 딱 중앙에 버튼 배치 */
+    align-items: center;            /* 수직 방향으로 가운데 정렬 */
+    justify-content: center;        /* 수평 방향으로 가운데 정렬 */
+    text-decoration: none;          /* a링크에보이는 밑줄 제거*/
+}
+
+/* (삭제) 버튼 : 흰배경+빨간글씨+빨간테두리+테두리라운드 */
+.btn_sm_red {
+    width: 80px;                     /* 가로 길이 지정 */
+    background-color: white;         /* 배경: 흰색 */
+    color: #FF0000;                  /* 글씨: 빨간색 */
+    border: 1px solid #FF0000;       /* 빨간 테두리 */
+    border-radius: 10px;             /* 모서리 둥글게 */
+    padding: 6px 12px;              /* 여백 축소 */
+    margin: 0 auto;                 /* 가로 중앙 정렬 */
+    align-items: center;            /* 수직 가운데 정렬 */
+    justify-content: center;        /* 수평 가운데 정렬 */
+    text-decoration: none;          /* 밑줄 제거 */
+    white-space: nowrap;            /* 텍스트 줄바꿈 방지 */
+    box-sizing: border-box;         /* padding 포함해서 사이즈 계산 */
+    display: flex;                  /* flex로 가운데 정렬 활성화 */
+}
+
+/* (삭제) 버튼 : 흰배경+주황글씨+주황테두리+테두리라운드 */
+.btn_sm_orange {
+    width: 80px;                     /* 가로 길이 지정 */
+    background-color: white;         /* 배경: 흰색 */
+    color: #FF5900;                  /* 글씨: 빨간색 */
+    border: 1px solid #FF5900;       /* 빨간 테두리 */
+    border-radius: 10px;             /* 모서리 둥글게 */
+    padding: 6px 12px;              /* 여백 축소 */
+    margin: 0 auto;                 /* 가로 중앙 정렬 */
+    align-items: center;            /* 수직 가운데 정렬 */
+    justify-content: center;        /* 수평 가운데 정렬 */
+    text-decoration: none;          /* 밑줄 제거 */
+    white-space: nowrap;            /* 텍스트 줄바꿈 방지 */
+    box-sizing: border-box;         /* padding 포함해서 사이즈 계산 */
+    display: flex;                  /* flex로 가운데 정렬 활성화 */
+}
+
+
+/* 드롭다운 전용 : 테두리 직각 + 주황화살표 */
+.pointer_orange {
+    width: 100%;
+    height: 50px;
+    padding: 10px;
+    border: 1px solid #FF5900;
+    border-radius: 0;
+    background-color: #ffffff;
+
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='28' height='28'%3E%3Cpolygon fill='%23FF5900' points='6,9 18,9 12,18'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center; /* 오른쪽 가까이 붙게 */
+    background-size: 40px; /* 화살표 사이즈 */
+}
+/* 드롭다운 전용 : 테두리 라운드 + 주황화살표 */
+.pointer_orange_round {
+    width: 100%;                 /* 전체 너비 */
+    height: 50px;                /* 고정 높이 */
+    padding: 10px;               /* 내부 여백 */
+    border: 1px solid #FF5900;   /* 주황색 테두리 */
+    border-radius: 8px;          /* 라운드 처리 */
+    background-color: #ffffff;   /* 흰 배경 */
+
+    /* 기본제공되는 셀렉트 화살표 제거 (필요) */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='28' height='28'%3E%3Cpolygon fill='%23FF5900' points='6,9 18,9 12,18'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center; /* 오른쪽 가까이 붙게 */
+    background-size: 28px; /* 아이콘 크기 (SVG와 일치) */
+}
+.pointer_gray {
+    width: 100%;
+    height: 50px;
+    padding: 10px;
+    border: 1px solid #939393;
+    border-radius: 0;
+    background-color: #ffffff;
+
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='28' height='28'%3E%3Cpolygon fill='%23FF5900' points='6,9 18,9 12,18'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center; /* 오른쪽 가까이 붙게 */
+    background-size: 40px; /* 화살표 사이즈 */
+}
+
+
+/* table1 스타일 (흰색+주황 행 반복)*/
+.table1_css {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0 auto; /* 가운데 정렬 */
+    min-width: 768px;       /* sm화면에서 스크롤생기게 테이블 너비제한 */
+    white-space: nowrap;    /* sm화면에서 내용 줄바꿈 방지 */
+}
+.table1_css th,
+.table1_css td {
+    border: none;
+    border-bottom: 1px solid #FF5900;
+    padding: 5px 20px;
+    text-align: center;
+    vertical-align: middle; /* 수직 가운데 정렬 */
+}
+/* 헤더 색상 */
+.table1_css th {
+    background-color: #FFC373;
+    font-weight: normal; /* 기본으로 th는 글씨굵음 -> 없앰 */
+}
+/* 테이블 배경 색상 (홀수/짝수 구분) */
+.table1_css tbody tr:nth-child(odd) td {
+    background-color: #FFFDFD;
+}
+.table1_css tbody tr:nth-child(even) td {
+    background-color: #FFEFBA;
+}
+
+/* table2 스타일 (주황 행 )*/
+.table2_css {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0 auto; /* 가운데 정렬 */
+    min-width: 900px;       /* sm화면에서 스크롤생기게 테이블 너비제한 */
+    white-space: nowrap;    /* sm화면에서 내용 줄바꿈 방지 */
+}
+.table2_css th,
+.table2_css td {
+    border: none;
+    border-bottom: 1px solid #FF5900;
+    padding: 5px 20px;
+    text-align: center;
+    vertical-align: middle; /* 수직 가운데 정렬 */
+}
+/* 헤더 배경 */
+.table2_css th {
+    background-color: #FFC373;
+    font-weight: normal; /* 기본으로 th는 글씨굵음 -> 없앰 */
+}
+/* 헤더 외 행 색상 */
+.table2_css td {
+    background-color: #FFD69D;
+}
+
+/* 대시보드 공지게시판 전용 : 체크박스선택시 공지 처리 */
+.notice-row {
+    font-weight: bold;
+    background-color: #FFEFBA; /* 강조 배경색 (선택사항) */
+}
+
+
+/* 대시보드 상단 에러알림 표시 */
+.dashboard_error {
+    animation: blink-red-clear 0.5s infinite; /* 1초 간격으로 애니메이션 무한 반복 */
+    padding: 10px 0;                         /* 위아래 여백 */
+    text-align: center;                      /* 텍스트 가운데 정렬 */
+    color: white;                            /* 글자색 흰색 */
+    font-weight: bold;                       /* 굵은 글씨 */
+    font-size: 18px;                         /* 글자 크기 */
+}
+
+/* 공정모니터링 파이차트 크기 설정*/
+/* 차트 기본 설정 */
+.chart-canvas {
+    width: 300px;
+    height: auto;
+    margin: 0 auto;
+}
+
+/* 모바일에서 차트를 더 크게 보여줌 */
+@media (max-width: 575.98px) {
+    .chart-canvas {
+        width: 95vw;         /* 거의 꽉 차게 */
+        max-width: 500px;    /* 최대 500px까지 확장 */
+    }
+}
+
+/* 모바일/태블릿에서 차트 하나씩 세로로 정렬 */
+@media (max-width: 991.98px) {
+    .force-one-column {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .force-one-column .col {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+
+/* 빨간색 배경 깜빡임 애니메이션 */
+@keyframes blink-red-clear {
+    0%, 100% { background-color: #FF0000; }  /* 진한 빨강 시작/끝 */
+    50%      { background-color: #FF4D4D; }  /* 중간은 밝은 빨강으로 전환 */
+}
+
+/************************** 에러 쪽 ****************************/
+/* 에러리포트_상태 변경 버튼(미처리-점검중-*/
+.status-btn {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 12px;
+    color: black;
+    font-size: 14px;
+    cursor: pointer;
+}
+.status-unchecked { background-color: #FF0004; } /* 미처리: 빨강 */
+.status-checking  { background-color: #FFCC00; color: black; } /* 점검중: 노랑 */
+.status-resolved  { background-color: #02AD16; } /* 처리: 초록 */
+
+.status-bar-container {
+    display: flex;              /* 내부 세그먼트(.status-segment)를 가로 정렬 */
+    height: 100px;              /* 그래프바 세로 */
+    width: 80%;                 /* 그래프바 가로 */
+    padding: 10px;
+    overflow: hidden;           /* 내부 세그먼트가 넘칠 경우 잘라냄 */
+    text-align: center;         /* 텍스트 가운데 정렬  */
+    line-height: 40px;          /* 세로 정렬 기준선 (세그먼트 내부 텍스트 높이와 조절 가능) */
+}
+
+.status-segment {
+    color: black;               /* 텍스트 색상 */
+    white-space: nowrap;        /* 텍스트 줄바꿈 방지 */
+    display: flex;              /* 내부 텍스트를 정확히 중앙에 배치하기 위한 flex */
+    justify-content: center;    /* 수평 가운데 정렬 */
+    align-items: center;        /* 수직 가운데 정렬 */
+}
+
+/* 글쓰기 버튼 */
+.write_css {
+    background-color: #FF9100;
+    border: 1px solid #FF5900;
+    padding: 15px 30px;
+    width: 90px; height: 50px;
+    color: black;
+    text-decoration: none;
+    white-space: nowrap;            /* 텍스트 줄바꿈 방지 */
+    display: flex;                  /* 가로 세로 딱 중앙에 텍스트 배치 */
+    align-items: center;            /* 수직 방향으로 가운데 정렬 */
+    justify-content: center;        /* 수평 방향으로 가운데 정렬 */
+}
+
+/* 새로고침 버튼 */
+.refreshTime_css {
+    background-color: #FF9100;
+    border: none;
+    padding: 15px 30px;
+    width: 120px; height: 50px;
+    color: white;
+    text-decoration: none;
+    white-space: nowrap;            /* 텍스트 줄바꿈 방지 */
+    display: flex;                  /* 가로 세로 딱 중앙에 텍스트 배치 */
+    align-items: center;            /* 수직 방향으로 가운데 정렬 */
+    justify-content: center;        /* 수평 방향으로 가운데 정렬 */
+}
+
+/******************** 발주조회 전용 css**********************/
+/* 취소 버튼 비활성화 전/후 */
+.cancelled-row td {
+    color: gray !important;
+    text-decoration: line-through;
+}
+
+.cancelled-btn {
+    background-color: #ccc !important;
+    color: white !important;
+    pointer-events: none;
+    border: none;
+}
+
+/******************** 페이지네이션 전용 css**********************/
+/* ex. << 1 2 3 4 5 6 7 8 9 10 >> 페이지 번호 디자인 */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+}
+.pagination .page-item {
+    display: flex;
+    align-items: center;
+}
+.pagination .page-link {
+    border: none;
+    background-color: transparent;
+    color: black;
+    font-size: 18px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+}
+.pagination .page-link.prev-next {
+    font-size: 20px;       /* << >>만 크게 */
+    color: #09244B;
+    font-weight: bold;
+}
+.pagination .page-link:hover {
+    background-color: transparent;
+    text-decoration: underline;
+}
+
+
+

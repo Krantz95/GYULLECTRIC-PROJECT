@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: gyullectric
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  datasource:
+#    url: jdbc:h2:file:C:/H2DATA/testdb
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:tcp://localhost/~/testdb
+  jpa:
+#    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update  #update create
+    properties:
+      hibernate:
+        format_sql: true
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace

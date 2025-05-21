@@ -1,0 +1,122 @@
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<!-- 본문 -->
+<th:block layout:fragment="content">
+
+    <div class="py-4">
+        <div class="subtitle_css">사용자 관리</div>
+
+        <!-- 검색 필터 -->
+        <div class="my-3">
+            <form th:action="@{/members/list}" method="get" id="searchForm" class="d-flex justify-content-end align-items-center my-3 gap-2">
+                <select name="type" class="pointer_orange form-select" style="width: 200px;">
+                    <option selected disabled>이름/아이디</option>
+                    <option value="name" th:selected="${type == 'name'}">이름</option>
+                    <option value="loginId" th:selected="${type == 'loginId'}">아이디</option>
+                </select>
+                <input type="text" class="form-control line2_css" style="width: 200px;" id="search_kw" th:value="${kw}">
+                <button class="btn_search px-4" id="btn_search">검색</button>
+
+        <!--    검색폼 만들기-->
+
+                <input type="hidden" id="kw" name="kw" th:value="${kw}">
+                <input type="hidden" id="page" name="page" th:value="${paging.number}">
+            </form>
+        </div>
+        <!-- 테이블 -->
+        <div class="table-responsive py-3">
+            <table class="table table-bordered text-center align-middle table1_css">
+                <thead>
+                <tr>
+<!--                    <th>번호</th>-->
+                    <th>아이디</th>
+                    <th>이름</th>
+                    <th>연락처</th>
+                    <th>직책</th>
+                    <th>수정</th>
+                    <th>삭제</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="member, loop : ${paging.content}">
+<!--                    <td th:text="${paging.getTotalElements() - (paging.number * paging.size) - loop.index}"></td>-->
+                    <td th:text="${member.loginId}">aaa</td>
+                    <td th:text="${member.name }">윤팀장</td>
+                    <td th:text="${member.phone}">010-4444-5555</td>
+                    <td th:text="${member.positionName}">admin</td>
+                    <td><a button type="button" class="btn_sm_orange" th:href="@{/members/{id}/edit(id=${member.getId()})}">수정</a></td>
+                    <td><button class="btn_sm_red" data-bs-toggle="modal" data-bs-target="#cancelMember">삭제</button></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!--페이징 처리 시작-->
+    <div th:if="${!paging.isEmpty()}" class="py-3 d-flex justify-content-center">
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+                <li class="page-item " th:classappend="${!paging.hasPrevious()} ? 'disabled'">
+                    <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number -1}"><span>이전</span></a></li>
+                <li class="page-item" th:each="page:${#numbers.sequence(0, paging.totalPages -1)}"
+                    th:if="${page >= paging.number -5 and page <= paging.number+5}"
+                    th:classappend="${page == paging.number} ? 'active'">
+                    <a class="page-link" th:text="${page+1}" href="javascript:void(0)" th:data-page="${page}">1</a></li>
+                <li class="page-item" th:classappend="${!paging.hasNext()} ? 'disabled'">
+                    <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number+1}"><span>다음</span></a></li>
+                <!-- 클릭해도 아무 동작도 하지 않는다. 기본동장(a태그의 href기본동작, 페이지 이동)은 막고 , javascript코드만 실행 href="java어쩌구..."-->
+            </ul>
+        </nav>
+    </div>
+
+
+
+    <!-- 취소 모달창 -->
+    <div class="modal" id="cancelMember" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">회원 삭제</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>정말 삭제하시겠습니까?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn" style="background-color: red; color: white">삭제</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</th:block>
+<script layout:fragment="script">
+    $(function (){
+//이전, 다음 페이징버튼 클릭시
+        $(".page-link").on('click', function (){
+//클릭한 요소의 페이지 번호 가져오기
+            let page = $(this).data('page');
+            console.log("선택된 페이지", page)
+            $('#page').val(page)    //hidden input에 설정
+            $('#searchForm').submit();  //폼 제출하여 이동
+        })
+//페이징링크를 클릭하면 해당 페이징 번호를 가져와 폼(#searchForm)의 숨겨진 입력란("#page") 에 설정
+
+// 찾기버튼
+        $("#btn_search").on('click', function (){
+            let keyword = $("#search_kw").val();  // 검색어 가져오기
+            console.log("검색어:", keyword);  // 디버깅용 출력
+            $("#kw").val(keyword);  // hidden input에 검색어 설정
+            $('#page').val(0);  //검색 버튼을 클릭할 경우 0페이지부터 찾는다. 첫 페이지로 이동
+            $('#searchForm').submit();  //폼 제출하여 이동
+        })
+        let type = $("select[name='type']").val();
+        $("<input>").attr({type: "hidden", name: "type", value: type}).appendTo("#searchForm");
+
+//검색버튼을 클릭하면 검색어를 가져와 숨겨진 입력란('#kw') 에 설정한다.
+    })
+</script>
+</html>
+
+

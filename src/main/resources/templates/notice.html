@@ -1,0 +1,87 @@
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<th:block layout:fragment="alert">
+    <div class="dashboard_error">
+        <p style="margin: 0;">제 2공정 : 101 ERROR</p>
+    </div>
+    <div style="background-color: #FFC373; padding: 8px 0; text-align: start; vertical-align: middle;">
+        <a href="/errors/report" class="btn_black ms-3" style="display: inline-flex; width: 120px; height: 40px; border-radius: 10px; background-color: #E2E2E2; color: #000000">REPORT</a>
+        <a href="/dashboard/notice" class="btn_black ms-2" style="display: inline-flex; width: 120px; height: 40px; border-radius: 10px; background-color: #E2E2E2; color: #000000">공지사항</a>
+    </div>
+</th:block>
+
+<!-- 본문 -->
+<th:block layout:fragment="content">
+
+    <div class="py-4">
+        <div class="subtitle_css">공지게시판</div>
+
+        <!-- 테이블 -->
+        <div class="table-responsive pt-3">
+            <table class="table table-bordered text-center align-middle table1_css">
+                <thead>
+                <tr>
+                    <th style="text-align: center;">
+                        <input type="checkbox" onchange="toggleAllCheckboxes(this)" />
+                    </th>
+                    <th>제목</th>
+                    <th>작성일</th>
+                    <th>작성자</th>
+                    <th>조회수</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td style="text-align: center;">
+                        <input type="checkbox" class="row-checkbox" onchange="markAsNotice(this)" /></td>
+                    <td>5월 휴무 안내</td>
+                    <td>2025-05-12</td>
+                    <td>윤팀장</td>
+                    <td>52</td>
+                </tr>
+                <tr>
+                    <td style="text-align: center;">
+                        <input type="checkbox" class="row-checkbox" onchange="markAsNotice(this)" /></td>
+                    <td>1공정 요즘 NG가 많습니다....</td>
+                    <td>2025-05-10</td>
+                    <td>최대표</td>
+                    <td>1</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-end mt-3">
+            <button class="btn_orange" style="background-color: #FFC373; border-radius: 0px; width: 100px; height: 40px; padding: 15px 30px;">글쓰기</button>
+        </div>
+    </div>
+
+        <!-- 공지기능 추가 : 체크 선택하면 공지행으로 변경됌 (굵은글씨+상단) -->
+        <script layout:fragment="script">
+            function toggleAllCheckboxes(master) {
+                const checkboxes = document.querySelectorAll('.row-checkbox');
+                checkboxes.forEach(cb => {
+                    cb.checked = master.checked;
+
+                    //  직접 함수 호출 대신 이벤트 트리거로 변경
+                    cb.dispatchEvent(new Event('change'));
+                });
+            }
+
+            function markAsNotice(checkbox) {
+                const row = checkbox.closest("tr");
+                const tbody = document.querySelector("tbody");
+
+                if (checkbox.checked) {
+                    row.classList.add("notice-row");
+                    tbody.prepend(row);
+                } else {
+                    row.classList.remove("notice-row");
+                    tbody.append(row);
+                }
+            }
+        </script>
+
+</th:block>
+</html>
+
+

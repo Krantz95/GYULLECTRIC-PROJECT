@@ -1,0 +1,165 @@
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<th:block layout:fragment="content">
+
+    <div class="py-4">
+        <!-- 서브타이틀 -->
+        <div class="subtitle_css">에러 리포트</div>
+
+        <!-- 검색 필터 -->
+        <div class="d-flex justify-content-end align-items-center my-3 gap-2">
+            <select class="pointer_orange form-select" style="width: 200px;">
+                <option selected disabled>제목/작성자</option>
+                <option>제목</option>
+                <option>작성자</option>
+            </select>
+            <input type="text" class="form-control line2_css" style="width: 200px;">
+            <button class="btn_search" type="button">검색</button>
+        </div>
+
+        <!-- 테이블 -->
+        <div class="table-responsive">
+            <table class="table table-bordered text-center align-middle table1_css">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>제목</th>
+                    <th>제품명</th>
+                    <th>발생공정</th>
+                    <th>작성일시</th>
+                    <th>담당자</th>
+                    <th>처리여부</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>높음_204ERROR</td>
+                    <td>A 타입</td>
+                    <td>2공정</td>
+                    <td>25-02-23 10:44</td>
+                    <td>백현장</td>
+                    <td>
+                        <button class="status-btn status-unchecked" onclick="toggleStatus(this)">미처리</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>2</td><td></td><td></td><td></td><td></td><td></td>
+                    <td><button class="status-btn status-unchecked" onclick="toggleStatus(this)">미처리</button></td>
+                </tr>
+                <tr>
+                    <td>3</td><td></td><td></td><td></td><td></td><td></td>
+                    <td><button class="status-btn status-unchecked" onclick="toggleStatus(this)">미처리</button></td>
+                </tr>
+                <tr>
+                    <td>4</td><td></td><td></td><td></td><td></td><td></td>
+                    <td><button class="status-btn status-unchecked" onclick="toggleStatus(this)">미처리</button></td>
+                </tr>
+                <tr>
+                    <td>5</td><td></td><td></td><td></td><td></td><td></td>
+                    <td><button class="status-btn status-unchecked" onclick="toggleStatus(this)">미처리</button></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 글쓰기 -->
+    <div class="d-flex justify-content-end mt-1">
+        <a href="/errors/report/form" class="write_css">글쓰기</a>
+    </div>
+
+    <!-- 페이지네이션 (디자인)-->
+    <div class="d-flex justify-content-center mt-4">
+        <nav>
+            <ul class="pagination">
+                <li class="page-item">
+                    <a class="page-link prev-next" href="?page=1">&laquo;</a>
+                </li>
+                <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
+                <li class="page-item"><a class="page-link" href="?page=2">2</a></li>
+                <li class="page-item"><a class="page-link" href="?page=3">3</a></li>
+                <li class="page-item"><a class="page-link" href="?page=4">4</a></li>
+                <li class="page-item"><a class="page-link" href="?page=5">5</a></li>
+                <li class="page-item"><a class="page-link" href="?page=6">6</a></li>
+                <li class="page-item"><a class="page-link" href="?page=7">7</a></li>
+                <li class="page-item"><a class="page-link" href="?page=8">8</a></li>
+                <li class="page-item"><a class="page-link" href="?page=9">9</a></li>
+                <li class="page-item"><a class="page-link" href="?page=10">10</a></li>
+                <li class="page-item">
+                    <a class="page-link prev-next" href="?page=10">&raquo;</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- 처리상태 비율 (%) -->
+    <div class="pt-2">
+        <p>처리상태 비율(%)</p>
+        <div class="status-bar-container">
+            <div class="status-segment status-unchecked" id="bar-unchecked">미처리(%)</div>
+            <div class="status-segment status-checking" id="bar-checking">점검중(%)</div>
+            <div class="status-segment status-resolved" id="bar-resolved">처리(%)</div>
+        </div>
+    </div>
+
+    <!-- 처리여부 버튼 + 처리상태 비율 스크립트 -->
+    <script layout:fragment="script">
+        function toggleStatus(button) {
+            if (button.classList.contains("status-unchecked")) {
+                button.classList.remove("status-unchecked");
+                button.classList.add("status-checking");
+                button.textContent = "점검중";
+            } else if (button.classList.contains("status-checking")) {
+                button.classList.remove("status-checking");
+                button.classList.add("status-resolved");
+                button.textContent = "처리";
+            } else {
+                button.classList.remove("status-resolved");
+                button.classList.add("status-unchecked");
+                button.textContent = "미처리";
+            }
+            updateStatusBar();
+        }
+
+        function updateStatusBar() {
+            const buttons = document.querySelectorAll('.status-btn');
+            let unchecked = 0, checking = 0, resolved = 0;
+
+            buttons.forEach(btn => {
+                if (btn.classList.contains('status-unchecked')) unchecked++;
+                else if (btn.classList.contains('status-checking')) checking++;
+                else if (btn.classList.contains('status-resolved')) resolved++;
+            });
+
+            const total = unchecked + checking + resolved;
+            const uncheckedPercent = total ? (unchecked / total * 100) : 0;
+            const checkingPercent = total ? (checking / total * 100) : 0;
+            const resolvedPercent = total ? (resolved / total * 100) : 0;
+
+            const barUnchecked = document.getElementById('bar-unchecked');
+            const barChecking = document.getElementById('bar-checking');
+            const barResolved = document.getElementById('bar-resolved');
+
+            // width 적용
+            barUnchecked.style.width = uncheckedPercent + '%';
+            barChecking.style.width = checkingPercent + '%';
+            barResolved.style.width = resolvedPercent + '%';
+
+            // 텍스트 설정
+            barUnchecked.textContent = `미처리(${uncheckedPercent.toFixed(0)}%)`;
+            barChecking.textContent = `점검중(${checkingPercent.toFixed(0)}%)`;
+            barResolved.textContent = `처리(${resolvedPercent.toFixed(0)}%)`;
+
+            // display 제어
+            barUnchecked.style.display = uncheckedPercent > 0 ? 'flex' : 'none';
+            barChecking.style.display = checkingPercent > 0 ? 'flex' : 'none';
+            barResolved.style.display = resolvedPercent > 0 ? 'flex' : 'none';
+        }
+
+        window.addEventListener('load', function () {
+            updateStatusBar();
+        });
+    </script>
+
+</th:block>
+</html>

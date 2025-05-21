@@ -1,0 +1,101 @@
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<th:block layout:fragment="content">
+
+    <div class="py-4">
+        <!-- 서브타이틀 css -->
+        <div class="subtitle_css">에러 리포트 양식</div>
+
+        <!-- 폼 -->
+        <div class="d-flex justify-content-center pt-3">
+            <div class="form_lg_css mb-5 shadow-sm">
+                <form>
+
+                    <div class="mb-3">
+                        <label class="form-label">제목</label>
+                        <input type="text" class="form-control line_css">
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="row">
+                            <div class="col-6">
+                                <label class="form-label">발생일시</label>
+                                <input type="datetime-local" class="form-control line_css" id="eventDateTime">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">발생공정</label>
+                                <select class="form-select pointer_orange_round">
+                                    <option selected disabled>선택</option>
+                                    <option>1공정</option>
+                                    <option>2공정</option>
+                                    <option>3공정</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="row">
+                            <div class="col-6">
+                                <label class="form-label">우선순위(긴급도)</label>
+                                <select class="form-select pointer_orange_round">
+                                    <option selected disabled>선택</option>
+                                    <option>높음</option>
+                                    <option>보통</option>
+                                    <option>낮음</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">제품명</label>
+                                <select class="form-select pointer_orange_round">
+                                    <option selected disabled>선택</option>
+                                    <option>A타입</option>
+                                    <option>B타입</option>
+                                    <option>C타입</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">에러내용</label>
+                        <textarea class="form-control line_css" style="height: 200px;"></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end py-3">
+                        <button type="submit" class="btn_orange px-4">제출</button>
+                        <a href="/errors/report" class="btn_black ms-3">취소</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 발생일시 : 현재 날짜 불러오기 -->
+    <script layout:fragment="script">
+        document.addEventListener('DOMContentLoaded', function () {
+            const input = document.getElementById('eventDateTime');
+            const now = new Date();
+            const pad = (n) => n.toString().padStart(2, '0');
+            const formatted = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+            input.value = formatted;
+        });
+    </script>
+
+    <!--
+[제목 + 우선순위 합치기 구현 백엔드 참고]
+
+1. 제목 input과 우선순위 select에 name 속성을 추가
+   예: name="title", name="priority"
+
+2. 폼 전송 시, 서버 컨트롤러(@PostMapping)에서 두 값을 받아 합친다
+   예: String mergedTitle = priority + "_" + title;
+
+3. mergedTitle을 엔티티의 title 필드에 저장
+
+4. 에러 리스트 페이지에서 제목을 보여줄 때는 th:text="${error.title}" 로 출력
+   결과적으로 "높음_204ERROR" 와 같은 형태로 표에 나타나게 함
+-->
+
+</th:block>
+</html>
+

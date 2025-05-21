@@ -1,0 +1,89 @@
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<th:block layout:fragment="content">
+
+    <div class="py-4">
+        <!-- 서브타이틀 -->
+        <div class="subtitle_css"><span class="en-font">ORDER</span>_발주조회</div>
+
+        <!-- 테이블 -->
+        <div class="table-responsive pt-3" style="overflow-x: auto;">
+            <table class="table table-bordered text-center align-middle table2_css">
+                <thead>
+                <tr>
+                    <th>자재명</th>
+                    <th>공급업체</th>
+                    <th>수량</th>
+                    <th>최초발주시간</th>
+                    <th>상태</th>
+                    <th>관리</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>배터리팩</td>
+                    <td>삼성SDI</td>
+                    <td>50</td>
+                    <td>2025-05-12 14:22</td>
+                    <td>정상</td>
+                    <td>
+                        <button class="btn_red cancel-btn" data-bs-toggle="modal" data-bs-target="#cancelModal">취소</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>배터리팩</td>
+                    <td>B전기</td>
+                    <td>80</td>
+                    <td>2025-05-12 14:22</td>
+                    <td>정상</td>
+                    <td>
+                        <button class="btn_red cancel-btn" data-bs-toggle="modal" data-bs-target="#cancelModal">취소</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 취소 모달창 -->
+        <div class="modal" id="cancelModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">발주 취소</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>발주 삭제하시겠습니까?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">아니요</button>
+                        <button type="button" class="btn" style="background-color: red; color: white" id="confirmCancel">네</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 모달에서 '네' (취소) 를 누르면 비활성화로 변경되는 효과 -->
+    <script layout:fragment="script">
+        let targetRow;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.cancel-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    targetRow = btn.closest('tr');
+                });
+            });
+
+            document.getElementById('confirmCancel').addEventListener('click', function () {
+                if (targetRow) {
+                    targetRow.classList.add('cancelled-row');
+                    const btn = targetRow.querySelector('.cancel-btn');
+                    btn.classList.add('cancelled-btn');
+                    btn.textContent = '취소됨';
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('cancelModal'));
+                    modal.hide();
+                }
+            });
+        });
+    </script>
+</th:block>
+</html>

@@ -1,0 +1,101 @@
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<th:block layout:fragment="content">
+
+    <div class="py-4">
+        <!-- 서브타이틀 -->
+        <div class="subtitle_css"><span class="en-font">ORDER</span>_재고관리</div>
+
+        <!-- 재고 주문 제목 -->
+        <div class="d-flex justify-content-center">
+            <div style="width: 100%; max-width: 480px;">
+                <h5 class="text-start pt-4 pb-2">재고 주문</h5>
+            </div>
+        </div>
+
+        <!-- 재고 주문 폼 -->
+        <div class="d-flex justify-content-center pb-4">
+            <div class="form_sm_css shadow-sm">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">자재명</label>
+                        <select class="form-select pointer_orange_round">
+                            <option selected disabled>자재 선택</option>
+                            <option>배터리팩</option>
+                            <option>모터</option>
+                            <option>컨트롤러</option>
+                            <option>휠</option>
+                            <option>프레임</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">주문수량</label>
+                        <input type="number" class="form-control line_css" placeholder="수량 입력">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">공급업체</label>
+                        <select class="form-select pointer_orange_round">
+                            <option selected disabled>공급업체 선택</option>
+                            <option>A전자</option>
+                            <option>B전기</option>
+                            <option>C파워</option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-center">
+                        <button type="submit" class="btn_orange">주문</button>
+                        <a href="/order/history" class="btn_black ms-3">발주이력</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 검색 필터 -->
+        <div class="d-flex justify-content-end align-items-center mb-3 gap-2">
+            <select class="pointer_orange form-select" style="width: 200px;">
+                <option selected disabled>자재명</option>
+                <option>배터리팩</option>
+                <option>모터</option>
+                <option>컨트롤러</option>
+                <option>휠</option>
+                <option>프레임</option>
+            </select>
+            <input type="text" class="form-control line2_css" placeholder="검색어 입력" style="width: 200px;">
+            <button class="btn_search">검색</button>
+        </div>
+
+        <!-- 테이블 -->
+        <div class="table-responsive">
+            <table class="table table-bordered text-center align-middle table1_css">
+                <thead>
+                <tr>
+                    <th>자재명</th>
+                    <th>공급업체</th>
+                    <th>수량</th>
+                    <th>임계치</th>
+                    <th>상태</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>모터</td>
+                    <td>A전자</td>
+                    <td>25</td>
+                    <td>부족</td>
+                    <td><span class="badge bg-danger rounded-circle" style="width: 12px; height: 12px;"></span></td>
+                </tr>
+                <tr>
+                    <td>배터리팩</td>
+                    <td>B전기</td>
+                    <td>80</td>
+                    <td>충분</td>
+                    <td><span class="badge bg-success rounded-circle" style="width: 12px; height: 12px;"></span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</th:block>
+</html>
+

@@ -1,0 +1,79 @@
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<th:block layout:fragment="content">
+
+    <div class="py-4">
+        <!-- 서브타이틀 -->
+        <div class="subtitle_css en-font">ORDER_ORDER LIST</div>
+
+        <!-- 테이블 -->
+        <div class="table-responsive pt-3" style="overflow-x: auto;"> <!-- sm사이즈에서는 스크롤 생성 -->
+            <table class="table table-bordered text-center align-middle table2_css">
+                <thead>
+                <tr>
+                    <th>제품명</th>
+                    <th>수량</th>
+                    <th>담당직원</th>
+                    <th>주문날짜</th>
+                    <th>납기일</th>
+                    <th>공정상태</th>
+                    <th>작업</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>A타입</td>
+                    <td>50</td>
+                    <td>윤팀장</td>
+                    <td>2025-05-02 11:14</td>
+                    <td>2025-05-05</td>
+                    <td>PENDING</td>
+                    <!-- btn_red css를 사용하지만 크기조절 및 버튼2개 나란히 배치로 강제 style 수정-->
+                    <td style="text-align: center; vertical-align: middle;">
+                        <div style="display: inline-block;">
+                            <button class="btn_red" style="display: inline-flex; background-color: #FF5900;">공정시작</button>
+                            <button class="btn_red" style="display: inline-flex; margin-right: 6px;" data-bs-toggle="modal" data-bs-target="#cancelModal2">삭제</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>B타입</td>
+                    <td>20</td>
+                    <td>윤팀장</td>
+                    <td>2025-05-04 12:44</td>
+                    <td>2025-05-08</td>
+                    <td>COMPLETED</td>
+                    <!-- btn_red css를 사용하지만 크기조절 및 버튼2개 나란히 배치로 강제 style 수정-->
+                    <td style="text-align: center; vertical-align: middle;">
+                        <div style="display: inline-block;">
+                            <button class="btn_red" style="display: inline-flex; background-color: #FF5900;">공정시작</button>
+                            <button class="btn_red" style="display: inline-flex; margin-right: 6px;" data-bs-toggle="modal" data-bs-target="#cancelModal2">삭제</button>
+                            <button class="btn_red" style="display: inline-flex; background-color: #32B705;">공정보기</button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 최소 모달창 -->
+        <div class="modal" id="cancelModal2" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">작업 취소</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>해당 작업을 삭제하시겠습니까?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                        <button type="button" class="btn" style="background-color: red; color: white">삭제</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+</html>
+
