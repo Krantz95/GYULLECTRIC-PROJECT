@@ -25,7 +25,7 @@ public class OrderController {
         if (session.getAttribute("user") == null) {
             return "redirect:/login";
         }
-        // 컨트롤러 서비스 연결 필요
+        // 컨트롤러 서비스 연결 필요 250523
         // model.addAttribute("orderList", orderList);
         return "product/orderList";
     }
