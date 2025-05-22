@@ -8,10 +8,10 @@
         <!-- 테이블 -->
         <div style="width: 800px;">
             <p class="pt-3">제품별 생산 달성률(%)</p>
-            <canvas id="achievementChart" style="max-width: 100%; height: 60px;"></canvas>
+            <canvas id="achievementChart" style="max-width: 100%; height: 200px;"></canvas>
         </div>
 
-        <!-- 그래프 -->
+        <!-- 임시 구현 그래프  -->
         <p class="pt-5">제품 리스트</p>
         <div class="table-responsive pt-2" style="overflow-x: auto;">
             <table class="table table-bordered text-center align-middle table2_css">
@@ -58,6 +58,8 @@
                     <td>12</td>
                     <td>30.0%</td>
                 </tr>
+
+                <!-- 타임리프 작업 예시-->
                 <!--                <tr th:each = "product : ${jobOrders}">-->
                 <!--                    <th th:text = "${product.id}"></th>-->
                 <!--                    <td th:text = "${product.productName}"></td>-->
@@ -68,27 +70,22 @@
                 <!--                    <td th:text ="${productCountByJobOrder.get(product.id)}"></td>-->
                 <!--                    <td th:text ="${#numbers.formatDecimal((productCountByJobOrder.get(product.id) * 100.0) / product.orderQuantity, 1, 1)} + '%'"></td>-->
                 <!--                </tr>-->
+
                 </tbody>
             </table>
         </div>
     </div>
 
     <!-- 열어서 안에 주석 참고 // 임시 구현 가로 막대 차트 -->
-    <script layout:fragment="script">
+    <script th:inline="javascript" layout:fragment="script">
         document.addEventListener('DOMContentLoaded', function () {
             const ctx = document.getElementById('achievementChart').getContext('2d');
 
             const data = {
-                labels: ['A타입', 'B타입', 'C타입'],
-                datasets: [{
+                labels: ['A타입', 'B타입', 'C타입'], // 타임리프 사용 후에는 이부분 바꾸기
+                datasets: [{    // 타임리프 사용 후에는 이부분 바꾸기
                     label: '달성률 (%)',
                     data: [96.7, 100.0, 30.0],
-                    // 타임리프 쓴 다음에는 label과 data를 아래걸로 바꾸면 됌
-                    // 제품 이름 (labels)
-                    // labels: [ <th:block th:each="p, stat : ${jobOrders}">'[[${p.productName}]]'<th:block th:if="${!stat.last}">,</th:block></th:block> ]
-                    // 달성률 계산해서 넣기 (완제품 수 / 주문 수량 * 100)
-                    // data: [ <th:block th:each="p, stat : ${jobOrders}">[[${#numbers.formatDecimal((productCountByJobOrder.get(p.id) * 100.0) / p.orderQuantity, 1, 1)}]]<th:block th:if="${!stat.last}">,</th:block></th:block> ]
-
                     backgroundColor: ['#FFCC00', '#02AD16', '#FF5900'],
                     borderWidth: 1
                 }]

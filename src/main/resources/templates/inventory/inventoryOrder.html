@@ -63,7 +63,7 @@
         </div>
     </div>
     <!-- 모달에서 '네' (취소) 를 누르면 비활성화로 변경되는 효과 -->
-    <script layout:fragment="script">
+    <script th:inline="javascript" layout:fragment="script">
         let targetRow;
 
         document.addEventListener('DOMContentLoaded', function () {

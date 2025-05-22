@@ -15,59 +15,66 @@
         <!-- 재고 주문 폼 -->
         <div class="d-flex justify-content-center pb-4">
             <div class="form_sm_css shadow-sm">
-                <form>
+                <form role="form" th:object="${inventoryForm}" method="post">
+                    <div class="alert alert-warning" role="alert" th:if="${#fields.hasAnyErrors()}">
+                        <div th:each="err : ${#fields.allErrors()}" th:text="${err}"></div>
+                    </div>
                     <div class="mb-3">
-                        <label class="form-label">자재명</label>
-                        <select class="form-select pointer_orange_round">
-                            <option selected disabled>자재 선택</option>
-                            <option>배터리팩</option>
-                            <option>모터</option>
-                            <option>컨트롤러</option>
-                            <option>휠</option>
-                            <option>프레임</option>
+                        <label th:for="*{partName}" class="form-label">자재명</label>
+                        <select class="form-select pointer_orange_round" th:field="*{partName}">
+                            <option value="">자재 선택</option>
+                            <option th:each="partName : ${T(gyullectric.gyullectric.domain.PartName).values()}"
+                                    th:text="${partName}" th:value="${partName}"></option>
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">주문수량</label>
-                        <input type="number" class="form-control line_css" placeholder="수량 입력">
+                        <label class="form-label" th:for="*{quantity}">주문수량</label>
+                        <input type="text" class="form-control line_css" placeholder="수량 입력" th:field="*{quantity}">
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">공급업체</label>
-                        <select class="form-select pointer_orange_round">
-                            <option selected disabled>공급업체 선택</option>
-                            <option>A전자</option>
-                            <option>B전기</option>
-                            <option>C파워</option>
+                        <label class="form-label" th:for="*{supplier}">공급업체</label>
+                        <select class="form-select pointer_orange_round" th:field="*{supplier}">
+                            <option value="">공급업체 선택</option>
+                            <option th:each="supplier : ${T(gyullectric.gyullectric.domain.Supplier).values()}"
+                                    th:text="${supplier}" th:value="${supplier}"></option>
                         </select>
                     </div>
 
                     <div class="d-flex justify-content-center">
                         <button type="submit" class="btn_orange">주문</button>
-                        <a href="/order/history" class="btn_black ms-3">발주이력</a>
+                        <a th:href="@{/order/history}" class="btn_black ms-3">발주이력</a>
                     </div>
                 </form>
             </div>
         </div>
 
         <!-- 검색 필터 -->
-        <div class="d-flex justify-content-end align-items-center mb-3 gap-2">
-            <select class="pointer_orange form-select" style="width: 200px;">
-                <option selected disabled>자재명</option>
-                <option>배터리팩</option>
-                <option>모터</option>
-                <option>컨트롤러</option>
-                <option>휠</option>
-                <option>프레임</option>
-            </select>
-            <input type="text" class="form-control line2_css" placeholder="검색어 입력" style="width: 200px;">
-            <button class="btn_search">검색</button>
+        <div class="my-3">
+            <form role="form" method="get" th:action="@{/order/inventory}" class="d-flex justify-content-end align-items-center mb-3 gap-2">
+                <select name="partName" class="pointer_orange form-select" style="width: 200px;">
+                    <option value="">자재명</option>
+                    <option th:each="partName : ${partNames}"
+                            th:value="${partName}"
+                            th:text="${partName}"
+                            th:selected="${partName} == ${param.partName}"></option>
+                </select>
+
+                <select name="supplier" class="pointer_orange form-select" style="width: 200px;">
+                    <option value="">공급업체</option>
+                    <option th:each="supplier : ${suppliers}"
+                            th:value="${supplier}"
+                            th:text="${supplier}"
+                            th:selected="${supplier} == ${param.supplier}"></option>
+                </select>
+                <button type="submit" class="btn_search">검색</button>
+            </form>
         </div>
 
         <!-- 테이블 -->
         <div class="table-responsive">
-            <table class="table table-bordered text-center align-middle table1_css">
+            <table class="table table-bordered text-center align-middle table1_css" >
                 <thead>
                 <tr>
                     <th>자재명</th>
@@ -77,25 +84,68 @@
                     <th>상태</th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody th:each="inventoryLists : ${paging.content}">
                 <tr>
-                    <td>모터</td>
-                    <td>A전자</td>
-                    <td>25</td>
-                    <td>부족</td>
-                    <td><span class="badge bg-danger rounded-circle" style="width: 12px; height: 12px;"></span></td>
+                    <td th:text="${inventoryLists.partName}"></td>
+                    <td th:text="${inventoryLists.supplier}"></td>
+                    <td th:text="${inventoryLists.quantity}"></td>
+                    <td th:text="${inventoryLists.getQuantity() <= 100}? '부족':'충분'"></td>
+                    <td th:if="${inventoryLists.getQuantity() <= 100}">
+                        <i class="bi bi-circle-fill text-danger"></i>
+                    </td>
+                    <td th:unless="${inventoryLists.getQuantity() <= 100}">
+                        <i class="bi bi-circle-fill text-success"></i>
+                    </td>
+                    <!--                    <td><span class="badge bg-danger rounded-circle" style="width: 12px; height: 12px;"></span></td>-->
                 </tr>
-                <tr>
-                    <td>배터리팩</td>
-                    <td>B전기</td>
-                    <td>80</td>
-                    <td>충분</td>
-                    <td><span class="badge bg-success rounded-circle" style="width: 12px; height: 12px;"></span></td>
-                </tr>
+
                 </tbody>
             </table>
         </div>
+        <!--페이징 처리 시작-->
+        <div th:if="${!paging.isEmpty()}" class="py-3 d-flex justify-content-center">
+            <nav aria-label="Page navigation example">
+                <ul class="pagination">
+                    <li class="page-item " th:classappend="${!paging.hasPrevious()} ? 'disabled'">
+                        <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number -1}"><span>이전</span></a></li>
+                    <li class="page-item" th:each="page:${#numbers.sequence(0, paging.totalPages -1)}"
+                        th:if="${page >= paging.number -5 and page <= paging.number+5}"
+                        th:classappend="${page == paging.number} ? 'active'">
+                        <a class="page-link" th:text="${page+1}" href="javascript:void(0)" th:data-page="${page}">1</a></li>
+                    <li class="page-item" th:classappend="${!paging.hasNext()} ? 'disabled'">
+                        <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number+1}"><span>다음</span></a></li>
+                    <!-- 클릭해도 아무 동작도 하지 않는다. 기본동장(a태그의 href기본동작, 페이지 이동)은 막고 , javascript코드만 실행 href="java어쩌구..."-->
+                </ul>
+            </nav>
+        </div>
     </div>
+
 </th:block>
+<script th:inline="javascript" layout:fragment="script">
+    $(function (){
+//이전, 다음 페이징버튼 클릭시
+        $(".page-link").on('click', function (){
+//클릭한 요소의 페이지 번호 가져오기
+            let page = $(this).data('page');
+            console.log("선택된 페이지", page)
+            $('#page').val(page)    //hidden input에 설정
+            $('#searchForm').submit();  //폼 제출하여 이동
+        })
+//페이징링크를 클릭하면 해당 페이징 번호를 가져와 폼(#searchForm)의 숨겨진 입력란("#page") 에 설정
+
+// 찾기버튼
+        $("#btn_search").on('click', function (){
+            let keyword = $("#search_kw").val();  // 검색어 가져오기
+            console.log("검색어:", keyword);  // 디버깅용 출력
+            $("#kw").val(keyword);  // hidden input에 검색어 설정
+            $('#page').val(0);  //검색 버튼을 클릭할 경우 0페이지부터 찾는다. 첫 페이지로 이동
+            $('#searchForm').submit();  //폼 제출하여 이동
+        })
+        let type = $("select[name='type']").val();
+        $("<input>").attr({type: "hidden", name: "type", value: type}).appendTo("#searchForm");
+
+//검색버튼을 클릭하면 검색어를 가져와 숨겨진 입력란('#kw') 에 설정한다.
+    })
+</script>
 </html>
 
