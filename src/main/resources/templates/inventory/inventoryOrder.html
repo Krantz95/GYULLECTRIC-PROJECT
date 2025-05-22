@@ -19,22 +19,12 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr>
-                    <td>배터리팩</td>
-                    <td>삼성SDI</td>
-                    <td>50</td>
-                    <td>2025-05-12 14:22</td>
-                    <td>정상</td>
-                    <td>
-                        <button class="btn_red cancel-btn" data-bs-toggle="modal" data-bs-target="#cancelModal">취소</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>배터리팩</td>
-                    <td>B전기</td>
-                    <td>80</td>
-                    <td>2025-05-12 14:22</td>
-                    <td>정상</td>
+                <tr th:each="inventoryLists : ${inventoryList}">
+                    <td th:text="${inventoryLists.partName}"></td>
+                    <td th:text="${inventoryLists.supplier}"></td>
+                    <td th:text="${inventoryLists.getQuantity()}"></td>
+                    <td th:text="${#temporals.format(inventoryLists.getOrderAt(), 'yyyy-MM-dd hh:mm')}"></td>
+                    <td th:text="${inventoryLists.getQuantity()<=100? '부족':'정상'}"></td>
                     <td>
                         <button class="btn_red cancel-btn" data-bs-toggle="modal" data-bs-target="#cancelModal">취소</button>
                     </td>
@@ -52,11 +42,11 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p>발주 삭제하시겠습니까?</p>
+                        <p>재고 주문을 취소하시겠습니까?</p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">아니요</button>
-                        <button type="button" class="btn" style="background-color: red; color: white" id="confirmCancel">네</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                        <button type="button" class="btn" style="background-color: red; color: white" id="confirmCancel">재고삭제</button>
                     </div>
                 </div>
             </div>
