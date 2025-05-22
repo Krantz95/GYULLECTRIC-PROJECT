@@ -1,10 +1,11 @@
 package gyullectric.gyullectric.controllter;
 
-import gyullectric.gyullectric.domain.Members;
-import gyullectric.gyullectric.domain.PositionName;
+import gyullectric.gyullectric.domain.*;
+import gyullectric.gyullectric.dto.InventoryForm;
 import gyullectric.gyullectric.dto.MembersForm;
 import gyullectric.gyullectric.dto.MembersUpdateForm;
 import gyullectric.gyullectric.service.MemberService;
+import gyullectric.gyullectric.service.OrderService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,23 +15,23 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/order")
 public class OrderController {
 
-    private final MemberService memberService;
+    private final OrderService orderService;
 
-    //목록보기
-    @GetMapping("/list")
-    public String listMembers(Model model, HttpSession session,
-                              @RequestParam(value = "page", defaultValue = "0") int page,
-                              @RequestParam(value = "kw", defaultValue = "") String kw,
-                              @RequestParam(value = "type", required = false, defaultValue = "") String type
-    ) {
 
+    @GetMapping("/inventory")
+    public String getInventory (HttpSession session, Model model, @RequestParam(value = "page", defaultValue = "0")int page,
+                                @RequestParam(value = "kw", defaultValue = "") String kw,
+                                @RequestParam(value = "partName", required = false, defaultValue = "") String partName,
+                                @RequestParam(value = "supplier", required = false, defaultValue = "") String supplier) {
+        // 로그인 및 권한 체크
         Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
-
         if (loginMember == null) {
             return "redirect:/";
         }
@@ -38,72 +39,58 @@ public class OrderController {
             return "redirect:/";
         }
 
-        Page<Members> paging = memberService.getList(page, kw, type);
+        // 검색 조건으로 페이징 처리
+        Page<Inventory> paging = orderService.orderGetList(page, kw, partName, supplier);
+
+        // 뷰에 필요한 데이터들
         model.addAttribute("loginMember", loginMember);
         model.addAttribute("paging", paging);
         model.addAttribute("kw", kw);
-        model.addAttribute("type", type);
+        model.addAttribute("partName", partName);
+        model.addAttribute("supplier", supplier);
 
-        return "member/memberList";
+        // 드롭다운 목록용 enum
+        model.addAttribute("partNames", PartName.values());
+        model.addAttribute("suppliers", Supplier.values());
+        model.addAttribute("inventoryForm", new InventoryForm());
+
+        return "inventory/inventory";
     }
-
-    //수정
-    @GetMapping("/{id}/edit")
-    public String editMemberForm(@PathVariable("id") Long id, Model model) {
-        Members members = memberService.oneFindMembers(id).orElseThrow(() -> new IllegalArgumentException("해당 아이디를 찾을 수 없습니다"));
-
-        MembersForm membersForm = MembersForm.builder()
-                .id(members.getId())
-                .loginId(members.getLoginId())
-                .password(members.getPassword())
-                .name(members.getName())
-                .phone(members.getPhone())
-                .positionName(members.getPositionName())
-                .build();
-        model.addAttribute("membersForm", membersForm);
-        return "member/updateMemberForm";
-    }
-
-    // 수정저장
-    @PostMapping("/{id}/edit")
-    public String postEditForm(Model model, @Valid @ModelAttribute("membersForm") MembersUpdateForm membersForm, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            Members members = memberService.oneFindMembers(membersForm.getId()).orElseThrow(() -> new IllegalArgumentException("찾는 해당 아이디가 없습니다"));
-            membersForm.setId(members.getId());
-            membersForm.setLoginId(members.getLoginId());
-            membersForm.setPassword(members.getPassword());
-            membersForm.setName(members.getName());
-            membersForm.setPhone(members.getPhone());
-            membersForm.setPositionName(members.getPositionName());
-            model.addAttribute("membersForm", membersForm);
-            return "member/updateMemberForm";
+    @PostMapping("/inventory")
+    public String postInventory(@Valid @ModelAttribute("inventoryForm")InventoryForm inventoryForm, BindingResult bindingResult, Model model,
+                                HttpSession session){
+        Members loginMember = (Members) session.getAttribute("loginMember");
+        if (loginMember == null) {
+            // 로그인 정보가 없으면 로그인 페이지로 리다이렉트
+            return "redirect:/login";
         }
-        Members members = memberService.oneFindMembers(membersForm.getId()).orElseThrow(() -> new IllegalArgumentException("찾는 해당 아이디가 없습니다"));
-
-        String newPassword = membersForm.getPassword();
-        if (newPassword == null || newPassword.isBlank()) {
-            newPassword = members.getPassword();
+        if(inventoryForm.getQuantity() == null || inventoryForm.getQuantity() <= 0) {
+            bindingResult.rejectValue("quantity", "Invalid.quantity", "수량은 1 이상의 숫자여야 합니다.");
+            return "inventory/inventory";
         }
-
-        Members updateMembers = members.toBuilder()
-                .id(membersForm.getId())
-                .loginId(membersForm.getLoginId())
-                .password(newPassword)
-                .name(membersForm.getName())
-                .phone(membersForm.getPhone())
-                .positionName(membersForm.getPositionName())
+        if(bindingResult.hasErrors()){
+            return "inventory/inventory";
+        }
+        Inventory inventory = Inventory.builder()
+                .id(inventoryForm.getId())
+                .partName(inventoryForm.getPartName())
+                .quantity(inventoryForm.getQuantity())
+                .supplier(inventoryForm.getSupplier())
+                .orderAt(LocalDateTime.now())
+                .members(loginMember)
                 .build();
-        memberService.signup(updateMembers);
-
-        return "redirect:/members/list";
+        orderService.saveInventory(inventory);
+        return "redirect:/order/inventory";
     }
 
-    //    delete
-    @GetMapping("/{id}/delete")
-    public String deleteMember(@PathVariable("id") Long id, Model model) {
-        Members members = memberService.oneFindMembers(id).orElseThrow(() -> new IllegalArgumentException("해당 아이디를 찾을 수 없습니다"));
-
-        memberService.deleteMembers(members.getId());
-        return "redirect:/members/list";
+    @GetMapping("/history")
+    public String getOrderHistory () {
+        return "inventory/inventoryOrder";
     }
+
+    @GetMapping("/list")
+    public String getOrderList () {
+        return "product/orderList";
+    }
+
 }
