@@ -88,14 +88,14 @@ public class MemberService {
                 query.distinct(true);
 
                 if ("name".equals(type)) {
-                    return cb.like(q.get("name"), "%" + kw + "%");
+                    return cb.like(q.get("name"), "%" + kw + "%" );
                 } else if ("loginId".equals(type)) {
-                    return cb.like(q.get("loginId"), "%" + kw + "%");
+                    return cb.like(q.get("loginId"),"%" +  kw + "%");
                 } else {
                     // 기본: 이름 + 아이디 둘 다 검색
                     return cb.or(
-                            cb.like(q.get("loginId"), "%" + kw + "%"),
-                            cb.like(q.get("name"), "%" + kw + "%")
+                            cb.like(q.get("loginId"),"%" +  kw + "%" ),
+                            cb.like(q.get("name"),"%" +  kw + "%")
                     );
                 }
             }
