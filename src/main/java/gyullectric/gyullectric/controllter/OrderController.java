@@ -16,6 +16,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
 
 @Controller
 @RequiredArgsConstructor
@@ -84,7 +86,10 @@ public class OrderController {
     }
 
     @GetMapping("/history")
-    public String getOrderHistory () {
+    public String getOrderHistory (Model model) {
+
+        List<Inventory> inventoryList = orderService.findAllInventory();
+        model.addAttribute("inventoryList", inventoryList);
         return "inventory/inventoryOrder";
     }
 

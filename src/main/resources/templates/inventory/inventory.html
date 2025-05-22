@@ -68,7 +68,7 @@
                             th:text="${supplier}"
                             th:selected="${supplier} == ${param.supplier}"></option>
                 </select>
-                <button type="button" class="btn_search">검색</button>
+                <button type="button" class="btn_search" id="btn_search">검색</button>
 
                 <input type="hidden" id="page" name="page"
                        th:value="${paging != null ? paging.number : 0}">
@@ -142,13 +142,9 @@
             $("#kw").val(keyword);  // hidden input에 검색어 설정
             $('#page').val(0);  //검색 버튼을 클릭할 경우 0페이지부터 찾는다. 첫 페이지로 이동
             $('#searchForm').submit();  //폼 제출하여 이동
-        })
-        $("#search_kw").on("keypress", function(e) {
-            if (e.which === 13) {
-                e.preventDefault();
-                $("#btn_search").click();
-            }
         });
+
+
     })
 </script>
 </html>
