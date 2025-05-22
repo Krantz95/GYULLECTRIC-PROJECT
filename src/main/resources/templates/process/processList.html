@@ -10,7 +10,7 @@
             <button type="button" class="refreshTime_css" onclick="location.reload();">
                 새로고침
             </button>
-            <span>최근 업데이트: (시간 구현 전) </span>
+            <span>최근 업데이트: (시간 구현 전) 웹소캣으로 5초 업데이트하면 필요없나?  </span>
         </div>
 
         <!-- 공정별 OK/NG율 -->
@@ -23,6 +23,13 @@
                     <canvas id="myChart1" class="chart-canvas"></canvas>
                 </div>
                 <div id="chartText1" class="pt-2"></div>
+                <!-- ↓ 이 부분은 Thymeleaf로 정적 데이터 => 동적 표현식으로 교체 필요 -->
+                <!-- 예시:
+                <ul>
+                    <li>OK: <span th:text="${okCountByStep[1] ?: 0}"></span></li>
+                    <li>NG: <span th:text="${ngCountByStep[1] ?: 0}"></span></li>
+                </ul>
+                -->
             </div>
             <div class="col text-center">
                 <p class="fs-5">2공정</p>
@@ -58,6 +65,14 @@
                     </tr>
                     </thead>
                     <tbody>
+                    <!--                    <tr th:each="process : ${processes}">-->
+                    <!--                        <td th:text="${process.jobOrder.productName}"></td>-->
+                    <!--                        <td th:text="${process.lotNumber}"></td>-->
+                    <!--                        <td th:text="${process.step}"></td>-->
+                    <!--                        <td th:text="${process.status}"></td>-->
+                    <!--                        <td th:text="${#temporals.format(process.processDate,'yyyy-MM-dd hh-mm')}"></td>-->
+                    <!--                        <td th:text="${process.errorㅋCode}"></td>-->
+                    <!--                    </tr>-->
                     <tr>
                         <td>A타입</td>
                         <td>LOT123</td>
@@ -82,63 +97,55 @@
                         <td>2025-05-12 08:30</td>
                         <td>-</td>
                     </tr>
-                    <!--                    <tr th:each="process : ${processes}">-->
-                    <!--                        <td th:text="${process.jobOrder.productName}"></td>-->
-                    <!--                        <td th:text="${process.lotNumber}"></td>-->
-                    <!--                        <td th:text="${process.step}"></td>-->
-                    <!--                        <td th:text="${process.status}"></td>-->
-                    <!--                        <td th:text="${#temporals.format(process.processDate,'yyyy-MM-dd hh-mm')}"></td>-->
-                    <!--                        <td th:text="${process.errorㅋCode}"></td>-->
-                    <!--                    </tr>-->
                     </tbody>
                 </table>
             </div>
         </div>
+    </div>
 
 
-        <!-- 열어서 안에 주석 참고 // 임시 구현 파이차트 -->
-        <script layout:fragment="script">
-            function drawChart(ctx, ok, ng, textElementId) {
-                const total = ok + ng;
-                const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
-                const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
+    <!-- 열어서 안에 주석 참고 // 임시 구현 파이차트 -->
+    <script th:inline="javascript" layout:fragment="script">
+        function drawChart(ctx, ok, ng, textElementId) {
+            const total = ok + ng;
+            const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
+            const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
 
-                new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['OK', 'NG'],
-                        datasets: [{
-                            data: [ok, ng],
-                            backgroundColor: ['#4CAF50', '#F44336'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true, // 차트 반응형
-                        maintainAspectRatio: false,
-                        cutout: '40%', // 파이차트 내부 원 크기 줄이기
-                        plugins: {
-                            legend: { display: false }
-                        }
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['OK', 'NG'],
+                    datasets: [{
+                        data: [ok, ng],
+                        backgroundColor: ['#4CAF50', '#F44336'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true, // 차트 반응형
+                    maintainAspectRatio: false,
+                    cutout: '40%', // 파이차트 내부 원 크기 줄이기
+                    plugins: {
+                        legend: { display: false }
                     }
-                });
-
-                // ⬇퍼센트/수치 텍스트 자동 삽입
-                const textDiv = document.getElementById(textElementId);
-                textDiv.innerHTML =
-                    `<span style="font-weight:bold;">OK </span><span>${ok}건 / ${okPercent}%</span><br>` +
-                    `<span style="font-weight:bold;">NG </span><span>${ng}건 / ${ngPercent}%</span>`;
-            }
-
-            document.addEventListener('DOMContentLoaded', function () {
-                drawChart(document.getElementById('myChart1'), 70, 30, 'chartText1');
-                drawChart(document.getElementById('myChart2'), 30, 70, 'chartText2');
-                drawChart(document.getElementById('myChart3'), 45, 55, 'chartText3');
+                }
             });
-        </script>
+
+            // ⬇퍼센트/수치 텍스트 자동 삽입
+            // 이 부분은 선생님이 알려주신 웹소캣 중에
+            const textDiv = document.getElementById(textElementId);
+            textDiv.innerHTML =
+                `<span style="font-weight:bold;">OK </span><span>${ok}건 / ${okPercent}%</span><br>` +
+                `<span style="font-weight:bold;">NG </span><span>${ng}건 / ${ngPercent}%</span>`;
+        }
+
+        // ↓ 이 값들도 나중에 서버에서 Thymeleaf 방식으로 변경
+        // ex: var ok1 = /*[[${okCountByStep[1] ?: 0}]]*/ 0;
+        document.addEventListener('DOMContentLoaded', function () {
+            drawChart(document.getElementById('myChart1'), 70, 30, 'chartText1');
+            drawChart(document.getElementById('myChart2'), 30, 70, 'chartText2');
+            drawChart(document.getElementById('myChart3'), 45, 55, 'chartText3');
+        });
+    </script>
 </th:block>
 </html>
-
-
-
-
