@@ -1,10 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<th:block layout:fragment="content">
 
-</body>
+    <div class="py-4">
+        <!-- 서브타이틀 -->
+        <div class="subtitle_css">101 ERROR</div>
+
+        <!-- -->
+        <div class="py-3">
+            <label class="form-label pb-2">101ERROR 대처가이드</label>
+            <div class="form_sm_css" style="max-width: 1300px; margin: 0 auto;">
+                <div class="mb-4"><i class="bi bi-check2-square"></i> 조치방법 : 장비를 완전히 종료한 후 전원과 케이블을 재확인하고, 이상 없을 시 전원을 다시 켭니다.</div>
+                <div class="mb-4"><i class="bi bi-check2-square"></i> 점검순서 : 외부 전원 공급 확인 → 장비 연결 포트 점검 → 제어반 내부 퓨즈 상태 확인</div>
+                <div class="mb-4"><i class="bi bi-check2-square"></i> 주의사항 : 감전 위험이 있으므로 반드시 전원을 차단한 후 점검을 진행하세요.</div>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+                <a href="/errors/guide" class="write_css text-end">목록</a>
+            </div>
+        </div>
+    </div>
+</th:block>
 </html>

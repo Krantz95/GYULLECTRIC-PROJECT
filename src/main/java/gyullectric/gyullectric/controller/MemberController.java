@@ -16,19 +16,17 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
-
 @RequestMapping("/members")
 public class MemberController {
 
     private final MemberService memberService;
 
-    //목록보기
+    // 목록보기
     @GetMapping("/list")
     public String listMembers(Model model, HttpSession session,
                               @RequestParam(value = "page", defaultValue = "0") int page,
                               @RequestParam(value = "kw", defaultValue = "") String kw,
-                              @RequestParam(value = "type", required = false, defaultValue = "") String type
-    ) {
+                              @RequestParam(value = "type", required = false, defaultValue = "") String type) {
 
         Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
 
@@ -48,10 +46,11 @@ public class MemberController {
         return "member/memberList";
     }
 
-    //수정
+    // 수정 폼
     @GetMapping("/{id}/edit")
     public String editMemberForm(@PathVariable("id") Long id, Model model) {
-        Members members = memberService.oneFindMembers(id).orElseThrow(() -> new IllegalArgumentException("해당 아이디를 찾을 수 없습니다"));
+        Members members = memberService.oneFindMembers(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 아이디를 찾을 수 없습니다"));
 
         MembersForm membersForm = MembersForm.builder()
                 .id(members.getId())
@@ -61,25 +60,34 @@ public class MemberController {
                 .phone(members.getPhone())
                 .positionName(members.getPositionName())
                 .build();
+
         model.addAttribute("membersForm", membersForm);
         return "member/updateMemberForm";
     }
 
-    // 수정저장
+    // 수정 저장
     @PostMapping("/{id}/edit")
-    public String postEditForm(Model model, @Valid @ModelAttribute("membersForm") MembersUpdateForm membersForm, BindingResult bindingResult) {
+    public String postEditForm(Model model,
+                               @Valid @ModelAttribute("membersForm") MembersUpdateForm membersForm,
+                               BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            Members members = memberService.oneFindMembers(membersForm.getId()).orElseThrow(() -> new IllegalArgumentException("찾는 해당 아이디가 없습니다"));
+            Members members = memberService.oneFindMembers(membersForm.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("찾는 해당 아이디가 없습니다"));
+
+            // 기존 정보 다시 세팅
             membersForm.setId(members.getId());
             membersForm.setLoginId(members.getLoginId());
             membersForm.setPassword(members.getPassword());
             membersForm.setName(members.getName());
             membersForm.setPhone(members.getPhone());
             membersForm.setPositionName(members.getPositionName());
+
             model.addAttribute("membersForm", membersForm);
             return "member/updateMemberForm";
         }
-        Members members = memberService.oneFindMembers(membersForm.getId()).orElseThrow(() -> new IllegalArgumentException("찾는 해당 아이디가 없습니다"));
+
+        Members members = memberService.oneFindMembers(membersForm.getId())
+                .orElseThrow(() -> new IllegalArgumentException("찾는 해당 아이디가 없습니다"));
 
         String newPassword = membersForm.getPassword();
         if (newPassword == null || newPassword.isBlank()) {
@@ -94,15 +102,17 @@ public class MemberController {
                 .phone(membersForm.getPhone())
                 .positionName(membersForm.getPositionName())
                 .build();
+
         memberService.signup(updateMembers);
 
         return "redirect:/members/list";
     }
 
-    //    delete
+    // 삭제
     @GetMapping("/{id}/delete")
-    public String deleteMember(@PathVariable("id") Long id, Model model) {
-        Members members = memberService.oneFindMembers(id).orElseThrow(() -> new IllegalArgumentException("해당 아이디를 찾을 수 없습니다"));
+    public String deleteMember(@PathVariable("id") Long id) {
+        Members members = memberService.oneFindMembers(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 아이디를 찾을 수 없습니다"));
 
         memberService.deleteMembers(members.getId());
         return "redirect:/members/list";

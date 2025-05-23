@@ -1,10 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<th:block layout:fragment="content">
 
-</body>
+    <div class="py-4">
+        <!-- 서브타이틀 -->
+        <div class="subtitle_css">에러 대처가이드</div>
+
+        <!-- 테이블 -->
+        <div class="table-responsive pt-2" style="overflow-x: auto;"> <!-- sm사이즈에서는 스크롤 생성 -->
+            <table class="table table-bordered text-center align-middle table1_css error-guide-table">
+                <thead>
+                <tr>
+                    <th>에러코드</th>
+                    <th>제목</th>
+                    <th>작성자</th>
+                    <th>작성일시</th>
+                    <th>조회수</th>
+                    <th>중요도</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                <!-- 임시 구현 - 해당 행 클릭시 페이지 넘어가게 -->
+                <tr onclick="location.href='/errors/guide_id'" style="cursor: pointer;">
+                    <td>E-101</td>
+                    <td>전원불량 발생 시 조치</td>
+                    <td>백현장</td>
+                    <td>2025-05-20 09:00</td>
+                    <td>10</td>
+                    <td>딩동</td>
+                </tr>
+
+                <!-- 타임리프 작업 예시-->
+                <!--                <tr th:each="guide : ${guides}"-->
+                <!--                    th:onclick="|location.href='/guide/${guide.id}'|"-->
+                <!--                    style="cursor: pointer;">-->
+                <!--                    <td th:text="${guide.errorCode}"></td>-->
+                <!--                    <td th:text="${guide.title}"></td>-->
+                <!--                    <td th:text="${guide.author}"></td>-->
+                <!--                    <td th:text="${#temporals.format(guide.createdAt, 'yyyy-MM-dd HH:mm')}"></td>-->
+                <!--                    <td th:text="${guide.viewCount}"></td>-->
+                <!--                    <td th:text="${guide.priority}"></td>-->
+                <!--                </tr>-->
+
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </div>
+</th:block>
 </html>

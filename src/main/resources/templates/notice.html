@@ -55,31 +55,31 @@
         </div>
     </div>
 
-        <!-- 공지기능 추가 : 체크 선택하면 공지행으로 변경됌 (굵은글씨+상단) -->
-        <script layout:fragment="script">
-            function toggleAllCheckboxes(master) {
-                const checkboxes = document.querySelectorAll('.row-checkbox');
-                checkboxes.forEach(cb => {
-                    cb.checked = master.checked;
+    <!-- 공지기능 추가 : 체크 선택하면 공지행으로 변경됌 (굵은글씨+상단) -->
+    <script th:inline="javascript" layout:fragment="script">
+        function toggleAllCheckboxes(master) {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = master.checked;
 
-                    //  직접 함수 호출 대신 이벤트 트리거로 변경
-                    cb.dispatchEvent(new Event('change'));
-                });
+                //  직접 함수 호출 대신 이벤트 트리거로 변경
+                cb.dispatchEvent(new Event('change'));
+            });
+        }
+
+        function markAsNotice(checkbox) {
+            const row = checkbox.closest("tr");
+            const tbody = document.querySelector("tbody");
+
+            if (checkbox.checked) {
+                row.classList.add("notice-row");
+                tbody.prepend(row);
+            } else {
+                row.classList.remove("notice-row");
+                tbody.append(row);
             }
-
-            function markAsNotice(checkbox) {
-                const row = checkbox.closest("tr");
-                const tbody = document.querySelector("tbody");
-
-                if (checkbox.checked) {
-                    row.classList.add("notice-row");
-                    tbody.prepend(row);
-                } else {
-                    row.classList.remove("notice-row");
-                    tbody.append(row);
-                }
-            }
-        </script>
+        }
+    </script>
 
 </th:block>
 </html>

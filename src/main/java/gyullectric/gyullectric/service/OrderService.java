@@ -1,93 +1,101 @@
 package gyullectric.gyullectric.service;
 
-import gyullectric.gyullectric.domain.Inventory;
-import gyullectric.gyullectric.domain.PartName;
-import gyullectric.gyullectric.repository.OrderRepository;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import gyullectric.gyullectric.domain.*;
+import gyullectric.gyullectric.repository.InventoryRepository;
+import gyullectric.gyullectric.repository.OrderListRepository;
+import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Slf4j
 public class OrderService {
-    private final OrderRepository orderRepository;
+
+    private final OrderListRepository orderListRepository;    // 주문 리포지터리
+    private final InventoryRepository inventoryRepository;    // 재고 리포지터리
+
+    // ======== Inventory 관련 기능 ========
 
     @Transactional
-    public void saveInventory(Inventory inventory){
-        orderRepository.save(inventory);
+    public void saveInventory(Inventory inventory) {
+        inventoryRepository.save(inventory);
     }
 
-    public List<Inventory> findAllInventory(){
-        return orderRepository.findAll();
+    public List<Inventory> findAllInventory() {
+        return inventoryRepository.findAll();
     }
 
-    public Optional<Inventory> findOneInventory(Long id){
-        return orderRepository.findById(id);
+    public Optional<Inventory> findOneInventory(Long id) {
+        return inventoryRepository.findById(id);
     }
-    public List<Inventory> findInventoryName(PartName partName){
-        return orderRepository.findAllByPartName(partName);
+
+    public List<Inventory> findInventoryName(PartName partName) {
+        return inventoryRepository.findAllByPartName(partName);
     }
 
     @Transactional
     public void deleteInventory(Long id) {
-        orderRepository.deleteById(id);
+        inventoryRepository.deleteById(id);
     }
 
-
     public Page<Inventory> orderGetList(int page, String kw, String partName, String supplier) {
-        List<Sort.Order> sorts = new ArrayList<>();
-        sorts.add(Sort.Order.desc("orderAt"));
-        PageRequest pageable = PageRequest.of(page, 10, Sort.by(sorts));
+        PageRequest pageable = PageRequest.of(page, 10, Sort.by(Sort.Order.desc("orderedAt")));
 
-        // 검색어, 필터 모두 비었을 경우 전체 조회
-        if ((kw == null || kw.trim().isEmpty()) &&
-                (partName == null || partName.trim().isEmpty()) &&
-                (supplier == null || supplier.trim().isEmpty())) {
-            return orderRepository.findAll(pageable);
+        if ((kw == null || kw.isBlank()) &&
+                (partName == null || partName.isBlank()) &&
+                (supplier == null || supplier.isBlank())) {
+            return inventoryRepository.findAll(pageable);
         }
 
         Specification<Inventory> spec = buildSearchSpec(kw, partName, supplier);
-        return orderRepository.findAll(spec, pageable);
+        return inventoryRepository.findAll(spec, pageable);
     }
-
-//    검색부분
 
     private Specification<Inventory> buildSearchSpec(String kw, String partName, String supplier) {
         return (Root<Inventory> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
             query.distinct(true);
             List<Predicate> predicates = new ArrayList<>();
 
-            if (kw != null && !kw.trim().isEmpty()) {
-                Predicate partNameLike = cb.like(root.get("partName"), "%" + kw + "%");
-                Predicate supplierLike = cb.like(root.get("supplier"), "%" + kw + "%");
-                predicates.add(cb.or(partNameLike, supplierLike));
+            if (kw != null && !kw.isBlank()) {
+                predicates.add(cb.or(
+                        cb.like(root.get("partName").as(String.class), "%" + kw + "%"),
+                        cb.like(root.get("supplier").as(String.class), "%" + kw + "%")
+                ));
             }
-
-            if (partName != null && !partName.trim().isEmpty()) {
+            if (partName != null && !partName.isBlank()) {
                 predicates.add(cb.equal(root.get("partName"), partName));
             }
-
-            if (supplier != null && !supplier.trim().isEmpty()) {
+            if (supplier != null && !supplier.isBlank()) {
                 predicates.add(cb.equal(root.get("supplier"), supplier));
             }
-
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 
+    // ======== OrderList 관련 기능 ========
+
+    public List<OrderList> getAllOrdersOrderByOrderDateDesc() {
+        return orderListRepository.findAllByOrderByOrderDateDesc();
+    }
+
+    @Transactional
+    public void updateOrderStatusToCompleted(Long orderId) {
+        OrderList order = orderListRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. id=" + orderId));
+        order.setProcessStatus(ProcessStatus.COMPLETED);
+        orderListRepository.save(order);
+    }
+
+    @Transactional
+    public void deleteOrderById(Long orderId) {
+        orderListRepository.deleteById(orderId);
+    }
 }

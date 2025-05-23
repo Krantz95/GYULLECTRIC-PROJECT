@@ -16,9 +16,16 @@
                 </select>
                 <input type="text" class="form-control line2_css" style="width: 200px;" id="search_kw" th:value="${kw}" name="kw">
                 <button class="btn_search px-4" id="btn_search">검색</button>
+<<<<<<< HEAD
                 <!--    검색폼 만들기-->
                 <input type="hidden" id="page" name="page"
                        th:value="${paging != null ? paging.number : 0}">
+=======
+
+                <!--    검색폼 만들기-->
+
+                <input type="hidden" id="page" name="page" th:value="${paging.number}">
+>>>>>>> a3197c2d820b0b2535a5be37b6adfecafb02fa23
             </form>
         </div>
         <!-- 테이블 -->
@@ -43,6 +50,7 @@
                     <td th:text="${member.phone}">010-4444-5555</td>
                     <td th:text="${member.positionName}">admin</td>
                     <td><a type="button" class="btn_sm_orange" th:href="@{/members/{id}/edit(id=${member.getId()})}">수정</a></td>
+<<<<<<< HEAD
                     <td><button type="button" class="btn_sm_red" data-bs-toggle="modal" th:attr="data-bs-target='#cancelMember'+${member.id}">삭제</button>
                     </td>
                     <!-- 취소 모달창 -->
@@ -65,6 +73,9 @@
                             </div>
                         </div>
                     </div>
+=======
+                    <td><button class="btn_sm_red" data-bs-toggle="modal" data-bs-target="#cancelMember">삭제</button></td>
+>>>>>>> a3197c2d820b0b2535a5be37b6adfecafb02fa23
                 </tr>
                 </tbody>
 
@@ -89,6 +100,7 @@
         </nav>
     </div>
 
+<<<<<<< HEAD
 </th:block>
 <script layout:fragment="script">
     $(function () {
@@ -116,6 +128,50 @@
         });
     });
 </script>
+=======
+
+
+    <!-- 취소 모달창 -->
+    <div class="modal" id="cancelMember" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">회원 삭제</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>정말 삭제하시겠습니까?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn" style="background-color: red; color: white"
+                            th:onclick="|location.href='@{/member/{id}/delete(id=${memberList.id})}'|">삭제</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script th:inline="javascript" layout:fragment="script">
+        $(function(){
+            // 페이지 번호 클릭
+            $(".page-link").on("click", function(){
+                let page = $(this).data("page");
+                console.log("선택된 페이지:", page);
+                $("#page").val(page);
+                $("#searchForm").submit();
+            });
+
+            // 검색 버튼 클릭
+            $("#btn_search").on("click", function(){
+                let keyword = $("#search_kw").val();
+                console.log("검색어:", keyword);
+                // 페이지를 첫 페이지(0)로 설정하고 폼 전송
+                $("#page").val(0);
+                $("#searchForm").submit();
+            });
+        });
+    </script>
+</th:block>
+>>>>>>> a3197c2d820b0b2535a5be37b6adfecafb02fa23
 </html>
 
 

@@ -5,5 +5,7 @@ public enum ErrorCode {
     ERROR_102,
     ERROR_103,
     ERROR_110,
-    ERROR_111
+    ERROR_111,
+    ERROR_201,
+    ERROR_202
 }

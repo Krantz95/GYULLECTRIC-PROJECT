@@ -29,24 +29,24 @@ public class UserController {
                 .phone(myPageMember.getPhone())
                 .positionName(myPageMember.getPositionName())
                 .build();
-       model.addAttribute("myPageForm", myPageForm);
+        model.addAttribute("myPageForm", myPageForm);
         return "user/myPageForm";
     }
     @PostMapping("/{id}/edit")
     public String updateUser(Model model, @Valid @ModelAttribute("myPageForm")MyPageForm myPageForm, BindingResult bindingResult){
 
         if(bindingResult.hasErrors()){
-           Members members = memberService.oneFindMembers(myPageForm.getId()).orElseThrow(()->new IllegalArgumentException("해당 아이디를 찾을 수 없습니다"));
+            Members members = memberService.oneFindMembers(myPageForm.getId()).orElseThrow(()->new IllegalArgumentException("해당 아이디를 찾을 수 없습니다"));
 
-           MyPageForm myPageForms = MyPageForm.builder()
-                   .id(members.getId())
-                   .loginId(members.getLoginId())
-                   .name(members.getName())
-                   .password(members.getPassword())
-                   .phone(members.getPhone())
-                   .positionName(members.getPositionName())
-                   .build();
-           model.addAttribute("myPageForm", myPageForms);
+            MyPageForm myPageForms = MyPageForm.builder()
+                    .id(members.getId())
+                    .loginId(members.getLoginId())
+                    .name(members.getName())
+                    .password(members.getPassword())
+                    .phone(members.getPhone())
+                    .positionName(members.getPositionName())
+                    .build();
+            model.addAttribute("myPageForm", myPageForms);
         }
         Members members = memberService.oneFindMembers(myPageForm.getId()).orElseThrow(()->new IllegalArgumentException("해당 아이디를 찾을 수 없습니다"));
 

@@ -15,7 +15,11 @@
         <!-- 재고 주문 폼 -->
         <div class="d-flex justify-content-center pb-4">
             <div class="form_sm_css shadow-sm">
+<<<<<<< HEAD
                 <form id="orderForm" role="form" th:object="${inventoryForm}" method="post">
+=======
+                <form role="form" th:object="${inventoryForm}" method="post">
+>>>>>>> a3197c2d820b0b2535a5be37b6adfecafb02fa23
                     <div class="alert alert-warning" role="alert" th:if="${#fields.hasAnyErrors()}">
                         <div th:each="err : ${#fields.allErrors()}" th:text="${err}"></div>
                     </div>
@@ -52,7 +56,11 @@
 
         <!-- 검색 필터 -->
         <div class="my-3">
+<<<<<<< HEAD
             <form id="searchForm" role="form" method="get" th:action="@{/order/inventory}" class="d-flex justify-content-end align-items-center mb-3 gap-2">
+=======
+            <form role="form" method="get" th:action="@{/order/inventory}" class="d-flex justify-content-end align-items-center mb-3 gap-2">
+>>>>>>> a3197c2d820b0b2535a5be37b6adfecafb02fa23
                 <select name="partName" class="pointer_orange form-select" style="width: 200px;">
                     <option value="">자재명</option>
                     <option th:each="partName : ${partNames}"
@@ -68,10 +76,14 @@
                             th:text="${supplier}"
                             th:selected="${supplier} == ${param.supplier}"></option>
                 </select>
+<<<<<<< HEAD
                 <button type="button" class="btn_search">검색</button>
 
                 <input type="hidden" id="page" name="page"
                        th:value="${paging != null ? paging.number : 0}">
+=======
+                <button type="submit" class="btn_search">검색</button>
+>>>>>>> a3197c2d820b0b2535a5be37b6adfecafb02fa23
             </form>
         </div>
 
@@ -124,6 +136,7 @@
     </div>
 
 </th:block>
+<<<<<<< HEAD
 <script layout:fragment="script">
     $(function () {
         $(document).on('click', '.page-link', function () {
@@ -134,6 +147,19 @@
                 $('#searchForm').submit();
             }
         });
+=======
+<script th:inline="javascript" layout:fragment="script">
+    $(function (){
+//이전, 다음 페이징버튼 클릭시
+        $(".page-link").on('click', function (){
+//클릭한 요소의 페이지 번호 가져오기
+            let page = $(this).data('page');
+            console.log("선택된 페이지", page)
+            $('#page').val(page)    //hidden input에 설정
+            $('#searchForm').submit();  //폼 제출하여 이동
+        })
+//페이징링크를 클릭하면 해당 페이징 번호를 가져와 폼(#searchForm)의 숨겨진 입력란("#page") 에 설정
+>>>>>>> a3197c2d820b0b2535a5be37b6adfecafb02fa23
 
 // 찾기버튼
         $("#btn_search").on('click', function (){
@@ -143,12 +169,19 @@
             $('#page').val(0);  //검색 버튼을 클릭할 경우 0페이지부터 찾는다. 첫 페이지로 이동
             $('#searchForm').submit();  //폼 제출하여 이동
         })
+<<<<<<< HEAD
         $("#search_kw").on("keypress", function(e) {
             if (e.which === 13) {
                 e.preventDefault();
                 $("#btn_search").click();
             }
         });
+=======
+        let type = $("select[name='type']").val();
+        $("<input>").attr({type: "hidden", name: "type", value: type}).appendTo("#searchForm");
+
+//검색버튼을 클릭하면 검색어를 가져와 숨겨진 입력란('#kw') 에 설정한다.
+>>>>>>> a3197c2d820b0b2535a5be37b6adfecafb02fa23
     })
 </script>
 </html>

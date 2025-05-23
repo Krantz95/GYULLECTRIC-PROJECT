@@ -6,34 +6,35 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "inventory")
+@Getter
+@Setter
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
 public class Inventory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "inventory_id")
     private Long id;
+
     @Enumerated(EnumType.STRING)
-    @Setter
+    @Column(name = "part_name", length = 50, nullable = false)
     private PartName partName;
+
     @Enumerated(EnumType.STRING)
-    @Setter
+    @Column(length = 50, nullable = false)
     private Supplier supplier;
-    @Setter
-    private Integer quantity;
-    @Setter
-    private LocalDateTime orderAt;
+
+    @Column(nullable = false)
+    private int quantity;
+
+    @Column(name = "ordered_at", nullable = false, columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime orderedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Members members;
-
-//        @OneToMany(mappedBy = "inventory", cascade = CascadeType.ALL, orphanRemoval = true)
-//        private List<OrderList> orderLists = new ArrayList<>();
-
-
 
 }

@@ -7,7 +7,7 @@
 
         <!-- 테이블 -->
         <div class="table-responsive pt-3" style="overflow-x: auto;"> <!-- sm사이즈에서는 스크롤 생성 -->
-            <table class="table table-bordered text-center align-middle table2_css">
+            <table class="table">
                 <thead>
                 <tr>
                     <th>제품명</th>
@@ -20,34 +20,50 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr>
-                    <td>A타입</td>
-                    <td>50</td>
-                    <td>윤팀장</td>
-                    <td>2025-05-02 11:14</td>
-                    <td>2025-05-05</td>
-                    <td>PENDING</td>
-                    <!-- btn_red css를 사용하지만 크기조절 및 버튼2개 나란히 배치로 강제 style 수정-->
-                    <td style="text-align: center; vertical-align: middle;">
-                        <div style="display: inline-block;">
-                            <button class="btn_red" style="display: inline-flex; background-color: #FF5900;">공정시작</button>
-                            <button class="btn_red" style="display: inline-flex; margin-right: 6px;" data-bs-toggle="modal" data-bs-target="#cancelModal2">삭제</button>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td>B타입</td>
-                    <td>20</td>
-                    <td>윤팀장</td>
-                    <td>2025-05-04 12:44</td>
-                    <td>2025-05-08</td>
-                    <td>COMPLETED</td>
-                    <!-- btn_red css를 사용하지만 크기조절 및 버튼2개 나란히 배치로 강제 style 수정-->
-                    <td style="text-align: center; vertical-align: middle;">
-                        <div style="display: inline-block;">
-                            <button class="btn_red" style="display: inline-flex; background-color: #FF5900;">공정시작</button>
-                            <button class="btn_red" style="display: inline-flex; margin-right: 6px;" data-bs-toggle="modal" data-bs-target="#cancelModal2">삭제</button>
-                            <button class="btn_red" style="display: inline-flex; background-color: #32B705;">공정보기</button>
+                <tr th:each="jobOrder : ${jobOrders}">
+                    <td th:text="${jobOrder.productName}">제품명</td>
+                    <td th:text="${jobOrder.quantity}">수량</td>
+                    <td th:text="${jobOrder.notiAuthor.loginId}">담당직원</td>
+                    <td th:text="${#temporals.format(jobOrder.orderDate, 'yyyy-MM-dd HH:mm')}">주문날짜</td>
+                    <td th:text="${jobOrder.dueDate}">납기일</td>
+                    <td th:text="${jobOrder.processStatus}">공정상태</td>
+                    <td>
+                        <form th:action="@{/order/process/new/{id}(id=${jobOrder.id})}" method="post" th:if="${jobOrder.processStatus.name() == 'PENDING'}">
+                            <button type="submit" class="btn btn-warning btn-sm">공정시작</button>
+                        </form>
+
+                        <button type="button"
+                                class="btn btn-danger btn-sm"
+                                data-bs-toggle="modal"
+                                th:attr="data-bs-target='#deleteModal-' + ${jobOrder.id}"
+                                th:if="${jobOrder.processStatus.name() == 'PENDING'}">
+                            삭제
+                        </button>
+
+                        <a th:href="@{/monitoring}" class="btn btn-success btn-sm"
+                           th:if="${jobOrder.processStatus.name() == 'COMPLETED'}">공정보기</a>
+
+                        <button class="btn btn-warning btn-sm" disabled
+                                th:if="${jobOrder.processStatus.name() == 'COMPLETED'}">공정시작</button>
+
+                        <button class="btn btn-danger btn-sm" disabled
+                                th:if="${jobOrder.processStatus.name() == 'COMPLETED'}">삭제</button>
+
+                        <!-- 삭제 확인 모달 -->
+                        <div class="modal fade" th:id="'deleteModal-' + ${jobOrder.id}" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="deleteModalLabel">삭제 확인</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body" th:text="'정말로 ' + ${jobOrder.productName} + ' 주문을 삭제하시겠습니까?'"></div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                                        <a th:href="@{/order/delete/{id}(id=${jobOrder.id})}" class="btn btn-primary">삭제</a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </td>
                 </tr>
