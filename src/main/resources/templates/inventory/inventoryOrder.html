@@ -28,12 +28,12 @@
                     <td>
                         <button type="button" class="btn_red cancel-btn"
                                 data-bs-toggle="modal"
-                                th:attr="data-bs-target='#cancelModal__${inventoryLists.id}'"
+                                th:attr="data-bs-target='#cancelModal' + ${inventoryLists.id}"
                                 th:data-id="${inventoryLists.id}">취소</button>
                     </td>
 
                     <!-- 취소 모달창 -->
-                    <div class="modal fade" th:id="'cancelModal__' + ${inventoryLists.id}" tabindex="-1" aria-hidden="true">
+                    <div class="modal fade" th:id="'cancelModal' + ${inventoryLists.id}" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
@@ -108,48 +108,7 @@
         });
     });
 
-    /* 취소 모달 재고삭제 버튼 클릭 후, 해당 행 스타일 변경 (서버 요청 후 화면 변경은 ajax 로 별도 구현 필요) */
-    document.addEventListener('DOMContentLoaded', function () {
-        let cancelButtons = document.querySelectorAll('.cancel-btn');
-        let confirmCancelButtons = document.querySelectorAll('.confirm-cancel-btn');
 
-        confirmCancelButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                let id = this.getAttribute('data-id');
-                let row = document.getElementById('row-' + id);
-                if (row) {
-                    row.classList.add('cancelled-row');
-                    let cancelBtn = row.querySelector('.cancel-btn');
-                    if (cancelBtn) {
-                        cancelBtn.classList.add('cancelled-btn');
-                        cancelBtn.textContent = '취소됨';
-                        cancelBtn.disabled = true;
-                    }
-                }
-                // 해당 모달 닫기
-                let modalEl = document.getElementById('cancelModal__' + id);
-                let modalInstance = bootstrap.Modal.getInstance(modalEl);
-                if (modalInstance) {
-                    modalInstance.hide();
-                }
-            });
-        });
-    });
 </script>
-
-<style>
-    /* 취소된 행 스타일 */
-    .cancelled-row {
-        color: gray;
-        text-decoration: line-through;
-    }
-
-    /* 취소된 버튼 스타일 */
-    .cancelled-btn {
-        background-color: #999 !important;
-        cursor: default !important;
-        pointer-events: none;
-    }
-</style>
 
 </html>

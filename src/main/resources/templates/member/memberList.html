@@ -41,16 +41,28 @@
                     <td>
                         <a type="button" class="btn_sm_orange" th:href="@{/members/{id}/edit(id=${member.id})}">수정</a>
                     </td>
-                    <td>
-                        <button type="button"
-                                class="btn_sm_red btn-delete"
-                                data-bs-toggle="modal"
-                                data-bs-target="#cancelMemberModal"
-                                th:data-member-id="${member.id}"
-                                th:data-member-name="${member.name}">
-                            삭제
-                        </button>
+                    <td><button type="button" class="btn_sm_red" data-bs-toggle="modal" th:attr="data-bs-target='#cancelMember'+${member.id}">삭제</button>
                     </td>
+                    <!-- 취소 모달창 -->
+                    <div class="modal" th:id="cancelMember+${member.id}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">회원 삭제</h5>
+
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p th:text="|${member.name} 님을 삭제하시겠습니까?|"></p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                                    <a class="btn btn-danger" style="background-color: red; color: white"
+                                       th:href="@{/members/{id}/delete(id=${member.id})}">삭제</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </tr>
                 </tbody>
             </table>
@@ -79,55 +91,30 @@
 
 </th:block>
 
-<!-- 삭제 확인 모달 -->
-<div class="modal fade" id="cancelMemberModal" tabindex="-1" aria-labelledby="cancelMemberModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">회원 삭제</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p id="deleteMemberName">정말 삭제하시겠습니까?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">삭제</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script th:inline="javascript" layout:fragment="script">
-    $(function() {
-        // 페이지 번호 클릭 이벤트
-        $(".page-link").on("click", function() {
-            let page = $(this).data("page");
+        $(function () {
+        $(document).on('click', '.page-link', function () {
+            let page = $(this).data('page');
+            console.log("선택된 페이지 번호:", page);  // 반드시 숫자 확인
             if (page !== undefined) {
-                $("#page").val(page);
-                $("#searchForm").submit();
+                $('#page').val(page);
+                $('#searchForm').submit();
             }
         });
 
-        // 검색 버튼 클릭 시 페이지 초기화
-        $("#btn_search").on("click", function() {
-            $("#page").val(0);
-        });
+        // 검색 버튼 클릭
+        $("#btn_search").on('click', function () {
+        $('#page').val(0);
+        $('#searchForm').submit();
+    });
 
-        // 삭제 버튼 클릭 시 모달에 데이터 세팅
-        $(".btn-delete").on("click", function() {
-            const memberId = $(this).data("member-id");
-            const memberName = $(this).data("member-name");
-
-            // 모달에 삭제 대상 회원 이름 표시
-            $("#deleteMemberName").text(memberName + " 님을 삭제하시겠습니까?");
-
-            // 삭제 버튼에 클릭 이벤트를 다시 설정 (중복 이벤트 방지 위해 off 후 on)
-            $("#confirmDeleteBtn").off("click").on("click", function() {
-                window.location.href = /*[[${'/members/' + memberId + '/delete'}]]*/ "/members/" + memberId + "/delete";
-            });
-        });
+        // 엔터 입력 처리
+        $("#search_kw").on("keypress", function(e) {
+        if (e.which === 13) {
+        e.preventDefault();
+        $("#btn_search").click();
+    }
+    });
     });
 </script>
-
 </html>

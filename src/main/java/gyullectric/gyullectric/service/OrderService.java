@@ -55,7 +55,7 @@ public class OrderService {
     }
 
     public Page<Inventory> orderGetList(int page, String kw, String partName, String supplier) {
-        PageRequest pageable = PageRequest.of(page, 10, Sort.by(Sort.Order.desc("orderedAt")));
+        PageRequest pageable = PageRequest.of(page, 10, Sort.by(Sort.Order.desc("orderAt")));
 
         if ((kw == null || kw.isBlank()) &&
                 (partName == null || partName.isBlank()) &&
@@ -72,18 +72,20 @@ public class OrderService {
             query.distinct(true);
             List<Predicate> predicates = new ArrayList<>();
 
-            if (kw != null && !kw.isBlank()) {
-                predicates.add(cb.or(
-                        cb.like(root.get("partName").as(String.class), "%" + kw + "%"),
-                        cb.like(root.get("supplier").as(String.class), "%" + kw + "%")
-                ));
+            if (kw != null && !kw.trim().isEmpty()) {
+                Predicate partNameLike = cb.like(root.get("partName"), "%" + kw + "%");
+                Predicate supplierLike = cb.like(root.get("supplier"), "%" + kw + "%");
+                predicates.add(cb.or(partNameLike, supplierLike));
             }
-            if (partName != null && !partName.isBlank()) {
+
+            if (partName != null && !partName.trim().isEmpty()) {
                 predicates.add(cb.equal(root.get("partName"), partName));
             }
-            if (supplier != null && !supplier.isBlank()) {
+
+            if (supplier != null && !supplier.trim().isEmpty()) {
                 predicates.add(cb.equal(root.get("supplier"), supplier));
             }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
@@ -94,20 +96,20 @@ public class OrderService {
         return orderListRepository.findAllByOrderByOrderDateDesc();
     }
 
-    @Transactional
-    public void updateOrderStatusToCompleted(Long orderId) {
-        OrderList order = orderListRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. id=" + orderId));
-        order.setProcessStatus(ProcessStatus.COMPLETED);
-        orderListRepository.save(order);
-    }
+//    @Transactional
+//    public void updateOrderStatusToCompleted(Long orderId) {
+//        OrderList order = orderListRepository.findById(orderId)
+//                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. id=" + orderId));
+//        order.setProcessStatus(ProcessStatus.COMPLETED);
+//        orderListRepository.save(order);
+//    }
 
     @Transactional
     public void deleteOrderById(Long orderId) {
         orderListRepository.deleteById(orderId);
     }
 
-    // ======== OrderHistory 관련 기능 ========
+    // ======== 재고 OrderHistory 관련 기능 ========
 
     @Transactional
     public void saveOrderHistory(OrderHistory history) {
