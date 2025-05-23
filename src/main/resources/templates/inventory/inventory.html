@@ -15,11 +15,7 @@
         <!-- 재고 주문 폼 -->
         <div class="d-flex justify-content-center pb-4">
             <div class="form_sm_css shadow-sm">
-<<<<<<< HEAD
                 <form id="orderForm" role="form" th:object="${inventoryForm}" method="post">
-=======
-                <form role="form" th:object="${inventoryForm}" method="post">
->>>>>>> a3197c2d820b0b2535a5be37b6adfecafb02fa23
                     <div class="alert alert-warning" role="alert" th:if="${#fields.hasAnyErrors()}">
                         <div th:each="err : ${#fields.allErrors()}" th:text="${err}"></div>
                     </div>
@@ -56,11 +52,8 @@
 
         <!-- 검색 필터 -->
         <div class="my-3">
-<<<<<<< HEAD
-            <form id="searchForm" role="form" method="get" th:action="@{/order/inventory}" class="d-flex justify-content-end align-items-center mb-3 gap-2">
-=======
-            <form role="form" method="get" th:action="@{/order/inventory}" class="d-flex justify-content-end align-items-center mb-3 gap-2">
->>>>>>> a3197c2d820b0b2535a5be37b6adfecafb02fa23
+            <form id="searchForm" role="form" method="get" th:action="@{/order/inventory}"
+                  class="d-flex justify-content-end align-items-center mb-3 gap-2">
                 <select name="partName" class="pointer_orange form-select" style="width: 200px;">
                     <option value="">자재명</option>
                     <option th:each="partName : ${partNames}"
@@ -76,14 +69,11 @@
                             th:text="${supplier}"
                             th:selected="${supplier} == ${param.supplier}"></option>
                 </select>
-<<<<<<< HEAD
-                <button type="button" class="btn_search">검색</button>
+
+                <button type="submit" class="btn_search">검색</button>
 
                 <input type="hidden" id="page" name="page"
                        th:value="${paging != null ? paging.number : 0}">
-=======
-                <button type="submit" class="btn_search">검색</button>
->>>>>>> a3197c2d820b0b2535a5be37b6adfecafb02fa23
             </form>
         </div>
 
@@ -104,85 +94,50 @@
                     <td th:text="${inventoryLists.partName}"></td>
                     <td th:text="${inventoryLists.supplier}"></td>
                     <td th:text="${inventoryLists.quantity}"></td>
-                    <td th:text="${inventoryLists.getQuantity() <= 100}? '부족':'충분'"></td>
-                    <td th:if="${inventoryLists.getQuantity() <= 100}">
-                        <i class="bi bi-circle-fill text-danger"></i>
+                    <td th:text="${inventoryLists.getQuantity() <= 100} ? '부족' : '충분'"
+                        th:class="${inventoryLists.getQuantity() <= 100} ? 'text-danger fw-bold' : 'text-success fw-bold'"></td>
+                    <td>
+                        <i th:classappend="${inventoryLists.getQuantity() <= 100} ? 'bi bi-circle-fill text-danger' : 'bi bi-circle-fill text-success'"></i>
                     </td>
-                    <td th:unless="${inventoryLists.getQuantity() <= 100}">
-                        <i class="bi bi-circle-fill text-success"></i>
-                    </td>
-                    <!--                    <td><span class="badge bg-danger rounded-circle" style="width: 12px; height: 12px;"></span></td>-->
                 </tr>
-
                 </tbody>
             </table>
         </div>
+
         <!--페이징 처리 시작-->
         <div th:if="${!paging.isEmpty()}" class="py-3 d-flex justify-content-center">
             <nav aria-label="Page navigation example">
                 <ul class="pagination">
-                    <li class="page-item " th:classappend="${!paging.hasPrevious()} ? 'disabled'">
-                        <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number -1}"><span>이전</span></a></li>
-                    <li class="page-item" th:each="page:${#numbers.sequence(0, paging.totalPages -1)}"
-                        th:if="${page >= paging.number -5 and page <= paging.number+5}"
+                    <li class="page-item" th:classappend="${!paging.hasPrevious()} ? 'disabled'">
+                        <a class="page-link" href="#" th:data-page="${paging.number - 1}">&laquo;</a>
+                    </li>
+                    <li class="page-item" th:each="page : ${#numbers.sequence(0, paging.totalPages - 1)}"
+                        th:if="${page >= paging.number - 5 and page <= paging.number + 5}"
                         th:classappend="${page == paging.number} ? 'active'">
-                        <a class="page-link" th:text="${page+1}" href="javascript:void(0)" th:data-page="${page}">1</a></li>
+                        <a class="page-link" href="#" th:text="${page + 1}" th:data-page="${page}">1</a>
+                    </li>
                     <li class="page-item" th:classappend="${!paging.hasNext()} ? 'disabled'">
-                        <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number+1}"><span>다음</span></a></li>
-                    <!-- 클릭해도 아무 동작도 하지 않는다. 기본동장(a태그의 href기본동작, 페이지 이동)은 막고 , javascript코드만 실행 href="java어쩌구..."-->
+                        <a class="page-link" href="#" th:data-page="${paging.number + 1}">&raquo;</a>
+                    </li>
                 </ul>
             </nav>
         </div>
     </div>
 
 </th:block>
-<<<<<<< HEAD
-<script layout:fragment="script">
+
+<script th:inline="javascript" layout:fragment="script">
     $(function () {
-        $(document).on('click', '.page-link', function () {
+        // 페이지 번호 클릭 시
+        $(".page-link").on('click', function (e) {
+            e.preventDefault();
             let page = $(this).data('page');
-            console.log("선택된 페이지 번호:", page);  // 반드시 숫자 확인
             if (page !== undefined) {
                 $('#page').val(page);
                 $('#searchForm').submit();
             }
         });
-=======
-<script th:inline="javascript" layout:fragment="script">
-    $(function (){
-//이전, 다음 페이징버튼 클릭시
-        $(".page-link").on('click', function (){
-//클릭한 요소의 페이지 번호 가져오기
-            let page = $(this).data('page');
-            console.log("선택된 페이지", page)
-            $('#page').val(page)    //hidden input에 설정
-            $('#searchForm').submit();  //폼 제출하여 이동
-        })
-//페이징링크를 클릭하면 해당 페이징 번호를 가져와 폼(#searchForm)의 숨겨진 입력란("#page") 에 설정
->>>>>>> a3197c2d820b0b2535a5be37b6adfecafb02fa23
-
-// 찾기버튼
-        $("#btn_search").on('click', function (){
-            let keyword = $("#search_kw").val();  // 검색어 가져오기
-            console.log("검색어:", keyword);  // 디버깅용 출력
-            $("#kw").val(keyword);  // hidden input에 검색어 설정
-            $('#page').val(0);  //검색 버튼을 클릭할 경우 0페이지부터 찾는다. 첫 페이지로 이동
-            $('#searchForm').submit();  //폼 제출하여 이동
-        })
-<<<<<<< HEAD
-        $("#search_kw").on("keypress", function(e) {
-            if (e.which === 13) {
-                e.preventDefault();
-                $("#btn_search").click();
-            }
-        });
-=======
-        let type = $("select[name='type']").val();
-        $("<input>").attr({type: "hidden", name: "type", value: type}).appendTo("#searchForm");
-
-//검색버튼을 클릭하면 검색어를 가져와 숨겨진 입력란('#kw') 에 설정한다.
->>>>>>> a3197c2d820b0b2535a5be37b6adfecafb02fa23
-    })
+    });
 </script>
-</html>
 
+</html>

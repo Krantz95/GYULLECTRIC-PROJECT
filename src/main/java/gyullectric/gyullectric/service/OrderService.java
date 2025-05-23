@@ -2,7 +2,10 @@ package gyullectric.gyullectric.service;
 
 import gyullectric.gyullectric.domain.*;
 import gyullectric.gyullectric.repository.InventoryRepository;
+import gyullectric.gyullectric.repository.OrderHistoryRepository;
 import gyullectric.gyullectric.repository.OrderListRepository;
+import gyullectric.gyullectric.repository.OrderRepository;
+
 import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,13 +22,18 @@ import java.util.*;
 @Slf4j
 public class OrderService {
 
-    private final OrderListRepository orderListRepository;    // 주문 리포지터리
-    private final InventoryRepository inventoryRepository;    // 재고 리포지터리
+    // 두 브랜치에서 사용하던 리포지토리들을 모두 포함
+    private final OrderListRepository orderListRepository;
+    private final InventoryRepository inventoryRepository;
+    private final OrderRepository orderRepository;
+    private final OrderHistoryRepository orderHistoryRepository;
 
     // ======== Inventory 관련 기능 ========
 
     @Transactional
     public void saveInventory(Inventory inventory) {
+        // 원래는 inventoryRepository.save()였으나 orderRepository.save() 쪽 코드도 있으니
+        // 만약 Inventory 관련은 inventoryRepository로 저장하는게 맞다면 아래처럼 유지하세요.
         inventoryRepository.save(inventory);
     }
 
@@ -97,5 +105,33 @@ public class OrderService {
     @Transactional
     public void deleteOrderById(Long orderId) {
         orderListRepository.deleteById(orderId);
+    }
+
+    // ======== OrderHistory 관련 기능 ========
+
+    @Transactional
+    public void saveOrderHistory(OrderHistory history) {
+        orderHistoryRepository.save(history);
+    }
+
+    public List<OrderHistory> historyAllFind() {
+        return orderHistoryRepository.findAll();
+    }
+
+    public Page<Inventory> orderHistoryGetList(int page) {
+        List<Sort.Order> sorts = new ArrayList<>();
+        sorts.add(Sort.Order.desc("orderAt"));
+        PageRequest pageable = PageRequest.of(page, 10, Sort.by(sorts));
+        return orderRepository.findAll(pageable);
+    }
+
+    public List<OrderHistory> lastPageCancelOrder(int currentPage) {
+        Page<Inventory> pagedOrders = orderHistoryGetList(currentPage);
+        int totalPages = pagedOrders.getTotalPages();
+
+        if (currentPage >= totalPages - 1) {
+            return orderHistoryRepository.findAll(Sort.by(Sort.Order.desc("orderedAt")));
+        }
+        return Collections.emptyList();
     }
 }
