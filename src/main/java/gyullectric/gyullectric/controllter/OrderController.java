@@ -5,17 +5,18 @@ import gyullectric.gyullectric.dto.InventoryForm;
 import gyullectric.gyullectric.service.OrderService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+
 
 @Controller
 @RequiredArgsConstructor
@@ -84,8 +85,36 @@ public class OrderController {
     }
 
     @GetMapping("/history")
-    public String getOrderHistory () {
+    public String getOrderHistory (Model model,
+                                   @RequestParam(value = "page", defaultValue = "0") int page) {
+
+
+//        List<OrderHistory> historyList = orderService.historyAllFind();
+        Page<Inventory> paging = orderService.orderHistoryGetList(page);
+        List<OrderHistory> historyList = orderService.lastPageCancelOrder(page);
+
+
+        model.addAttribute("historyList", historyList);
+        model.addAttribute("paging", paging);
+
+
         return "inventory/inventoryOrder";
+    }
+
+
+    @GetMapping("/{id}/delete")
+    public String deleteHistory(@PathVariable("id")Long id){
+        Inventory inventory = orderService.findOneInventory(id).orElseThrow(()->new IllegalArgumentException("해당 재고를 찾을 수 없습니다"));
+
+        OrderHistory orderHistory = new OrderHistory();
+        orderHistory.setPartName(inventory.getPartName());
+        orderHistory.setSupplier(inventory.getSupplier());
+        orderHistory.setOrderedAt(inventory.getOrderAt());
+        orderHistory.setQuantity(inventory.getQuantity());
+        orderService.saveOrderHistory(orderHistory);
+
+        orderService.deleteInventory(inventory.getId());
+        return "redirect:/order/history";
     }
 
     @GetMapping("/list")
