@@ -103,7 +103,7 @@
     </div>
 
     <!-- 처리여부 버튼 + 처리상태 비율 스크립트 -->
-    <script layout:fragment="script">
+    <script th:inline="javascript" layout:fragment="script">
         function toggleStatus(button) {
             if (button.classList.contains("status-unchecked")) {
                 button.classList.remove("status-unchecked");

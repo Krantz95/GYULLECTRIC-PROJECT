@@ -1,4 +1,4 @@
-package gyullectric.gyullectric.controllter;
+package gyullectric.gyullectric.controller;
 
 
 import gyullectric.gyullectric.domain.Members;
@@ -17,8 +17,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Map;
 
 @Controller
 @ControllerAdvice
@@ -50,7 +48,7 @@ public class HomeController {
             model.addAttribute("loginForm", loginForm);
             return "user/loginForm";
         }
-       Members loginMember = loginService.login(loginForm.getLoginId(), loginForm.getPassword());
+        Members loginMember = loginService.login(loginForm.getLoginId(), loginForm.getPassword());
 
         if(loginMember == null){
             bindingResult.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다");
@@ -80,7 +78,7 @@ public class HomeController {
 
     @PostMapping("/signup")
     public String signupPost(@Valid MembersForm membersForm, BindingResult bindingResult, Model model
-                             ){
+    ){
         // 비밀번호와 비밀번호 확인이 다르면 오류 추가
         if (!membersForm.getPassword().equals(membersForm.getPasswordCheck())) {
             bindingResult.rejectValue("passwordCheck", "error.passwordCheck", "비밀번호가 일치하지 않습니다.");
@@ -117,10 +115,10 @@ public class HomeController {
         String loginId = membersForm.getLoginId();
         boolean isDuplicate = memberService.validateDuplicateMember(loginId) != null;
 
-       if(isDuplicate){
-           model.addAttribute("duplicateMessage", "이미 사용중인 아이디입니다");
-       } else{
-           model.addAttribute("duplicateMessage", "사용 가능한 아이디입니다");
+        if(isDuplicate){
+            model.addAttribute("duplicateMessage", "이미 사용중인 아이디입니다");
+        } else{
+            model.addAttribute("duplicateMessage", "사용 가능한 아이디입니다");
         }
         membersForm.setLoginId(loginId);
         model.addAttribute("membersForm", membersForm);

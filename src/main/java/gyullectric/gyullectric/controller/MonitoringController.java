@@ -1,4 +1,4 @@
-package gyullectric.gyullectric.controllter;
+package gyullectric.gyullectric.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

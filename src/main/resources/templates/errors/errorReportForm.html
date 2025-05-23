@@ -71,7 +71,7 @@
     </div>
 
     <!-- 발생일시 : 현재 날짜 불러오기 -->
-    <script layout:fragment="script">
+    <script th:inline="javascript" layout:fragment="script">
         document.addEventListener('DOMContentLoaded', function () {
             const input = document.getElementById('eventDateTime');
             const now = new Date();

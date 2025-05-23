@@ -1,8 +1,11 @@
 package gyullectric.gyullectric.domain;
 
 import jakarta.persistence.*;
+import lombok.Builder;
+
 import java.time.LocalDateTime;
 
+@Builder
 @Entity
 @Table(name = "inventory")
 public class Inventory {
@@ -24,6 +27,10 @@ public class Inventory {
 
     @Column(name = "ordered_at", nullable = false, columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime orderedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Members members;
 
     public Inventory() {}
 

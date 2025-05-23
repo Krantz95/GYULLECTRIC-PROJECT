@@ -328,6 +328,11 @@ body {
 }
 
 /************************** 에러 쪽 ****************************/
+/* 에러가이드 table 호버 효과 -*/
+.error-guide-table tbody tr:hover {
+    background-color: #FFC373;
+}
+
 /* 에러리포트_상태 변경 버튼(미처리-점검중-*/
 .status-btn {
     padding: 4px 12px;
@@ -433,6 +438,4 @@ body {
     background-color: transparent;
     text-decoration: underline;
 }
-
-
 

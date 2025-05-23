@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
-public interface OrderRepository extends JpaRepository<OrderList, Long> {
+public interface OrderListRepository extends JpaRepository<OrderList, Long> {
 
     @Query("SELECT o FROM OrderList o JOIN FETCH o.notiAuthor")
     List<OrderList> findAllWithAuthor();
