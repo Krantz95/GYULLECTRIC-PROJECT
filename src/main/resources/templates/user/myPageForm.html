@@ -78,7 +78,7 @@
     </div>
 
     <!-- 선택사항 : 휴대폰번호만 기재한다고 치면 -(하이픈) 자동 넣어줄지 -->
-    <script layout:fragment="script">
+    <script th:inline="javascript" layout:fragment="script">
         function formatPhoneNumber(input) {
             let value = input.value.replace(/\D/g, ''); // 숫자만 남기기
             if (value.length < 4) {
@@ -90,5 +90,6 @@
             }
         }
     </script>
+
 </th:block>
 </html>

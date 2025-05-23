@@ -1,17 +1,22 @@
 package gyullectric.gyullectric.domain;
 
 import jakarta.persistence.*;
-import lombok.Builder;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Builder
 @Entity
 @Table(name = "inventory")
+@Getter
+@Setter
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
 public class Inventory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "inventory_id")
     private Long id;
 
     @Enumerated(EnumType.STRING)
@@ -31,8 +36,4 @@ public class Inventory {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Members members;
-
-    public Inventory() {}
-
-    // getters, setters 생략
 }
