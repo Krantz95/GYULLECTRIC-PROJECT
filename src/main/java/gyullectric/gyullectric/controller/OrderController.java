@@ -1,4 +1,4 @@
-package gyullectric.gyullectric.controllter;
+package gyullectric.gyullectric.controller;
 
 import gyullectric.gyullectric.domain.Members;
 import gyullectric.gyullectric.domain.PositionName;

@@ -1,4 +1,4 @@
-package gyullectric.gyullectric.controllter;
+package gyullectric.gyullectric.controller;
 
 import gyullectric.gyullectric.domain.Members;
 import gyullectric.gyullectric.domain.PositionName;
@@ -13,11 +13,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Optional;
-
-import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 @Controller
 @RequiredArgsConstructor
