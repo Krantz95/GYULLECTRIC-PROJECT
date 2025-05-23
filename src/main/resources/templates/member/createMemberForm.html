@@ -72,9 +72,9 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label" th:for="*{positionName}">직급</label>
-                        <select th:field="*{positionName}" class="form-select line_css" style="background-color: #A8A8A8">
-                            <option value="" disabled selected hidden></option>
+                        <label class="form-label " th:for="*{positionName}">직급</label>
+                        <select th:field="*{positionName}" class="form-select line_css " style="background-color: #A8A8A8" aria-label="Disabled select example" disabled>
+                            <option value="" >ENGINEER</option>
                             <option th:each="positionName : ${T(gyullectric.gyullectric.domain.PositionName).values()}" th:value="${positionName}" th:text="${positionName}"></option>
                         </select>
                     </div>

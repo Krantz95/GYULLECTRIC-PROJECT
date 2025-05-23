@@ -28,6 +28,8 @@ import java.util.List;
 
         Page<Inventory> findByPartNameContaining(PartName partName, Pageable pageable);
         Page<Inventory> findBySupplierContaining(Supplier supplier, Pageable pageable);
+
+        Page<Inventory> findAll(Pageable pageable);
     }
 
 
