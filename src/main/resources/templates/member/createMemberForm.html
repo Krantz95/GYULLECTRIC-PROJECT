@@ -13,7 +13,6 @@
             </div>
         </div>
 
-
         <!-- 회원가입 폼 -->
         <div class="d-flex justify-content-center">
             <div class="form_lg_css mb-5 shadow-sm">
@@ -40,14 +39,12 @@
                                    id="loginIdInput"
                                    placeholder="아이디를 입력하세요" th:field="*{loginId}">
 
-
                             <!-- 중복검사 버튼만 다른 form에 연결 -->
                             <button type="submit" form="duplicateForm" class="btn_orange" onclick="copyLoginId()" >중복 검사</button>
                         </div>
                         <div th:if="${duplicateMessage}" th:text="${duplicateMessage}"
                              th:style="'color:' + (${isDuplicate} ? 'red' : 'green')"></div>
                     </div>
-
 
                     <div class="mb-3">
                         <label class="form-label" th:for="*{name}">이름</label>
@@ -72,9 +69,9 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label" th:for="*{positionName}">직급</label>
-                        <select th:field="*{positionName}" class="form-select line_css" style="background-color: #A8A8A8">
-                            <option value="" disabled selected hidden></option>
+                        <label class="form-label " th:for="*{positionName}">직급</label>
+                        <select th:field="*{positionName}" class="form-select line_css " style="background-color: #A8A8A8" aria-label="Disabled select example" disabled>
+                            <option value="" >ENGINEER</option>
                             <option th:each="positionName : ${T(gyullectric.gyullectric.domain.PositionName).values()}" th:value="${positionName}" th:text="${positionName}"></option>
                         </select>
                     </div>
@@ -87,11 +84,10 @@
             </div>
         </div>
     </div>
-    </div>
 
     <!-- 선택사항 : 휴대폰번호만 기재한다고 치면 -(하이픈) 자동 넣어줄지 -->
     <script th:inline="javascript" layout:fragment="script">
-        <!--           로그인 아이디 유지 자바 스크립트-->
+        <!-- 로그인 아이디 유지 자바 스크립트 -->
         function copyLoginId() {
             const loginId = document.getElementById("loginIdInput").value;
             document.getElementById("loginIdHidden").value = loginId;

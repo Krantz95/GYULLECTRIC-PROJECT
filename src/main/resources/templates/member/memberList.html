@@ -1,6 +1,5 @@
 <html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 
-<!-- 본문 -->
 <th:block layout:fragment="content">
 
     <div class="py-4">
@@ -10,24 +9,21 @@
         <div class="my-3">
             <form th:action="@{/members/list}" method="get" id="searchForm" class="d-flex justify-content-end align-items-center my-3 gap-2">
                 <select name="type" class="pointer_orange form-select" style="width: 200px;">
-                    <option selected disabled>이름/아이디</option>
+                    <option value="" th:selected="${type == ''}">이름/아이디</option>
                     <option value="name" th:selected="${type == 'name'}">이름</option>
                     <option value="loginId" th:selected="${type == 'loginId'}">아이디</option>
                 </select>
                 <input type="text" class="form-control line2_css" style="width: 200px;" id="search_kw" th:value="${kw}" name="kw">
-                <button class="btn_search px-4" id="btn_search">검색</button>
-
-                <!--    검색폼 만들기-->
-
-                <input type="hidden" id="page" name="page" th:value="${paging.number}">
+                <button class="btn_search px-4" id="btn_search" type="submit">검색</button>
+                <input type="hidden" id="page" name="page" th:value="${paging != null ? paging.number : 0}">
             </form>
         </div>
+
         <!-- 테이블 -->
         <div class="table-responsive py-3">
             <table class="table table-bordered text-center align-middle table1_css">
                 <thead>
                 <tr>
-                    <!--                    <th>번호</th>-->
                     <th>아이디</th>
                     <th>이름</th>
                     <th>연락처</th>
@@ -38,77 +34,100 @@
                 </thead>
                 <tbody>
                 <tr th:each="member, loop : ${paging.content}">
-                    <!--                    <td th:text="${paging.getTotalElements() - (paging.number * paging.size) - loop.index}"></td>-->
                     <td th:text="${member.loginId}">aaa</td>
-                    <td th:text="${member.name }">윤팀장</td>
+                    <td th:text="${member.name}">윤팀장</td>
                     <td th:text="${member.phone}">010-4444-5555</td>
                     <td th:text="${member.positionName}">admin</td>
-                    <td><a type="button" class="btn_sm_orange" th:href="@{/members/{id}/edit(id=${member.getId()})}">수정</a></td>
-                    <td><button class="btn_sm_red" data-bs-toggle="modal" data-bs-target="#cancelMember">삭제</button></td>
+                    <td>
+                        <a type="button" class="btn_sm_orange" th:href="@{/members/{id}/edit(id=${member.id})}">수정</a>
+                    </td>
+                    <td>
+                        <button type="button"
+                                class="btn_sm_red btn-delete"
+                                data-bs-toggle="modal"
+                                data-bs-target="#cancelMemberModal"
+                                th:data-member-id="${member.id}"
+                                th:data-member-name="${member.name}">
+                            삭제
+                        </button>
+                    </td>
                 </tr>
                 </tbody>
             </table>
         </div>
     </div>
-    <!--페이징 처리 시작-->
+
+    <!-- 페이징 처리 시작 -->
     <div th:if="${!paging.isEmpty()}" class="py-3 d-flex justify-content-center">
         <nav aria-label="Page navigation example">
             <ul class="pagination">
-                <li class="page-item " th:classappend="${!paging.hasPrevious()} ? 'disabled'">
-                    <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number -1}"><span>이전</span></a></li>
-                <li class="page-item" th:each="page:${#numbers.sequence(0, paging.totalPages -1)}"
-                    th:if="${page >= paging.number -5 and page <= paging.number+5}"
+                <li class="page-item" th:classappend="${!paging.hasPrevious()} ? 'disabled'">
+                    <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number - 1}">&laquo;</a>
+                </li>
+                <li class="page-item"
+                    th:each="page : ${#numbers.sequence(0, paging.totalPages - 1)}"
+                    th:if="${page >= paging.number - 5 and page <= paging.number + 5}"
                     th:classappend="${page == paging.number} ? 'active'">
-                    <a class="page-link" th:text="${page+1}" href="javascript:void(0)" th:data-page="${page}">1</a></li>
+                    <a class="page-link" href="javascript:void(0)" th:text="${page + 1}" th:data-page="${page}">1</a>
+                </li>
                 <li class="page-item" th:classappend="${!paging.hasNext()} ? 'disabled'">
-                    <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number+1}"><span>다음</span></a></li>
-                <!-- 클릭해도 아무 동작도 하지 않는다. 기본동장(a태그의 href기본동작, 페이지 이동)은 막고 , javascript코드만 실행 href="java어쩌구..."-->
+                    <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number + 1}">&raquo;</a>
+                </li>
             </ul>
         </nav>
     </div>
 
+</th:block>
 
-
-    <!-- 취소 모달창 -->
-    <div class="modal" id="cancelMember" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">회원 삭제</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>정말 삭제하시겠습니까?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                    <button type="button" class="btn" style="background-color: red; color: white"
-                            th:onclick="|location.href='@{/member/{id}/delete(id=${memberList.id})}'|">삭제</button>
-                </div>
+<!-- 삭제 확인 모달 -->
+<div class="modal fade" id="cancelMemberModal" tabindex="-1" aria-labelledby="cancelMemberModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">회원 삭제</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="deleteMemberName">정말 삭제하시겠습니까?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">삭제</button>
             </div>
         </div>
     </div>
-    <script th:inline="javascript" layout:fragment="script">
-        $(function(){
-            // 페이지 번호 클릭
-            $(".page-link").on("click", function(){
-                let page = $(this).data("page");
-                console.log("선택된 페이지:", page);
+</div>
+
+<script th:inline="javascript" layout:fragment="script">
+    $(function() {
+        // 페이지 번호 클릭 이벤트
+        $(".page-link").on("click", function() {
+            let page = $(this).data("page");
+            if (page !== undefined) {
                 $("#page").val(page);
                 $("#searchForm").submit();
-            });
+            }
+        });
 
-            // 검색 버튼 클릭
-            $("#btn_search").on("click", function(){
-                let keyword = $("#search_kw").val();
-                console.log("검색어:", keyword);
-                // 페이지를 첫 페이지(0)로 설정하고 폼 전송
-                $("#page").val(0);
-                $("#searchForm").submit();
+        // 검색 버튼 클릭 시 페이지 초기화
+        $("#btn_search").on("click", function() {
+            $("#page").val(0);
+        });
+
+        // 삭제 버튼 클릭 시 모달에 데이터 세팅
+        $(".btn-delete").on("click", function() {
+            const memberId = $(this).data("member-id");
+            const memberName = $(this).data("member-name");
+
+            // 모달에 삭제 대상 회원 이름 표시
+            $("#deleteMemberName").text(memberName + " 님을 삭제하시겠습니까?");
+
+            // 삭제 버튼에 클릭 이벤트를 다시 설정 (중복 이벤트 방지 위해 off 후 on)
+            $("#confirmDeleteBtn").off("click").on("click", function() {
+                window.location.href = /*[[${'/members/' + memberId + '/delete'}]]*/ "/members/" + memberId + "/delete";
             });
         });
-    </script>
-</th:block>
+    });
+</script>
+
 </html>
-
-

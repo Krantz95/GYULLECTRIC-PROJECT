@@ -14,13 +14,13 @@ public interface MemberRepository extends JpaRepository<Members, Long> {
 
     Members findByName(String name);
 
-//    이름과 로그인아이디로 찾기
+    //    이름과 로그인아이디로 찾기
     Members findByNameAndLoginId(String name, String loginId);
 
-//    제목에 문자열 포함
+    //    제목에 문자열 포함
     List<Members> findByNameLike(String name);
 
-//    페이징구현
+    //    페이징구현
     Page<Members> findAll(Specification<Members> spec, Pageable pageable);
 
     Page<Members> findByNameContaining(String name, Pageable pageable);

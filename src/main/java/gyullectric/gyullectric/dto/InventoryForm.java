@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class InventoryForm {
 
-    private Long id; // 수정 시 필요
+    private Long id; // 수정 시 식별자용
 
     @NotNull(message = "부품은 필수입니다")
     private PartName partName;

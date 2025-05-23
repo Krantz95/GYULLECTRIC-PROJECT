@@ -28,7 +28,7 @@ public class Inventory {
     private Supplier supplier;
 
     @Column(nullable = false)
-    private int quantity = 0;
+    private int quantity;
 
     @Column(name = "ordered_at", nullable = false, columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime orderedAt;
@@ -36,4 +36,5 @@ public class Inventory {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Members members;
+
 }
