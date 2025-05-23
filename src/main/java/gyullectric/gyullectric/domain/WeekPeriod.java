@@ -1,5 +1,6 @@
 package gyullectric.gyullectric.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 import java.time.LocalDate;
@@ -8,6 +9,8 @@ import java.time.LocalDate;
 public class WeekPeriod {
 
     private int weekNumber;
+
+    @Column(name = "year_value") // name 속성으로 h2 예약어 우회
     private int year;
     private LocalDate startDate;
     private LocalDate endDate;
