@@ -3,27 +3,24 @@ package gyullectric.gyullectric.domain;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "order_prediction")
-public class OrderPrediction {
+@Table(name = "order_prediction_order_item")
+public class OrderPrediction_OrderItem {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "part_name", length = 50, nullable = false)
     private PartName partName;
 
     @Column(name = "current_stock", nullable = false)
-    private int currentStock = 0;
+    private int currentInventory = 0;
 
     @Column(name = "predicted_demand", nullable = false)
     private int predictedDemand = 0;
 
     @Column(name = "recommended_order", nullable = false)
-    private int recommendedOrder = 0;
+    private int recommendedOrderAmount = 0;
 
-    public OrderPrediction() {}
+    public OrderPrediction_OrderItem() {}
 
     // Getters and setters 생략
 }
