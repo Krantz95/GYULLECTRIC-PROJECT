@@ -92,20 +92,20 @@
     <!-- 선택사항 : 휴대폰번호만 기재한다고 치면 -(하이픈) 자동 넣어줄지 -->
     <script th:inline="javascript" layout:fragment="script">
         <!--           로그인 아이디 유지 자바 스크립트-->
-                    function copyLoginId() {
-                        const loginId = document.getElementById("loginIdInput").value;
-                        document.getElementById("loginIdHidden").value = loginId;
-                    }
-                    function formatPhoneNumber(input) {
-                        let value = input.value.replace(/\D/g, ''); // 숫자만 남기기
-                        if (value.length < 4) {
-                            input.value = value;
-                        } else if (value.length < 8) {
-                            input.value = value.slice(0, 3) + '-' + value.slice(3);
-                        } else {
-                            input.value = value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7, 11);
-                        }
-                    }
+        function copyLoginId() {
+            const loginId = document.getElementById("loginIdInput").value;
+            document.getElementById("loginIdHidden").value = loginId;
+        }
+        function formatPhoneNumber(input) {
+            let value = input.value.replace(/\D/g, ''); // 숫자만 남기기
+            if (value.length < 4) {
+                input.value = value;
+            } else if (value.length < 8) {
+                input.value = value.slice(0, 3) + '-' + value.slice(3);
+            } else {
+                input.value = value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7, 11);
+            }
+        }
     </script>
 </th:block>
 </html>
