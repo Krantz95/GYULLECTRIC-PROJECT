@@ -1,11 +1,16 @@
 package gyullectric.gyullectric.domain;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "inventory")
 public class Inventory {
@@ -31,8 +36,6 @@ public class Inventory {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Members members;
-
-    public Inventory() {}
 
     // getters, setters 생략
 }
