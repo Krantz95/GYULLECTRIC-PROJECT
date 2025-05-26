@@ -16,23 +16,30 @@
         <!-- 공정별 OK/NG율 (sm일때는 차트1개씩 보이게)-->
         <p class="fw-bold">공정별 OK/NG율</p>
 
-        <div class="row row-cols-1 row-cols-md-3 text-center g-4">
-            <div class="col">
-                <p class="fs-5">1공정</p>
-                <canvas id="myChart1" class="chart-canvas"></canvas>
+        <div class="row p-3 justify-content-between">
+            <div class="col-lg-3 col-12 d-flex justify-content-center">
+                <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;"> <!-- sm에서 차트 크기 설정 -->
+                <p class="align-self-start">1공정</p>
+                <canvas id="myChart1" style="width: 100%; height: auto;"></canvas>
                 <div id="chartText1" class="pt-2"></div>
+                </div>
             </div>
-            <div class="col">
-                <p class="fs-5">2공정</p>
-                <canvas id="myChart2" class="chart-canvas"></canvas>
+            <div class="col-lg-3 col-12 d-flex justify-content-center">
+                <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;">
+                <p class="align-self-start">2공정</p>
+                <canvas id="myChart2" style="width: 100%; height: auto;"></canvas>
                 <div id="chartText2" class="pt-2"></div>
+                </div>
             </div>
-            <div class="col">
-                <p class="fs-5">3공정</p>
-                <canvas id="myChart3" class="chart-canvas"></canvas>
+            <div class="col-lg-3 col-12 d-flex justify-content-center">
+                <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;">
+                <p class="align-self-start">3공정</p>
+                <canvas id="myChart3" style="width: 100%; height: auto;"></canvas>
                 <div id="chartText3" class="pt-2"></div>
+                </div>
             </div>
         </div>
+
 
         <!-- 테이블 -->
         <div class="d-flex justify-content-between align-items-center">
@@ -119,12 +126,13 @@
                 }
             });
 
-            // ⬇퍼센트/수치 텍스트 자동 삽입
-            // 이 부분은 선생님이 알려주신 웹소캣 중에
+            // 퍼센트/수치 범례 : 폰트사이즈 13 -> 15로 변경 (13너무 작음)
             const textDiv = document.getElementById(textElementId);
             textDiv.innerHTML =
-                `<span style="font-weight:bold;">OK </span><span>${ok}건 / ${okPercent}%</span><br>` +
-                `<span style="font-weight:bold;">NG </span><span>${ng}건 / ${ngPercent}%</span>`;
+                `<span style="display: inline-block; width: 20px; height: 10px; background-color: #4CAF50; margin-right: 5px;"></span>` +
+                `<span style="font-weight:bold; font-size: 15px">OK </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +
+                `<span style="display: inline-block; width: 20px; height: 10px; background-color: #F44336; margin-right: 5px;"></span>` +
+                `<span style="font-weight:bold; font-size: 15px">NG </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`; // css로 안넣고 인라인처리
         }
 
         // ↓ 이 값들도 나중에 서버에서 Thymeleaf 방식으로 변경
