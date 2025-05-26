@@ -2,7 +2,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap');
 
-
 /* 전체 글꼴은 한글, 숫자는 Noto Sans KR 폰트 적용 */
 body {
     font-family: 'Noto Sans KR', sans-serif;
@@ -22,15 +21,56 @@ body {
     font-size: 24px;
 }
 
-/* 네비게이션 디자인 */
+/* 네비게이션 디자인 수정 */
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+.container-fluid {
+    flex: 1; /* 남은 공간 다 채움 */
+    display: flex;
+    flex-direction: column;
+}
+.row {
+    flex: 1;
+}
+.col-lg-10 {
+    display: flex;
+    flex-direction: column;
+}
+.col-lg-10 > div {
+     flex: 1;
+ }
+
 .navbar_css {
-    background-color: #F37221;
-    font-family: 'Source Sans Pro', 'Rubik', sans-serif;
-    font-size: 18px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    height: 100%;              /* 세로 늘리기 */
-    min-height: 100vh;         /* 화면보다 작을 때는 최소 100vh */
+    background-color: #FF6A00; /* 주황 */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.navbar-top {
+    background-color: #212529; /* Bootstrap bg-dark */
+    height: 150px; /* 검은배경은 이정도 쓰겠다 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+}
+.navbar-bottom {
+    flex: 1; /* 남은 공간 */
+    overflow-y: auto;
+    padding: 16px;
+}
+
+/* offcanvas 네비게이션 */
+nav.d-lg-none {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 1030;
 }
 
 /* 폼 양식 sm, lg 구분 */
@@ -50,6 +90,20 @@ body {
     border-radius: 16px;
     padding: 80px 60px;
 }
+
+/* 생산분석 - 인사이트요약 폼 */
+.form_insight {
+    background-color: #ffffff;
+    border: 1px solid black;
+    width: 100%;
+    height: 200px;           /* 고정 높이 추가 */
+    border-radius: 16px;
+    padding: 40px 20px;          /* 세로(top/bottom) 50px, 좌우 20px로 넓힘 */
+    margin-bottom: 20px;
+    box-sizing: border-box;  /* padding 포함한 높이 계산 */
+    overflow: hidden;        /* 내용 넘치면 숨김 */
+}
+
 
 /* 폼내 입력칸 input칸 하나씩 지정 : 주황테두리 + 라운드 있음 */
 .line_css {
