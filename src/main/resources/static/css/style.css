@@ -248,6 +248,12 @@ body {
     background-color: #FFEFBA;
 }
 
+/* 일부 컬럼만 굵게 하고 싶을 때 - 발주예측에서 쓸것 */
+.bold-column td:nth-child(4),
+.bold-column th:nth-child(4) {
+    font-weight: bold;
+}
+
 /* table2 스타일 (주황 행 )*/
 .table2_css {
     border-collapse: collapse;
@@ -294,30 +300,10 @@ body {
 /* 공정모니터링 파이차트 크기 설정*/
 /* 차트 기본 설정 */
 .chart-canvas {
-    width: 300px;
-    height: auto;
-    margin: 0 auto;
-}
-
-/* 모바일에서 차트를 더 크게 보여줌 */
-@media (max-width: 575.98px) {
-    .chart-canvas {
-        width: 95vw;         /* 거의 꽉 차게 */
-        max-width: 500px;    /* 최대 500px까지 확장 */
-    }
-}
-
-/* 모바일/태블릿에서 차트 하나씩 세로로 정렬 */
-@media (max-width: 991.98px) {
-    .force-one-column {
-        display: flex !important;
-        flex-direction: column !important;
-    }
-
-    .force-one-column .col {
-        flex: 0 0 100% !important;
-        max-width: 100% !important;
-    }
+    width: 100%;           /* 부모 요소(col)의 너비를 꽉 채움 */
+    max-width: 240px;      /* 차트의 최대 너비를 제한하여 너무 커지지 않도록 */
+    height: 200px;         /* 고정 높이로 파이차트 크기 일정하게 유지 */
+    margin: 0 auto;        /* 가로 중앙 정렬 */
 }
 
 

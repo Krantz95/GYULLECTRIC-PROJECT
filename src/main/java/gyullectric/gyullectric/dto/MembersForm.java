@@ -19,7 +19,7 @@ public class MembersForm {
     private String name;
     @NotBlank
     @Pattern(regexp = "(?=.*[a-zA-Z])(?=.*[0-9]).{4,8}",
-    message = "비밀번호는 영문 대/소문자 포함 4자리이상 8자리 이하로 입력하세요")
+            message = "비밀번호는 영문 대/소문자 포함 4자리이상 8자리 이하로 입력하세요")
     private String password;
     @NotEmpty(message = "비밀번호 확인은 필수 입니다")
     private String passwordCheck;

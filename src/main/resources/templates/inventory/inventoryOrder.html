@@ -14,76 +14,101 @@
                     <th>공급업체</th>
                     <th>수량</th>
                     <th>최초발주시간</th>
-                    <th>상태</th>
+                    <th>발주처리상태</th>
                     <th>관리</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr>
-                    <td>배터리팩</td>
-                    <td>삼성SDI</td>
-                    <td>50</td>
-                    <td>2025-05-12 14:22</td>
-                    <td>정상</td>
+                <tr th:each="inventoryLists : ${paging}" th:id="'row-' + ${inventoryLists.id}">
+                    <td th:text="${inventoryLists.partName}"></td>
+                    <td th:text="${inventoryLists.supplier}"></td>
+                    <td th:text="${inventoryLists.getQuantity()}"></td>
+                    <td th:text="${#temporals.format(inventoryLists.getOrderAt(), 'yyyy-MM-dd HH:mm')}"></td>
+                    <td th:text="${inventoryLists.getQuantity() > 0 ? '발주 완료' : ''}"></td>
                     <td>
-                        <button class="btn_red cancel-btn" data-bs-toggle="modal" data-bs-target="#cancelModal">취소</button>
+                        <button type="button" class="btn_red cancel-btn"
+                                data-bs-toggle="modal"
+                                th:attr="data-bs-target='#cancelModal' + ${inventoryLists.id}"
+                                th:data-id="${inventoryLists.id}">취소</button>
                     </td>
+
+                    <!-- 취소 모달창 -->
+                    <div class="modal fade" th:id="'cancelModal' + ${inventoryLists.id}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">발주 취소</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p th:text="|${inventoryLists.getSupplier()} 업체의 ${inventoryLists.getPartName()}|"></p>
+                                    <p>부품 재고 주문을 삭제하시겠습니까 ?</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                                    <button type="button" class="btn btn-danger confirm-cancel-btn"
+                                            th:data-id="${inventoryLists.id}"
+                                            th:onclick="|location.href='@{/order/{id}/delete(id=${inventoryLists.id})}'|">재고삭제</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </tr>
-                <tr>
-                    <td>배터리팩</td>
-                    <td>B전기</td>
-                    <td>80</td>
-                    <td>2025-05-12 14:22</td>
-                    <td>정상</td>
-                    <td>
-                        <button class="btn_red cancel-btn" data-bs-toggle="modal" data-bs-target="#cancelModal">취소</button>
-                    </td>
+
+                <tr th:if="${historyList != null} and ${historyList.size() > 0}"
+                    th:each="history : ${historyList}"
+                    class="text-secondary text-decoration-line-through" >
+                    <td th:text="${history.partName}" class="text-secondary"></td>
+                    <td th:text="${history.supplier}" class="text-secondary"></td>
+                    <td th:text="${history.quantity}" class="text-secondary"></td>
+                    <td th:text="${#temporals.format(history.orderedAt, 'yyyy-MM-dd HH:mm')}" class="text-secondary"></td>
+                    <td class="text-secondary">발주 취소</td>
+                    <td class="text-secondary">-</td>
                 </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- 취소 모달창 -->
-        <div class="modal" id="cancelModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">발주 취소</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>발주 삭제하시겠습니까?</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">아니요</button>
-                        <button type="button" class="btn" style="background-color: red; color: white" id="confirmCancel">네</button>
-                    </div>
-                </div>
-            </div>
+        <!-- 페이징 처리용 폼 추가 -->
+        <form id="pageForm" method="get" action="/order/history">
+            <input type="hidden" name="page" id="page" value="0">
+        </form>
+
+        <!--페이징 처리 시작-->
+        <div th:if="${!paging.isEmpty()}" class="py-3 d-flex justify-content-center">
+            <nav aria-label="Page navigation example">
+                <ul class="pagination">
+                    <li class="page-item" th:classappend="${!paging.hasPrevious()} ? 'disabled'">
+                        <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number -1}">&laquo;</a>
+                    </li>
+                    <li class="page-item" th:each="page:${#numbers.sequence(0, paging.totalPages -1)}"
+                        th:if="${page >= paging.number -5 and page <= paging.number +5}"
+                        th:classappend="${page == paging.number} ? 'active'">
+                        <a class="page-link" th:text="${page + 1}" href="javascript:void(0)" th:data-page="${page}">1</a>
+                    </li>
+                    <li class="page-item" th:classappend="${!paging.hasNext()} ? 'disabled'">
+                        <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number +1}">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
+
     </div>
-    <!-- 모달에서 '네' (취소) 를 누르면 비활성화로 변경되는 효과 -->
-    <script th:inline="javascript" layout:fragment="script">
-        let targetRow;
-
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.cancel-btn').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    targetRow = btn.closest('tr');
-                });
-            });
-
-            document.getElementById('confirmCancel').addEventListener('click', function () {
-                if (targetRow) {
-                    targetRow.classList.add('cancelled-row');
-                    const btn = targetRow.querySelector('.cancel-btn');
-                    btn.classList.add('cancelled-btn');
-                    btn.textContent = '취소됨';
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('cancelModal'));
-                    modal.hide();
-                }
-            });
-        });
-    </script>
 </th:block>
+
+<script layout:fragment="script" th:inline="javascript">
+    /* 페이징 처리 */
+    $(function () {
+        $(document).on('click', '.page-link', function () {
+            let page = $(this).data('page');
+            if (page !== undefined) {
+                $('#page').val(page);
+                $('#pageForm').submit();
+            }
+        });
+    });
+
+
+</script>
+
 </html>

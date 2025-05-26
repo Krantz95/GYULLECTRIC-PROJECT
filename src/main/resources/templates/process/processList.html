@@ -13,98 +13,86 @@
             <span>최근 업데이트: (시간 구현 전) 웹소캣으로 5초 업데이트하면 필요없나?  </span>
         </div>
 
-        <!-- 공정별 OK/NG율 -->
+        <!-- 공정별 OK/NG율 (sm일때는 차트1개씩 보이게)-->
         <p class="fw-bold">공정별 OK/NG율</p>
 
-        <div class="row force-one-column g-4 text-start">
-            <div class="col text-center">
+        <div class="row row-cols-1 row-cols-md-3 text-center g-4">
+            <div class="col">
                 <p class="fs-5">1공정</p>
-                <div class="d-flex justify-content-center">
-                    <canvas id="myChart1" class="chart-canvas"></canvas>
-                </div>
+                <canvas id="myChart1" class="chart-canvas"></canvas>
                 <div id="chartText1" class="pt-2"></div>
-                <!-- ↓ 이 부분은 Thymeleaf로 정적 데이터 => 동적 표현식으로 교체 필요 -->
-                <!-- 예시:
-                <ul>
-                    <li>OK: <span th:text="${okCountByStep[1] ?: 0}"></span></li>
-                    <li>NG: <span th:text="${ngCountByStep[1] ?: 0}"></span></li>
-                </ul>
-                -->
             </div>
-            <div class="col text-center">
+            <div class="col">
                 <p class="fs-5">2공정</p>
-                <div class="d-flex justify-content-center">
-                    <canvas id="myChart2" class="chart-canvas"></canvas>
-                </div>
+                <canvas id="myChart2" class="chart-canvas"></canvas>
                 <div id="chartText2" class="pt-2"></div>
             </div>
-            <div class="col text-center">
+            <div class="col">
                 <p class="fs-5">3공정</p>
-                <div class="d-flex justify-content-center">
-                    <canvas id="myChart3" class="chart-canvas"></canvas>
-                </div>
+                <canvas id="myChart3" class="chart-canvas"></canvas>
                 <div id="chartText3" class="pt-2"></div>
             </div>
-
-            <!-- 테이블 -->
-            <div class="d-flex justify-content-between align-items-center">
-                <p class="fw-bold mb-0">공정 로그</p>
-                <a href="/productList" class="refreshTime_css" style="text-decoration: none;">제품리스트</a>
-            </div>
-
-            <div class="table-responsive pt-2" style="overflow-x: auto;">
-                <table class="table table-bordered text-center align-middle table2_css">
-                    <thead>
-                    <tr>
-                        <th>제품명</th>
-                        <th>로트넘버</th>
-                        <th>공정No.</th>
-                        <th>공정상태</th>
-                        <th>공정생성일</th>
-                        <th>에러코드</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <!--                    <tr th:each="process : ${processes}">-->
-                    <!--                        <td th:text="${process.jobOrder.productName}"></td>-->
-                    <!--                        <td th:text="${process.lotNumber}"></td>-->
-                    <!--                        <td th:text="${process.step}"></td>-->
-                    <!--                        <td th:text="${process.status}"></td>-->
-                    <!--                        <td th:text="${#temporals.format(process.processDate,'yyyy-MM-dd hh-mm')}"></td>-->
-                    <!--                        <td th:text="${process.errorㅋCode}"></td>-->
-                    <!--                    </tr>-->
-                    <tr>
-                        <td>A타입</td>
-                        <td>LOT123</td>
-                        <td>1공정</td>
-                        <td>OK</td>
-                        <td>2025-05-12 08:10</td>
-                        <td>-</td>
-                    </tr>
-                    <tr>
-                        <td>A타입</td>
-                        <td>LOT124</td>
-                        <td>2공정</td>
-                        <td>NG</td>
-                        <td>2025-05-12 08:20</td>
-                        <td>204</td>
-                    </tr>
-                    <tr>
-                        <td>B타입</td>
-                        <td>LOT125</td>
-                        <td>3공정</td>
-                        <td>OK</td>
-                        <td>2025-05-12 08:30</td>
-                        <td>-</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
         </div>
+
+        <!-- 테이블 -->
+        <div class="d-flex justify-content-between align-items-center">
+            <p class="fw-bold mb-0">공정 로그</p>
+            <a href="/productList" class="refreshTime_css" style="text-decoration: none;">제품리스트</a>
+        </div>
+
+        <div class="table-responsive pt-2" style="overflow-x: auto;">
+            <table class="table table-bordered text-center align-middle table2_css">
+                <thead>
+                <tr>
+                    <th>제품명</th>
+                    <th>로트넘버</th>
+                    <th>공정No.</th>
+                    <th>공정상태</th>
+                    <th>공정생성일</th>
+                    <th>에러코드</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!--                    <tr th:each="process : ${processes}">-->
+                <!--                        <td th:text="${process.jobOrder.productName}"></td>-->
+                <!--                        <td th:text="${process.lotNumber}"></td>-->
+                <!--                        <td th:text="${process.step}"></td>-->
+                <!--                        <td th:text="${process.status}"></td>-->
+                <!--                        <td th:text="${#temporals.format(process.processDate,'yyyy-MM-dd hh-mm')}"></td>-->
+                <!--                        <td th:text="${process.errorㅋCode}"></td>-->
+                <!--                    </tr>-->
+                <tr>
+                    <td>A타입</td>
+                    <td>LOT123</td>
+                    <td>1공정</td>
+                    <td>OK</td>
+                    <td>2025-05-12 08:10</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>A타입</td>
+                    <td>LOT124</td>
+                    <td>2공정</td>
+                    <td>NG</td>
+                    <td>2025-05-12 08:20</td>
+                    <td>204</td>
+                </tr>
+                <tr>
+                    <td>B타입</td>
+                    <td>LOT125</td>
+                    <td>3공정</td>
+                    <td>OK</td>
+                    <td>2025-05-12 08:30</td>
+                    <td>-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
     </div>
 
 
-    <!-- 열어서 안에 주석 참고 // 임시 구현 파이차트 -->
+    <!-- 주석 참고 // 임시 구현 파이차트 -->
     <script th:inline="javascript" layout:fragment="script">
         function drawChart(ctx, ok, ng, textElementId) {
             const total = ok + ng;
@@ -123,10 +111,10 @@
                 },
                 options: {
                     responsive: true, // 차트 반응형
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: true, // 비율 유지하여 캔버스가 너무 커지지 않도록
                     cutout: '40%', // 파이차트 내부 원 크기 줄이기
                     plugins: {
-                        legend: { display: false }
+                        legend: { display: false } // 범례 숨기기
                     }
                 }
             });
@@ -140,7 +128,6 @@
         }
 
         // ↓ 이 값들도 나중에 서버에서 Thymeleaf 방식으로 변경
-        // ex: var ok1 = /*[[${okCountByStep[1] ?: 0}]]*/ 0;
         document.addEventListener('DOMContentLoaded', function () {
             drawChart(document.getElementById('myChart1'), 70, 30, 'chartText1');
             drawChart(document.getElementById('myChart2'), 30, 70, 'chartText2');
