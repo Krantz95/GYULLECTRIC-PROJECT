@@ -63,8 +63,6 @@ public class OrderController {
         }
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("partNames", PartName.values());
-            model.addAttribute("suppliers", Supplier.values());
             return "inventory/inventory";
         }
 
@@ -73,7 +71,7 @@ public class OrderController {
                 .partName(inventoryForm.getPartName())
                 .quantity(inventoryForm.getQuantity())
                 .supplier(inventoryForm.getSupplier())
-                .orderedAt(LocalDateTime.now())
+                .orderAt(LocalDateTime.now())
                 .members(loginMember)
                 .build();
 
@@ -83,7 +81,14 @@ public class OrderController {
 
     /** 발주 이력 페이지 진입 */
     @GetMapping("/history")
-    public String getOrderHistory() {
+    public String getOrderHistory(Model model,
+                                  @RequestParam(value = "page", defaultValue = "0") int page) {
+        Page<Inventory> paging = orderService.orderHistoryGetList(page);
+        List<OrderHistory> historyList = orderService.lastPageCancelOrder(page);
+
+
+        model.addAttribute("historyList", historyList);
+        model.addAttribute("paging", paging);
         return "inventory/inventoryOrder";
     }
 
@@ -100,18 +105,33 @@ public class OrderController {
         model.addAttribute("orders", orders);
         return "product/orderlist";
     }
+// 재고 주문 삭제
+    @GetMapping("/{id}/delete")
+    public String deleteHistory(@PathVariable("id")Long id) {
+        Inventory inventory = orderService.findOneInventory(id).orElseThrow(() -> new IllegalArgumentException("해당 재고를 찾을 수 없습니다"));
 
-    /** 공정 시작 요청 (PENDING → COMPLETED) */
-    @PostMapping("/process/new/{id}")
-    public String startProcess(@PathVariable Long id, HttpSession session) {
-        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        if (loginMember == null) {
-            return "redirect:/login";
-        }
+        OrderHistory orderHistory = new OrderHistory();
+        orderHistory.setPartName(inventory.getPartName());
+        orderHistory.setSupplier(inventory.getSupplier());
+        orderHistory.setOrderedAt(inventory.getOrderAt());
+        orderHistory.setQuantity(inventory.getQuantity());
+        orderService.saveOrderHistory(orderHistory);
 
-        orderService.updateOrderStatusToCompleted(id);
-        return "redirect:/order/list";
+        orderService.deleteInventory(inventory.getId());
+        return "redirect:/order/history";
     }
+
+//    /** 공정 시작 요청 (PENDING → COMPLETED) */
+//    @PostMapping("/process/new/{id}")
+//    public String startProcess(@PathVariable Long id, HttpSession session) {
+//        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+//        if (loginMember == null) {
+//            return "redirect:/login";
+//        }
+//
+//        orderService.updateOrderStatusToCompleted(id);
+//        return "redirect:/order/list";
+//    }
 
     /** 주문 삭제 */
     @GetMapping("/delete/{id}")

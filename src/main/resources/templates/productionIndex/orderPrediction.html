@@ -1,10 +1,190 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<th:block layout:fragment="content">
 
-</body>
+    <div class="py-4">
+        <!-- 서브타이틀 -->
+        <div class="subtitle_css">생산지표관리_발주예측</div>
+
+        <!-- KPI 요약 -->
+        <div class="py-3">
+            <div class="form_sm_css" style="border: 1px solid black; max-width: 1600px; padding: 20px 15px;">
+                <div class="mb-2 fw-bold"> KPI 요약</div>
+                <div class="ms-2"> 예상 총 발주량 : 800개 </div>
+                <div class="ms-2"> 적정 발주 시점 : 2025-05-22 </div>
+                <div class="ms-2 fw-bold"> 과잉 재고 리스크 : <span style="color: red";>높음</span></div>
+                <div class="ms-2"> 최근 수요 증가 품목 : 배터리팩, 모터 </div>
+            </div>
+        </div>
+
+        <div class="m-3"> <!-- KPI요약 첫글자라인에 맞추기위해 마진 적용 -->
+            <!-- 발주 예측 버튼 -->
+            <p class="pt-2 fw-bold">발주 예측</p>
+
+            <div class="my-3"> <!-- 타임리프는 inventory.html 참고 -->
+                <form class="d-flex justify-content-start align-items-center mb-3 gap-2">
+                    <select class="pointer_orange form-select" style="width: 200px;">
+                        <option>제품선택</option>
+                        <option>A타입</option>
+                        <option>B타입</option>
+                        <option>C타입</option>
+                    </select>
+                    <div>
+                        <input type="date" id="startDate" class="form-control line_css" style="border-radius: 0px;">
+                    </div>
+                    <div>
+                        <input type="date" id="endDate" class="form-control line_css" style="border-radius: 0px;">
+                    </div>
+                    <button type="submit" class="btn_search" style="color: white">예측 실행</button>
+                </form>
+            </div>
+
+            <!-- 발주 예측 테이블 -->
+            <div class="table-responsive pt-2" style="overflow-x: auto;">
+                <table class="table2_css bold-column" style="color: black">
+                    <thead>
+                    <tr>
+                        <th>부품명</th>
+                        <th>현재 재고</th>
+                        <th>예측수요량</th>
+                        <th>권장발주량</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>배터리팩</td>
+                        <td>120</td>
+                        <td>300</td>
+                        <td>200</td>
+                    </tr>
+                    <tr>
+                        <td>모터</td>
+                        <td>120</td>
+                        <td>300</td>
+                        <td>200</td>
+                    </tr>
+                    <tr>
+                        <td>프레임</td>
+                        <td>120</td>
+                        <td>300</td>
+                        <td>200</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 발주 예측 그래프 -->
+            <p class="pt-5 fw-bold">발주 예측 그래프</p>
+
+            <div class="row force-one-column g-5 p-3 justify-content-center">
+                <div class="col" style="max-width: 700px;">
+                    <canvas id="predictionChart1" style="height: 300px;"></canvas>
+                </div>
+                <div class="col" style="max-width: 700px;">
+                    <canvas id="predictionChart2" style="height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 그래프 2개 차트 스크립트 -->
+    <script th:inline="javascript" layout:fragment="script">
+        document.addEventListener('DOMContentLoaded', function () {
+            const labels = ['배터리팩', '모터', '프레임', '컨트롤러', '휠'];
+
+            new Chart(document.getElementById('predictionChart1'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '  실제발주량',
+                            data: [800, 750, 900, 500, 450],
+                            borderColor: '#3eb705',
+                            borderWidth: 3,
+                            fill: false
+                        },
+                        {
+                            label: '  예측수요량',
+                            data: [500, 300, 100, 150, 1000],
+                            borderColor: 'blue',
+                            borderWidth: 3,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'line',
+                                padding: 20,
+                                color: 'black',
+                                font: {
+                                    size: 13
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 1000,
+                            ticks: {
+                                stepSize: 250
+                            }
+                        }
+                    }
+                }
+            });
+
+            new Chart(document.getElementById('predictionChart2'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '  AI예측트렌드',
+                            data: [650, 470, 520, 1000, 820],
+                            borderColor: 'orange',
+                            borderWidth: 3,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            onClick: () => {},
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'line',
+                                padding: 20,
+                                color: 'black',
+                                font: {
+                                    size: 13
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 1000,
+                            ticks: {
+                                stepSize: 250
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</th:block>
 </html>
