@@ -20,24 +20,37 @@
             <div class="col">
                 <p class="fs-5">1공정</p>
                 <canvas id="myChart1" class="chart-canvas"></canvas>
-                <div id="chartText1" class="pt-2"></div>
+                <ul class="pt-2">
+                    <!--                <li><span th:text="${}"></span></li>-->
+                    <li th:text="|정상 :${okCountByStep[1]?:0}|"></li>
+                    <li th:text="|에러 :${ngCountByStep[1]?:0}|"></li>
+                    <li th:text="|total :${totalCount}|"></li>
+                </ul>
             </div>
             <div class="col">
                 <p class="fs-5">2공정</p>
                 <canvas id="myChart2" class="chart-canvas"></canvas>
-                <div id="chartText2" class="pt-2"></div>
+                <ul>
+                    <li th:text="|정상 :${okCountByStep[2]?:0}|"></li>
+                    <li th:text="|에러 :${ngCountByStep[2]?:0}|"></li>
+                    <li th:text="|total :${totalCount}|"></li>
+                </ul>
             </div>
             <div class="col">
                 <p class="fs-5">3공정</p>
                 <canvas id="myChart3" class="chart-canvas"></canvas>
-                <div id="chartText3" class="pt-2"></div>
+                <ul>
+                    <li th:text="|정상 :${okCountByStep[3]?:0}|"></li>
+                    <li th:text="|에러 :${ngCountByStep[3]?:0}|"></li>
+                    <li th:text="|total :${totalCount}|"></li>
+                </ul>
             </div>
         </div>
 
         <!-- 테이블 -->
         <div class="d-flex justify-content-between align-items-center">
             <p class="fw-bold mb-0">공정 로그</p>
-            <a href="/productList" class="refreshTime_css" style="text-decoration: none;">제품리스트</a>
+            <a href="/monitoring/list" class="refreshTime_css" style="text-decoration: none;">제품리스트</a>
         </div>
 
         <div class="table-responsive pt-2" style="overflow-x: auto;">
@@ -53,72 +66,59 @@
                 </tr>
                 </thead>
                 <tbody>
-                <!--                    <tr th:each="process : ${processes}">-->
-                <!--                        <td th:text="${process.jobOrder.productName}"></td>-->
-                <!--                        <td th:text="${process.lotNumber}"></td>-->
-                <!--                        <td th:text="${process.step}"></td>-->
-                <!--                        <td th:text="${process.status}"></td>-->
-                <!--                        <td th:text="${#temporals.format(process.processDate,'yyyy-MM-dd hh-mm')}"></td>-->
-                <!--                        <td th:text="${process.errorㅋCode}"></td>-->
-                <!--                    </tr>-->
-                <tr>
-                    <td>A타입</td>
-                    <td>LOT123</td>
-                    <td>1공정</td>
-                    <td>OK</td>
-                    <td>2025-05-12 08:10</td>
-                    <td>-</td>
-                </tr>
-                <tr>
-                    <td>A타입</td>
-                    <td>LOT124</td>
-                    <td>2공정</td>
-                    <td>NG</td>
-                    <td>2025-05-12 08:20</td>
-                    <td>204</td>
-                </tr>
-                <tr>
-                    <td>B타입</td>
-                    <td>LOT125</td>
-                    <td>3공정</td>
-                    <td>OK</td>
-                    <td>2025-05-12 08:30</td>
-                    <td>-</td>
-                </tr>
+                                    <tr th:each="processForm : ${processes}">
+                                        <td th:text="${processForm.productName.name()}"></td>
+                                        <td th:text="${processForm.lotNumber}"></td>
+                                        <td th:text="${processForm.processStep}"></td>
+                                        <td th:text="${processForm.processResultStatus}"></td>
+                                        <td th:text="${#temporals.format(processForm.createAt,'yyyy-MM-dd HH-mm')}"></td>
+                                        <td th:text="${processForm.errorCode}"></td>
+                                    </tr>
+
                 </tbody>
             </table>
         </div>
     </div>
     </div>
+</th:block>
 
-
-    <!-- 주석 참고 // 임시 구현 파이차트 -->
+    <!-- 도넛차트 그리기 -->
     <script th:inline="javascript" layout:fragment="script">
-        function drawChart(ctx, ok, ng, textElementId) {
-            const total = ok + ng;
-            const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
-            const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
+        <!--데이터 가져오기-->
+        var ng1 = /*[[${ngCountByStep[1]?:0}]]*/0;
+        var ok1 = /*[[${okCountByStep[1]?:0}]]*/0;
 
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['OK', 'NG'],
-                    datasets: [{
-                        data: [ok, ng],
-                        backgroundColor: ['#4CAF50', '#F44336'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true, // 차트 반응형
-                    maintainAspectRatio: true, // 비율 유지하여 캔버스가 너무 커지지 않도록
-                    cutout: '40%', // 파이차트 내부 원 크기 줄이기
-                    plugins: {
-                        legend: { display: false } // 범례 숨기기
-                    }
-                }
-            });
+        var ng2 = /*[[${ngCountByStep[2]?:0}]]*/0;
+        var ok2 = /*[[${okCountByStep[2]?:0}]]*/0;
 
+        var ng3 = /*[[${ngCountByStep[3]?:0}]]*/0;
+        var ok3 = /*[[${okCountByStep[3]?:0}]]*/0;
+        // function drawChart(ctx, ok, ng, textElementId) {
+        //     const total = ok + ng;
+        //     const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
+        //     const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
+function drawChart(ctx,ok,ng) {
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['OK', 'NG'],
+            datasets: [{
+                label: '공정 상태',
+                data: [ok, ng],
+                backgroundColor: ['#4CAF50', '#F44336'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true, // 차트 반응형
+            maintainAspectRatio: true, // 비율 유지하여 캔버스가 너무 커지지 않도록
+            cutout: '40%', // 파이차트 내부 원 크기 줄이기
+            plugins: {
+                legend: {display: false} // 범례 숨기기
+            }
+        }
+    });
+}
             // ⬇퍼센트/수치 텍스트 자동 삽입
             // 이 부분은 선생님이 알려주신 웹소캣 중에
             const textDiv = document.getElementById(textElementId);
@@ -127,12 +127,12 @@
                 `<span style="font-weight:bold;">NG </span><span>${ng}건 / ${ngPercent}%</span>`;
         }
 
-        // ↓ 이 값들도 나중에 서버에서 Thymeleaf 방식으로 변경
-        document.addEventListener('DOMContentLoaded', function () {
-            drawChart(document.getElementById('myChart1'), 70, 30, 'chartText1');
-            drawChart(document.getElementById('myChart2'), 30, 70, 'chartText2');
-            drawChart(document.getElementById('myChart3'), 45, 55, 'chartText3');
-        });
+
+        // 차트생성
+        drawChart(document.getElementById('myChart1'),ok1,ng1);
+        drawChart(document.getElementById('myChart2'),ok2,ng2);
+        drawChart(document.getElementById('myChart3'),ok3,ng3);
+
     </script>
-</th:block>
+
 </html>

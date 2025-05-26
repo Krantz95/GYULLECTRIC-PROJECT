@@ -30,6 +30,10 @@ public class MemberService {
         memberRepository.save(members);
         return members.getId();
     }
+    @Transactional
+    public void save(Members members){
+        memberRepository.save(members);
+    }
 
     //중복회원검증
     public Members validateDuplicateMember(String loginId) {

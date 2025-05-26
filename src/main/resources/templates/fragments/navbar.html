@@ -43,13 +43,14 @@
                     <ul class="nav flex-column ms-3">
                         <li><a th:href="@{/order/inventory}" class="nav-link text-white px-2">재고관리</a></li>
                         <li><a href="/order/history" class="nav-link text-white px-2">발주조회</a></li>
-                        <li><a href="/order/list" class="nav-link text-white px-2">ORDER LIST</a></li>
+                        <li><a href="/product/create" class="nav-link text-white px-2">제품주문</a></li>
+                        <li><a href="/product/list" class="nav-link text-white px-2">ORDER LIST</a></li>
                     </ul>
                 </div>
             </li>
 
             <!-- 공정 모니터링 -->
-            <li class="nav-item"><a href="/monitoring" class="nav-link text-white px-0">
+            <li class="nav-item" ><a th:href="@{/monitoring/list/{id}(id=${orderId})}" class="nav-link text-white px-0">
                 <i class="bi bi-easel"></i> 공정 모니터링 </a></li>
 
             <!-- 에러관리 -->

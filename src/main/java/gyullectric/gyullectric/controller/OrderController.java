@@ -20,11 +20,13 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    public OrderController(OrderService orderService){
+    public OrderController(OrderService orderService) {
         this.orderService = orderService;
     }
 
-    /** 재고 목록 조회 (검색 + 페이징) */
+    /**
+     * 재고 목록 조회 (검색 + 페이징)
+     */
     @GetMapping("/inventory")
     public String getInventory(HttpSession session, Model model,
                                @RequestParam(value = "page", defaultValue = "0") int page,
@@ -49,7 +51,9 @@ public class OrderController {
         return "inventory/inventory";
     }
 
-    /** 재고 등록 */
+    /**
+     * 재고 등록
+     */
     @PostMapping("/inventory")
     public String postInventory(@Valid @ModelAttribute("inventoryForm") InventoryForm inventoryForm,
                                 BindingResult bindingResult, HttpSession session, Model model) {
@@ -79,7 +83,9 @@ public class OrderController {
         return "redirect:/order/inventory";
     }
 
-    /** 발주 이력 페이지 진입 */
+    /**
+     * 발주 이력 페이지 진입
+     */
     @GetMapping("/history")
     public String getOrderHistory(Model model,
                                   @RequestParam(value = "page", defaultValue = "0") int page) {
@@ -92,22 +98,10 @@ public class OrderController {
         return "inventory/inventoryOrder";
     }
 
-    /** 주문 목록 페이지 */
-    @GetMapping("/list")
-    public String getOrderList(Model model, HttpSession session) {
-        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        if (loginMember == null) {
-            return "redirect:/login";
-        }
 
-        List<OrderList> orders = orderService.getAllOrdersOrderByOrderDateDesc();
-        model.addAttribute("loginMember", loginMember);
-        model.addAttribute("orders", orders);
-        return "product/orderlist";
-    }
-// 재고 주문 삭제
+    // 재고 주문 삭제
     @GetMapping("/{id}/delete")
-    public String deleteHistory(@PathVariable("id")Long id) {
+    public String deleteHistory(@PathVariable("id") Long id) {
         Inventory inventory = orderService.findOneInventory(id).orElseThrow(() -> new IllegalArgumentException("해당 재고를 찾을 수 없습니다"));
 
         OrderHistory orderHistory = new OrderHistory();
@@ -121,27 +115,4 @@ public class OrderController {
         return "redirect:/order/history";
     }
 
-//    /** 공정 시작 요청 (PENDING → COMPLETED) */
-//    @PostMapping("/process/new/{id}")
-//    public String startProcess(@PathVariable Long id, HttpSession session) {
-//        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
-//        if (loginMember == null) {
-//            return "redirect:/login";
-//        }
-//
-//        orderService.updateOrderStatusToCompleted(id);
-//        return "redirect:/order/list";
-//    }
-
-    /** 주문 삭제 */
-    @GetMapping("/delete/{id}")
-    public String deleteOrder(@PathVariable Long id, HttpSession session) {
-        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        if (loginMember == null) {
-            return "redirect:/login";
-        }
-
-        orderService.deleteOrderById(id);
-        return "redirect:/order/list";
-    }
 }

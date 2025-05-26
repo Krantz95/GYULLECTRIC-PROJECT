@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -30,6 +32,9 @@ public class Members {
     private String phone;
     @Setter
     private LocalDateTime createDate;
+
+    @OneToMany(mappedBy = "members")
+    private List<OrderList> orderLists = new ArrayList<>();
 
 
 

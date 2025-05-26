@@ -1,4 +1,80 @@
 package gyullectric.gyullectric.service;
 
+import gyullectric.gyullectric.domain.*;
+import gyullectric.gyullectric.repository.MonitoringRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+@Transactional
 public class MonitoringService {
+    private final MonitoringRepository monitoringRepository;
+    private final ProductService productService;
+
+    public void processSave(OrderList orderList) {
+
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+        String currentDate = LocalDateTime.now().format(dateTimeFormatter);
+
+        int orderQuantity = orderList.getQuantity();
+
+        ProductName productName = orderList.getProductName();
+
+        Long orderId = orderList.getId();
+
+        for (int i = 1; i <= orderQuantity; i++) {
+            String sequence = String.format("%03d", i);
+            String processStep = String.format("%02d", 1);
+
+            String lotNumber = productName.name() + "_" + orderId + "_" + sequence + "_" + processStep + "_" + currentDate;
+
+            ProcessLog processLog = ProcessLog.builder()
+                    .lotNumber(lotNumber)
+                    .createAt(LocalDateTime.now())
+                    .processResultStatus(ProcessResultStatus.WAITING)
+                    .errorCode("-")
+                    .orderList(orderList)
+                    .processStep(1)
+                    .productName(productName)
+                    .build();
+
+            monitoringRepository.save(processLog);
+        }
+    }
+
+    public boolean randomStatus() {
+        return new Random().nextInt(10) + 1 <= 9;
+    }
+
+    public List<ProcessLog> allFindProcess(Long id) {
+        return monitoringRepository.findAll();
+    }
+
+    public Optional<ProcessLog> oneFindProcess(Long id) {
+       return monitoringRepository.findById(id);
+    }
+
+    public void deleteProcess(Long id){
+        monitoringRepository.deleteById(id);
+    }
+
+    //    날짜를 기준으로 주문조회
+    public List<ProcessLog> findAllByDate(LocalDate date){
+        LocalDateTime start = date.atStartOfDay();
+        LocalDateTime end = date.plusDays(1).atStartOfDay();
+        return monitoringRepository.findAllByCreateAtBetween(start,end);
+    }
+
 }

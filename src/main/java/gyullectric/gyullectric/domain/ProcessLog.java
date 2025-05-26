@@ -1,14 +1,23 @@
 package gyullectric.gyullectric.domain;
 
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
+@Setter
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 @Table(name = "process_log")
 public class ProcessLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="process_id")
     private Long id;
 
     @Enumerated(EnumType.STRING)
@@ -23,15 +32,19 @@ public class ProcessLog {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "process_result_status", length = 20, nullable = false)
-    private ProcessResultStatus processResultStatus = ProcessResultStatus.OK;
+    private ProcessResultStatus processResultStatus ;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "create_at", nullable = false)
     private LocalDateTime createAt = LocalDateTime.now();
 
     @Column(name = "error_code", length = 20)
     private String errorCode;
 
-    public ProcessLog() {}
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "order_id")
+    private OrderList orderList;
 
-    // Getters and setters 생략
+
+
+
 }
