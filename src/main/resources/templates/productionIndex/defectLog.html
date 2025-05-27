@@ -1,10 +1,175 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<th:block layout:fragment="content">
 
-</body>
+    <div class="py-4">
+        <!-- 서브타이틀 -->
+        <div class="subtitle_css">생산지표관리_불량예측</div>
+        <div class="fw-bold py-3">기계 이상 감지</div>
+
+        <!-- 주조 공정 -->
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-12 text-center">
+                <!-- 경고 메시지 위치 (높이 고정) -->
+                <div id="castingWarning" class="warning-placeholder"></div> <!--warning-placeholder : 경고문구가 없어도 해당 행칸 유지 -->
+
+                <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
+                    <canvas id="castingChart" style="display: block; width: 100%; height: 200px; margin-bottom: 0;"></canvas>
+                    <div id="castingStatus" class="d-flex justify-content-between align-items-center" style="margin-top: 0; padding-top: 0;">
+                        <span class="status-label">압력/온도 감지 (0%)</span>
+                        <button type="button" class="status-btn" style="background-color: #FF0004;">점검요청</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 용접 공정 -->
+            <div class="col-lg-6 col-12 text-center">
+                <!-- 경고 메시지 (높이 고정) -->
+                <div id="weldingWarning" class="warning-placeholder"></div>
+
+                <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
+                    <canvas id="weldingChart" style="display: block; width: 100%; height: 200px; margin-bottom: 0;"></canvas>
+                    <div id="weldingStatus" class="d-flex justify-content-between align-items-center" style="margin-top: 0; padding-top: 0;">
+                        <span class="status-label">용접 출력 감지 (0%)</span>
+                        <button type="button" class="status-btn" style="background-color: #FF0004;">점검요청</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 경고 로그 테이블-->
+        <div class="py-3 fw-bold">경고 로그</div>
+        <table class="table-responsive">
+            <table class="table table-bordered text-center align-middle table1_css">
+                <thead>
+                <tr>
+                    <th class="col-small">발생일시</th>
+                    <th class="col-small">발생공정</th>
+                    <th class="col-large">감지 현상</th>
+                    <th>확인</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>2025.05.13 10:02</td>
+                    <td>1공정</td>
+                    <td>압력 온도 초과 </td>
+                    <td><button class="status-btn status-unchecked" style="background-color: #FF9100">점검요청</button></td>
+                </tr>
+                <tr>
+                    <td>2025.05.14 18:25</td>
+                    <td>2공정</td>
+                    <td>배터리팩 용접 출력 이상 - 점검 필요</td>
+                    <td><button class="status-btn status-unchecked" style="background-color: #FF9100">점검요청</button></td>
+                </tr>
+                </tbody>
+            </table>
+        </table>
+    </div>
+
+    <!-- 차트 2개 스크립트 -->
+    <script th:inline="javascript" layout:fragment="script">
+        document.addEventListener('DOMContentLoaded', function () {
+            const datasets = [
+                { id: 'castingChart', statusId: 'castingStatus', warningId: 'castingWarning', label: '압력/온도 감지', value: 80 }, // 주조
+                { id: 'weldingChart', statusId: 'weldingStatus', warningId: 'weldingWarning', label: '용접 출력 감지', value: 62 }   // 용접
+            ];
+
+            datasets.forEach(data => {
+                const canvas = document.getElementById(data.id);
+                const ctx = canvas.getContext('2d');
+
+                // canvas 크기 강제 지정
+                canvas.height = 200;
+                canvas.width = canvas.parentNode.offsetWidth;
+
+                let bgColor;
+                if (data.value <= 60) {
+                    bgColor = 'green';
+                } else if (data.value <= 79) {
+                    bgColor = '#FFD700';
+                } else {
+                    bgColor = 'red';
+                }
+
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [data.value, 100 - data.value],
+                            backgroundColor: [bgColor, '#878787'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: true,
+                        circumference: 180,
+                        rotation: 270,
+                        cutout: '50%',
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function () {
+                                        return `${data.label}: ${data.value}% (기준 100%)`;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    plugins: [{
+                        afterDraw: chart => {
+                            const { ctx, chartArea: { width, height } } = chart;
+                            const centerX = width / 2;
+                            const centerY = height / 1.5;
+                            const smallRadius = 40;
+
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.arc(centerX, centerY, smallRadius, 0, 2 * Math.PI);
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fill();
+                            ctx.strokeStyle = '#F37221';
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                            ctx.closePath();
+
+                            ctx.font = '15px sans-serif';
+                            ctx.fillStyle = 'black';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(`${data.value}%`, centerX, centerY);
+
+                            ctx.restore();
+                        }
+                    }]
+                });
+
+                const statusDiv = document.getElementById(data.statusId);
+                const statusLabel = statusDiv.querySelector('.status-label');
+                const statusButton = statusDiv.querySelector('.status-btn');
+
+                // 상태 텍스트
+                statusLabel.textContent = `${data.label} (${data.value}%)`;
+
+                // 버튼 활성/비활성
+                if (data.value >= 80) {
+                    statusButton.disabled = false;
+                } else {
+                    statusButton.disabled = true;
+                }
+
+                // 경고 메시지 처리
+                const warningDiv = document.getElementById(data.warningId);
+                if (data.value >= 80) {
+                    warningDiv.className = 'warning-box blinking warning-placeholder';
+                    warningDiv.innerHTML = `⚠ 주의! ${data.label} 초과 경고`;
+                } else {
+                    warningDiv.className = 'warning-placeholder';
+                    warningDiv.innerHTML = '';
+                }
+            });
+        });
+
+    </script>
+</th:block>
 </html>
