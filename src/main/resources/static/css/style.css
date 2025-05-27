@@ -33,16 +33,13 @@ html, body {
     display: flex;
     flex-direction: column;
 }
-.row {
-    flex: 1;
-}
 .col-lg-10 {
     display: flex;
     flex-direction: column;
 }
 .col-lg-10 > div {
-     flex: 1;
- }
+    flex: 1;
+}
 
 .navbar_css {
     background-color: #FF6A00; /* 주황 */
@@ -71,6 +68,8 @@ nav.d-lg-none {
     top: 0;
     width: 100%;
     z-index: 1030;
+    height: auto;        /* 추가: 내용만큼만 높이 */
+    flex: none;          /* 추가: flex 부모 영향 안 받게 */
 }
 
 /* 폼 양식 sm, lg 구분 */
@@ -302,6 +301,63 @@ nav.d-lg-none {
     background-color: #FFEFBA;
 }
 
+/*********** 불량 예측 ************/
+/* 컬럼 가로 사이즈 조절 */
+.col-small {
+    width: 15%;
+}
+.col-large {
+    width: 50%;
+}
+.blinking {
+    animation: blink 0.7s infinite; /* 경고알림, 0.5초 속도로 깜빡~*/
+}
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+.defect-row {
+    display: flex;
+    flex: 0 1 auto;  /* grow 0, shrink 1, basis auto → 내용만큼만 */
+    margin: 0;
+    padding: 0;
+}
+
+.defect-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: auto;           /* 높이 강제 제한 */
+    margin: 0;
+    padding: 0;
+}
+
+
+/* 경고 메시지 디자인 통일 */
+.warning-box {
+    display: inline-block;          /* 가로는 내용 길이 기준 */
+    background-color: #ffe6f0;      /* 연한 분홍 배경 */
+    color: #ff0000;                 /* 빨간 글씨 */
+    font-weight: bold;              /* 굵은 글씨 */
+    min-height: 40px;               /* 세로 최소 높이 추가 */
+    margin-top: 30px;               /* 위쪽 여백 더 크게 */
+    padding: 10px 20px;             /* 좌우 여백 추가 */
+    line-height: 1.5;               /* 줄 간격 넓히기 (내용 많을 때) */
+    white-space: nowrap;            /* 한 줄로 유지 */
+}
+.warning-placeholder {
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 /* 일부 컬럼만 굵게 하고 싶을 때 - 발주예측에서 쓸것 */
 .bold-column td:nth-child(4),
 .bold-column th:nth-child(4) {
@@ -343,13 +399,21 @@ nav.d-lg-none {
 
 /* 대시보드 상단 에러알림 표시 */
 .dashboard_error {
-    animation: blink-red-clear 0.5s infinite; /* 1초 간격으로 애니메이션 무한 반복 */
+    animation: blink-red-clear 0.7s infinite; /* 1초 간격으로 애니메이션 무한 반복 */
     padding: 10px 0;                         /* 위아래 여백 */
     text-align: center;                      /* 텍스트 가운데 정렬 */
     color: white;                            /* 글자색 흰색 */
     font-weight: bold;                       /* 굵은 글씨 */
     font-size: 18px;                         /* 글자 크기 */
 }
+
+/* 대시보드 본문 에러 표시 위치 고정 */
+#ngWarningMessage {
+    min-height: 24px; /* 한 줄 높이 맞추기 */
+    display: flex;
+    align-items: center;
+}
+
 
 /* 공정모니터링 파이차트 크기 설정*/
 /* 차트 기본 설정 */
@@ -382,6 +446,14 @@ nav.d-lg-none {
     font-size: 14px;
     cursor: pointer;
 }
+
+.status-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    background-color: #cccccc !important;
+    border: none;
+}
+
 .status-unchecked { background-color: #FF0004; } /* 미처리: 빨강 */
 .status-checking  { background-color: #FFCC00; color: black; } /* 점검중: 노랑 */
 .status-resolved  { background-color: #02AD16; } /* 처리: 초록 */
@@ -478,4 +550,3 @@ nav.d-lg-none {
     background-color: transparent;
     text-decoration: underline;
 }
-
