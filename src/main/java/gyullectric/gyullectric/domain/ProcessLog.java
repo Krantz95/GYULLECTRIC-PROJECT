@@ -21,7 +21,7 @@ public class ProcessLog {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "product_name", length = 50, nullable = false)
+    @Column(name = "product_name", length = 50)
     private ProductName productName;
 
     @Column(name = "lot_number", length = 50, nullable = false)

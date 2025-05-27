@@ -12,9 +12,9 @@ import lombok.NoArgsConstructor;
 public class MonitoringDto {
     private String lotNumber;
     private int processStep;
-    private ProcessResultStatus processResultStatus;
-    private String creatAt;
+    private String processResultStatus;
+    private String createAt;
     private String errorCode;
-    private ProductName productName;
+    private String productName;
 
 }

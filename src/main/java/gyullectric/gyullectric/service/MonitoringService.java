@@ -1,9 +1,11 @@
 package gyullectric.gyullectric.service;
 
 import gyullectric.gyullectric.domain.*;
+import gyullectric.gyullectric.dto.MonitoringDto;
 import gyullectric.gyullectric.repository.MonitoringRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +15,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -77,4 +80,10 @@ public class MonitoringService {
         return monitoringRepository.findAllByCreateAtBetween(start,end);
     }
 
+    // 저장 후 정렬된 리스트 반환 메서드
+    public List<ProcessLog> getSortedProcessLogsByOrderList(OrderList orderList) {
+        return monitoringRepository.findByOrderListOrderByCreateAtAscProductNameAscProcessStepAsc(orderList);
+    }
 }
+
+

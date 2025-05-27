@@ -44,7 +44,7 @@
                             삭제
                         </button>
 
-                        <a th:href="@{/monitoring}" class="btn btn-success btn-sm ms-2"
+                        <a th:href="@{/monitoring/list/{id}(id=${order.id})}" class="btn btn-success btn-sm ms-2"
                            th:if="${order.processStatus.name()== 'IN_PROGRESS' or order.processStatus.name() == 'COMPLETED'}">공정보기</a>
                         </div>
 

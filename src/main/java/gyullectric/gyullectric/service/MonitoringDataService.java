@@ -41,7 +41,7 @@ public class MonitoringDataService {
 
 //        공정별 에러
         Map<Integer,Long> ngCountByStep = processes.stream()
-                .filter(p -> ProcessResultStatus.NG.equals(p.getProcessStep()))
+                .filter(p -> ProcessResultStatus.NG.equals(p.getProcessResultStatus()))
                 .collect(Collectors.groupingBy(ProcessLog::getProcessStep, Collectors.counting()));
         log.info("공정별 에러개수 : {}", ngCountByStep);
 

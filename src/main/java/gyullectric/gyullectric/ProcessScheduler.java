@@ -29,103 +29,81 @@ public class ProcessScheduler {
     public void processOneByOne() {
         log.info("스케쥴러가 호출되나?");
 
-        Optional<ProcessLog> orderByIdAsc = monitoringRepository.findFirstByProcessResultStatusOrderByOrderList_IdAsc(ProcessResultStatus.WAITING);
+            Optional<ProcessLog> processOpt = monitoringRepository
+                    .findFirstByProcessResultStatusOrderByOrderList_IdAsc(ProcessResultStatus.WAITING);
 
-        if (orderByIdAsc.isEmpty()) return;
+            if (processOpt.isEmpty()) return;
 
-        ProcessLog current = orderByIdAsc.get();
+            ProcessLog step1 = processOpt.get();
+            int baseStep = step1.getProcessStep();
 
-        log.info("가져온 공정step1{},{}", current.getProcessStep(), current.getOrderList().getId());
+            // Step1 처리
+            boolean isOk1 = new Random().nextInt(10) + 1 <= 9;
+            step1.setProcessResultStatus(isOk1 ? ProcessResultStatus.OK : ProcessResultStatus.NG);
+            step1.setCreateAt(LocalDateTime.now());
+            step1.setErrorCode(isOk1 ? "_" : "10" + baseStep);
+            monitoringRepository.save(step1);
+            sendProcessLog(step1); // WebSocket 전송
 
-//        상태 업데이트
-        boolean isOk = new Random().nextInt(10) + 1 <= 9;
-        current.setProcessResultStatus(isOk ? ProcessResultStatus.OK : ProcessResultStatus.NG);
-        current.setCreateAt(LocalDateTime.now());
-        current.setErrorCode(isOk ? "_" : "10" + current.getProcessStep());
-        monitoringRepository.save(current);
+            // Step2 생성
+            int step2Num = baseStep + 1;
+            String lotStep2 = step1.getLotNumber().replace(
+                    "_" + String.format("%02d", baseStep) + "_",
+                    "_" + String.format("%02d", step2Num) + "_"
+            );
 
-//        stemp2 생성
-        boolean isOk2 = new Random().nextInt(10) + 1 <= 9;
-        log.info("가져온 공정 step2 {}, isOk2 {}", current.getProcessStep() + 1, isOk2);
-        ProcessLog step2 = ProcessLog.builder()
-                .lotNumber(current.getLotNumber().replace(
-                        "_" + String.format("%02d", current.getProcessStep()) + "_",
-                        "-" + String.format("%02d", current.getProcessStep() + 1) + "_"))
-                .processStep(current.getProcessStep() + 1)
-                .processResultStatus(isOk2 ? ProcessResultStatus.OK : ProcessResultStatus.NG)
-                .createAt(LocalDateTime.now())
-                .errorCode(isOk2 ? "_" : "10" + (current.getProcessStep() + 1))
-                .orderList(current.getOrderList())
-                .build();
-        monitoringRepository.save(step2);
+            boolean isOk2 = new Random().nextInt(10) + 1 <= 9;
+            ProcessLog step2 = ProcessLog.builder()
+                    .lotNumber(lotStep2)
+                    .processStep(step2Num)
+                    .orderList(step1.getOrderList())
+                    .productName(step1.getProductName())
+                    .processResultStatus(isOk2 ? ProcessResultStatus.OK : ProcessResultStatus.NG)
+                    .createAt(LocalDateTime.now())
+                    .errorCode(isOk2 ? "_" : "10" + step2Num)
+                    .build();
+            monitoringRepository.save(step2);
+            sendProcessLog(step2); // WebSocket 전송
 
-        //        step3 생성 공정이 많다면 걍 for 문 돌리요
-        boolean isOk3 = new Random().nextInt(10) + 1 <= 9;
-        log.info("가져온 공정 step3 {}, isOk3 {}", current.getProcessStep() + 2, isOk3);
-        ProcessLog step3 = ProcessLog.builder()
-                .lotNumber(current.getLotNumber().replace(
-                        "_" + String.format("%02d", current.getProcessStep()) + "_",
-                        "-" + String.format("%02d", current.getProcessStep() + 2) + "_"))
-                .processStep(current.getProcessStep() + 2)
-                .processResultStatus(isOk3 ? ProcessResultStatus.OK : ProcessResultStatus.NG)
-                .createAt(LocalDateTime.now())
-                .errorCode(isOk3 ? "_" : "10" + (current.getProcessStep() + 2))
-                .orderList(current.getOrderList())
-                .build();
-        monitoringRepository.save(step3);
+            // Step3 생성
+            int step3Num = baseStep + 2;
+            String lotStep3 = step2.getLotNumber().replace(
+                    "_" + String.format("%02d", step2Num) + "_",
+                    "_" + String.format("%02d", step3Num) + "_"
+            );
 
-//        jobOrderService.updateOrderState(current.getJobOrder().getId(), JobOrderState.COMPLETED);
+            boolean isOk3 = new Random().nextInt(10) + 1 <= 9;
+            ProcessLog step3 = ProcessLog.builder()
+                    .lotNumber(lotStep3)
+                    .processStep(step3Num)
+                    .orderList(step1.getOrderList())
+                    .productName(step1.getProductName())
+                    .processResultStatus(isOk3 ? ProcessResultStatus.OK : ProcessResultStatus.NG)
+                    .createAt(LocalDateTime.now())
+                    .errorCode(isOk3 ? "_" : "10" + step3Num)
+                    .build();
+            monitoringRepository.save(step3);
+            sendProcessLog(step3); // WebSocket 전송
 
-//        모든 제품의 공정이 끝났는지 확인
-        Long orderId = current.getOrderList().getId();
-        int totalQuantity = current.getOrderList().getQuantity();
+            // 주문 완료 여부 확인 (step == 3인 공정이 주문 수량만큼인지 확인)
+            Long orderId = step1.getOrderList().getId();
+            int totalQty = step1.getOrderList().getQuantity();
+            long finishedCount = monitoringRepository.countByOrderList_IdAndProcessStep(orderId, 3);
 
-//        step ==3 인 공정수 조회 (ok+ng 포함)
-        long finishedCount = monitoringRepository.countByOrderList_IdAndProcessStep(orderId, 3);
-        if (finishedCount >= totalQuantity) {
-            productService.updateOrderState(orderId, ProcessStatus.COMPLETED);
+            if (finishedCount >= totalQty) {
+                productService.updateOrderState(orderId, ProcessStatus.COMPLETED);
+            }
         }
-        //        current 전송
-        MonitoringDto dto = new MonitoringDto(
-                current.getLotNumber(),
-                current.getProcessStep(),
-                current.getProcessResultStatus(),
-                current.getCreateAt() != null? current.getCreateAt().toString() : null,
-                current.getErrorCode(),
-                current.getOrderList().getProductName()
-        );
-        log.info("Sending to WebSocket:{}", current.getLotNumber());
-
-//        전송
-        simpMessagingTemplate.convertAndSend("/topic/process", dto);
-
-//        step2 전송
-        MonitoringDto dto2 = new MonitoringDto(
-                step2.getLotNumber(),
-                step2.getProcessStep(),
-                step2.getProcessResultStatus(),
-                step2.getCreateAt() != null? current.getCreateAt().toString() : null,
-                step2.getErrorCode(),
-                step2.getOrderList().getProductName()
-        );
-        log.info("Sending to WebSocket:{}", current.getLotNumber());
-
-//        전송
-        simpMessagingTemplate.convertAndSend("/topic/process", dto2);
-
-        //        step3 전송
-        MonitoringDto dto3 = new MonitoringDto(
-                step3.getLotNumber(),
-                step3.getProcessStep(),
-                step3.getProcessResultStatus(),
-                step3.getCreateAt() != null? current.getCreateAt().toString() : null,
-                step3.getErrorCode(),
-                step3.getOrderList().getProductName()
-        );
-        log.info("Sending to WebSocket:{}", current.getLotNumber());
-
-//        전송
-        simpMessagingTemplate.convertAndSend("/topic/process", dto3);
+        private void sendProcessLog (ProcessLog process){
+            MonitoringDto dto = new MonitoringDto(
+                    process.getLotNumber(),
+                    process.getProcessStep(),
+                    process.getProcessResultStatus().name(),
+                    process.getCreateAt() != null ? process.getCreateAt().toString() : null,
+                    process.getErrorCode(),
+                    process.getProductName().name()
+            );
+            simpMessagingTemplate.convertAndSend("/topic/process", dto);
+            log.info("WebSocket 전송: {}", process.getLotNumber());
+        }
     }
-
-}

@@ -44,7 +44,7 @@ public class DummyDataLoader implements CommandLineRunner {
                 .members(members)
                 .orderAt(LocalDateTime.now())
                 .supplier(Supplier.NEOCONTROL)
-                .quantity(10)
+                .quantity(100)
                 .partName(partName)
                 .build()).toList();
         inventories.forEach(orderService::saveInventory);
@@ -52,7 +52,7 @@ public class DummyDataLoader implements CommandLineRunner {
         for(PartName partName : partNames){
             Inventory inventory = Inventory.builder()
                     .partName(partName)
-                    .quantity(10)
+                    .quantity(100)
                     .supplier(Supplier.ECO_POWER_CELL)
                     .orderAt(LocalDateTime.now())
                     .members(members)

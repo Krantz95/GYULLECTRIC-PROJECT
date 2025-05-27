@@ -61,7 +61,7 @@ public class ProductService {
                OrderListInventory jm = new OrderListInventory();
                jm.setInventory(inventory);
                jm.setDeductedQuantity((int) minQuantity);
-               orderList.addOrderListInvetory(jm);
+               orderList.addOrderListInventory(jm);
 
                requiredOrderQuantity -= minQuantity;
            }

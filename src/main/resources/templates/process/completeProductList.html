@@ -9,6 +9,7 @@
         <div style="width: 800px;">
             <p class="pt-3">제품별 생산 달성률(%)</p>
             <canvas id="achievementChart" style="max-width: 100%; height: 200px;"></canvas>
+
         </div>
 
         <!-- 임시 구현 그래프  -->
@@ -28,95 +29,132 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>A타입</td>
-                    <td>30</td>
-                    <td>백현장</td>
-                    <td>2025-05-12 08:10</td>
-                    <td>1</td>
-                    <td>29</td>
-                    <td>96.7%</td>
+                <tr th:each="order : ${orderLists}">
+                    <td th:text="${order.id}"></td>
+                    <td th:text="${order.productName}"></td>
+                    <td th:text="${order.quantity}"></td>
+                    <td th:text="${order.members.name}"></td>
+                    <td th:text="${#temporals.format(order.orderDate, 'yyyy-MM-dd HH:mm')}"></td>
+                    <td th:text="${errorCountMap[order.id]}"></td>
+                    <td th:text="${completeCountMap[order.id]}"></td>
+                    <td th:text="${#numbers.formatDecimal(achievementRateMap[order.id], 1, 'POINT', 1, 'POINT')} + '%'"></td>
                 </tr>
-                <tr>
-                    <td>2</td>
-                    <td>B타입</td>
-                    <td>50</td>
-                    <td>홍길동</td>
-                    <td>2025-05-13 09:00</td>
-                    <td>0</td>
-                    <td>50</td>
-                    <td>100.0%</td>
-                </tr>
-                <tr>
-                    <td>3</td>
-                    <td>C타입</td>
-                    <td>40</td>
-                    <td>김철수</td>
-                    <td>2025-05-14 11:20</td>
-                    <td>3</td>
-                    <td>12</td>
-                    <td>30.0%</td>
-                </tr>
-
-                <!-- 타임리프 작업 예시-->
-                <!--                <tr th:each = "product : ${jobOrders}">-->
-                <!--                    <th th:text = "${product.id}"></th>-->
-                <!--                    <td th:text = "${product.productName}"></td>-->
-                <!--                    <td th:text = "${product.orderQuantity}"></td>-->
-                <!--                    <td th:text = "${product.employee.loginId}"></td>-->
-                <!--                    <td th:text = "${#temporals.format(product.orderDate, 'yyyy-MM-dd HH:mm')}"></td>-->
-                <!--                    <td th:text ="${ngCountByJobOrder.get(product.id)}"></td>-->
-                <!--                    <td th:text ="${productCountByJobOrder.get(product.id)}"></td>-->
-                <!--                    <td th:text ="${#numbers.formatDecimal((productCountByJobOrder.get(product.id) * 100.0) / product.orderQuantity, 1, 1)} + '%'"></td>-->
-                <!--                </tr>-->
-
                 </tbody>
             </table>
         </div>
     </div>
+</th:block>
+
 
     <!-- 열어서 안에 주석 참고 // 임시 구현 가로 막대 차트 -->
     <script th:inline="javascript" layout:fragment="script">
-        document.addEventListener('DOMContentLoaded', function () {
-            const ctx = document.getElementById('achievementChart').getContext('2d');
 
-            const data = {
-                labels: ['A타입', 'B타입', 'C타입'], // 타임리프 사용 후에는 이부분 바꾸기
-                datasets: [{    // 타임리프 사용 후에는 이부분 바꾸기
-                    label: '달성률 (%)',
-                    data: [96.7, 100.0, 30.0],
-                    backgroundColor: ['#FFCC00', '#02AD16', '#FF5900'],
+        /*<![CDATA[*/
+        let chartData = /*[[${chartData}]]*/ '{}';
+        chartData = JSON.parse(chartData);
+
+        const ctx = document.getElementById('achievementChart').getContext('2d');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: '제품별 달성률 (%)',
+                    data: chartData.data,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1
                 }]
-            };
-
-            const options = {
+            },
+            options: {
                 indexAxis: 'y',
                 scales: {
                     x: {
-                        min: 0,
+                        beginAtZero: true,
                         max: 100,
-                        ticks: {
-                            stepSize: 25,
-                            callback: function (value) {
-                                return value + '%';
-                            }
+                        title: {
+                            display: true,
+                            text: '달성률 (%)'
                         }
                     }
                 },
                 plugins: {
-                    legend: { display: false },
-                    title: { display: false }
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.x.toFixed(2) + '%';
+                            }
+                        }
+                    },
+                    legend: {
+                        display: false
+                    }
                 }
-            };
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: data,
-                options: options
-            });
+            }
         });
+
+        /*]]>*/
     </script>
-</th:block>
+
+
+        // const chartData = /*[[${chartData}]]*/ 'null';
+        // const parsedChartData = JSON.parse(chartData);
+        //
+        // const labels = parsedChartData.labels;
+        // const orderQty = parsedChartData.orderQuantity;
+        // const completeQty = parsedChartData.productCount;
+        //
+        // const achievementRates = completeQty.map((complete, idx) => {
+        //     const ordered = orderQty[idx] || 1;
+        //     return ((complete / ordered) * 100).toFixed(1);
+        // });
+        //
+        // const ctx = document.getElementById('achievementChart').getContext('2d');
+        //
+        // const data = {
+        //     labels: labels,
+        //     datasets: [{
+        //         label: '달성률 (%)',
+        //         data: achievementRates,
+        //         backgroundColor: labels.map((_, i) => {
+        //             const colors = ['#FFCC00', '#02AD16', '#FF5900', '#007bff', '#ff33cc'];
+        //             return colors[i % colors.length];
+        //         }),
+        //         borderWidth: 1
+        //     }]
+        // };
+        //
+        // const options = {
+        //     indexAxis: 'y',
+        //     scales: {
+        //         x: {
+        //             min: 0,
+        //             max: 100,
+        //             ticks: {
+        //                 stepSize: 25,
+        //                 callback: function (value) {
+        //                     return value + '%';
+        //                 }
+        //             }
+        //         }
+        //     },
+        //     plugins: {
+        //         legend: { display: false },
+        //         title: {
+        //             display: true,
+        //             text: '제품별 수율 (%)',
+        //             font: { size: 16 }
+        //         }
+        //     }
+        // };
+        //
+        // new Chart(ctx, {
+        //     type: 'bar',
+        //     data: data,
+        //     options: options
+        // });
+      //  /*]]>*/
+
+
 </html>

@@ -23,14 +23,7 @@ public class GlobalControllerAdvice {
         Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
         model.addAttribute("loginMember", loginMember);
 
-        if (loginMember != null) {
-            // 예시: 해당 회원의 가장 최근 주문 가져오기
-            Optional<OrderList> latestOrder = productService.findLatestOrderByOrderId(loginMember.getId());
 
-            if (latestOrder != null) {
-                model.addAttribute("orderId", latestOrder.get().getId());
-            }
-        }
     }
 
 
