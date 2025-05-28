@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +24,6 @@ import java.util.*;
 public class OrderService {
 
     // 두 브랜치에서 사용하던 리포지토리들을 모두 포함
-    private final OrderListRepository orderListRepository;
     private final InventoryRepository inventoryRepository;
     private final OrderRepository orderRepository;
     private final OrderHistoryRepository orderHistoryRepository;
@@ -52,6 +52,45 @@ public class OrderService {
     @Transactional
     public void deleteInventory(Long id) {
         inventoryRepository.deleteById(id);
+    }
+
+//    제품별 원재료 맵핑
+    private static final Map<ProductName, List<PartName>> PRODUCT_NAME_LIST_MAP = Map.of(
+            ProductName.GyulRide, List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK),
+            ProductName.InteliBike, List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK),
+            ProductName.Pedal_at_4, List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK)
+);
+
+//    원재료 수 총합 구하기
+    public Map<PartName, Long> getInventoryQuantity(){
+        List<Inventory> inventories = inventoryRepository.findAll();
+
+        Map<PartName, Long> partNameLongMap = inventories.stream().collect(Collectors.groupingBy(
+                Inventory::getPartName,
+                Collectors.summingLong(Inventory::getQuantity)
+        ));
+        return  partNameLongMap;
+    }
+
+    public Map<PartName, Long> getRequiredInventoryStock(ProductName productName){
+        Map<PartName, Long> inventoryQuantities = getInventoryQuantity();
+        List<PartName> requiredInventories = PRODUCT_NAME_LIST_MAP.getOrDefault(productName, List.of());
+
+        log.info("원재료 리스트 : {}", requiredInventories);
+
+        Map<PartName, Long> partNameLongMap = requiredInventories.stream().collect(Collectors.toMap(
+                partName -> partName,
+                partName -> inventoryQuantities.getOrDefault(partName, 0L)
+        ));
+        return partNameLongMap;
+    }
+
+    public boolean isEnoughInventory(ProductName productName, int quantity){
+        Map<PartName, Long> requiredInventoryStock = getRequiredInventoryStock(productName);
+        Map<PartName, Long> inventoryQuantities = getInventoryQuantity();
+
+        return  requiredInventoryStock.entrySet().stream().allMatch(entry-> inventoryQuantities.getOrDefault(
+                entry.getKey(), 0L) >= quantity);
     }
 
     public Page<Inventory> orderGetList(int page, String kw, String partName, String supplier) {
@@ -90,27 +129,10 @@ public class OrderService {
         };
     }
 
-    // ======== OrderList 관련 기능 ========
 
-    public List<OrderList> getAllOrdersOrderByOrderDateDesc() {
-        return orderListRepository.findAllByOrderByOrderDateDesc();
-    }
 
-//    @Transactional
-//    public void updateOrderStatusToCompleted(Long orderId) {
-//        OrderList order = orderListRepository.findById(orderId)
-//                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. id=" + orderId));
-//        order.setProcessStatus(ProcessStatus.COMPLETED);
-//        orderListRepository.save(order);
-//    }
-
-    @Transactional
-    public void deleteOrderById(Long orderId) {
-        orderListRepository.deleteById(orderId);
-    }
 
     // ======== 재고 OrderHistory 관련 기능 ========
-
     @Transactional
     public void saveOrderHistory(OrderHistory history) {
         orderHistoryRepository.save(history);

@@ -1,0 +1,43 @@
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<th:block layout:fragment="content">
+
+    <div class="py-4">
+        <!-- 서브타이틀 -->
+        <div class="subtitle_css">제품주문</div>
+
+        <div class="container mt-5">
+            <div class="row">
+                <div class="col-lg-6 col-12 pb-5">
+                    <form role="form" th:object="${productOrderForm}" method="post">
+                        <div class="alert alert-danger" role="alert" th:if="${#fields.hasAnyErrors()}">
+                            <div th:each="err : ${#fields.allErrors()}" th:text="${err}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label  th:for="*{productName}" class="form-label">상품명</label>
+                            <select class="form-select" th:field="*{productName}">
+                                <option value="">주문할 상품을 선택하세요</option>
+                                <option th:each="productName : ${T(gyullectric.gyullectric.domain.ProductName).values()}"
+                                th:text="${productName}" th:value="${productName}"></option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label th:for="*{quantity}" class="form-label">수량</label>
+                            <input type="number" class="form-control" th:field="*{quantity}" placeholder="수량을 입력하세요">
+                        </div>
+                        <div class="text-end pt-3">
+                            <button type="submit" class="btn" style="background-color: #F37221; color: white">주문</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 오른쪽: 이미지 -->
+                <div class="col-lg-6 col-12 d-flex justify-content-center align-items-center">
+                    <img src="/images/전기자전거1.jpg" alt="전기자전거" class="img-fluid" style="max-height: 300px;">
+                </div>
+            </div>
+        </div>
+
+    </div>
+</th:block>
+</html>

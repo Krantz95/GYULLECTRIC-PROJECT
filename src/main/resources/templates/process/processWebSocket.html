@@ -1,0 +1,362 @@
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<th:block layout:fragment="content">
+
+    <div class="py-4">
+        <!-- 서브타이틀 -->
+        <div class="subtitle_css">공정 모니터링</div>
+
+        <!-- 새로고침 버튼 / 새로고침 시간 구현 전 -->
+        <div class="py-3 d-flex align-items-center gap-3">
+            <button type="button" class="refreshTime_css" th:onclick="|location.href='@{/monitoring/list}'|">
+                새로고침
+            </button>
+
+        </div>
+
+        <!-- 공정별 OK/NG율 (sm일때는 차트1개씩 보이게)-->
+        <p class="fw-bold">공정별 OK/NG율</p>
+
+        <div class="row p-3 justify-content-between">
+            <div class="col-lg-3 col-12 d-flex justify-content-center">
+                <div class="d-flex flex-column align-items-center" style="width: 100%; max-width: 500px;"> <!-- sm에서 차트 크기 설정 -->
+                    <p class="align-self-start">1공정</p>
+                    <canvas id="myChart1" style="width: 100%; height: auto;"></canvas>
+                    <div id="text1" class="pt-2"></div>
+                </div>
+            </div>
+
+        <div class="col-lg-3 col-12 d-flex justify-content-center">
+            <div class="d-flex flex-column align-items-center" style="width: 100%; max-width: 500px;">
+                <p class="align-self-start">2공정</p>
+                <canvas id="myChart2" style="width: 100%; height: auto;"></canvas>
+                <div id="text2" class="pt-2"></div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-12 d-flex justify-content-center">
+            <div class="d-flex flex-column align-items-center" style="width: 100%; max-width: 500px;">
+                <p class="align-self-start">3공정</p>
+                <canvas id="myChart3" style="width: 100%; height: auto;"></canvas>
+                <div id="text3" class="pt-2"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 테이블 -->
+        <div class="d-flex justify-content-between align-items-center">
+            <p class="fw-bold mb-0">공정 로그</p>
+            <a href="/monitoring/product/list" class="refreshTime_css" style="text-decoration: none;">제품리스트</a>
+        </div>
+
+        <div class="table-responsive pt-2" style="overflow-x: auto;">
+            <table class="table table-bordered text-center align-middle table2_css">
+                <thead>
+                <tr>
+                    <th>제품명</th>
+                    <th>로트넘버</th>
+                    <th>공정No.</th>
+                    <th>공정상태</th>
+                    <th>공정생성일</th>
+                    <th>에러코드</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="processForm : ${processes}">
+                    <td th:text="${processForm.productName}"></td>
+                    <td th:text="${processForm.lotNumber}"></td>
+                    <td th:text="${processForm.processStep}"></td>
+                    <td th:text="${processForm.processResultStatus}"></td>
+                    <td th:text="${#temporals.format(processForm.createAt,'yyyy-MM-dd HH:mm')}"></td>
+                    <td th:text="${processForm.errorCode}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </div>
+</th:block>
+<script th:inline="javascript" layout:fragment="script">
+    // 서버에서 전달된 초기값 (Thymeleaf)
+    var ng1 = /*[[${ngCountByStep[1]?:0}]]*/0;
+    var ok1 = /*[[${okCountByStep[1]?:0}]]*/0;
+
+    var ng2 = /*[[${ngCountByStep[2]?:0}]]*/0;
+    var ok2 = /*[[${okCountByStep[2]?:0}]]*/0;
+
+    var ng3 = /*[[${ngCountByStep[3]?:0}]]*/0;
+    var ok3 = /*[[${okCountByStep[3]?:0}]]*/0;
+
+    // 초기 ok/ng 카운트를 전역으로 관리 (실시간 업데이트 위해)
+    window.okCounts = {1: ok1, 2: ok2, 3: ok3};
+    window.ngCounts = {1: ng1, 2: ng2, 3: ng3};
+
+    // 차트 그리기 함수 (처음에 차트 생성용)
+    function drawChart(ctx, ok, ng, textElementId) {
+        const total = ok + ng;
+        const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
+        const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
+
+        const chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['OK', 'NG'],
+                datasets: [{
+                    label: '공정 상태',
+                    data: [ok, ng],
+                    backgroundColor: ['#4CAF50', '#F44336'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                cutout: '40%',
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        const textDiv = document.getElementById(textElementId);
+        if (textDiv) {
+            textDiv.innerHTML =
+                `<span style="display: inline-block; width: 20px; height: 10px; background-color: #4CAF50; margin-right: 5px;"></span>` +
+                `<span style="font-weight:bold;  font-size: 15px">OK </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +
+                `<span style="display: inline-block; width: 20px; height: 10px; background-color: #F44336; margin-right: 5px;"></span>` +
+                `<span style="font-weight:bold; font-size: 15px">NG </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;
+        }
+
+        return chart;
+    }
+
+    // 실시간 차트 데이터 업데이트 함수 (차트 객체, ok/ng 수, 텍스트 ID 받아서 갱신)
+    function updateChart(chart, ok, ng, textElementId) {
+        const total = ok + ng;
+        const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
+        const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
+
+        chart.data.datasets[0].data = [ok, ng];
+        chart.update();
+
+        const textDiv = document.getElementById(textElementId);
+        if (textDiv) {
+            textDiv.innerHTML =
+                `<span style="display: inline-block; width: 20px; height: 10px; background-color: #4CAF50; margin-right: 5px;"></span>` +
+                `<span style="font-weight:bold;  font-size: 15px">OK </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +
+                `<span style="display: inline-block; width: 20px; height: 10px; background-color: #F44336; margin-right: 5px;"></span>` +
+                `<span style="font-weight:bold; font-size: 15px">NG </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;
+        }
+    }
+
+    // 차트 생성 (초기 렌더링)
+    const chart1 = drawChart(document.getElementById('myChart1'), ok1, ng1, 'text1');
+    const chart2 = drawChart(document.getElementById('myChart2'), ok2, ng2, 'text2');
+    const chart3 = drawChart(document.getElementById('myChart3'), ok3, ng3, 'text3');
+
+    // lotNumber별 step 상태 누적 저장
+    const lotStepStatusMap = {};
+
+    // 웹소켓 연결 및 실시간 데이터 수신
+    const socket = new SockJS("/ws");
+    const stomp = Stomp.over(socket);
+
+    stomp.connect({}, () => {
+        stomp.subscribe("/topic/process", (msg) => {
+            const p = JSON.parse(msg.body);
+            console.log("실시간 처리됨:", msg.body);
+
+            const step = p.processStep;
+            const status = p.processResultStatus;
+            const lotNumber = p.lotNumber;
+
+            // lotNumber base 추출
+            const base = lotNumber.split("_").slice(0, 3).join("_");
+            if (!lotStepStatusMap[base]) lotStepStatusMap[base] = {};
+            lotStepStatusMap[base][step] = status;
+
+            // 실시간 ok/ng 카운트 업데이트
+            if (!window.okCounts[step]) window.okCounts[step] = 0;
+            if (!window.ngCounts[step]) window.ngCounts[step] = 0;
+
+            if (status === 'OK') window.okCounts[step]++;
+            if (status === 'NG') window.ngCounts[step]++;
+
+            // 공정별 카운터 화면 업데이트 (ok/ng/total)
+            const okSpan = document.querySelector(`#ok-${step}`);
+            const ngSpan = document.querySelector(`#ng-${step}`);
+            const totalSpan = document.querySelector(`#total-${step}`);
+
+            if (okSpan) okSpan.textContent = window.okCounts[step];
+            if (ngSpan) ngSpan.textContent = window.ngCounts[step];
+            if (totalSpan) totalSpan.textContent = window.okCounts[step] + window.ngCounts[step];
+
+            // 차트 업데이트 호출
+            switch (step) {
+                case 1:
+                    updateChart(chart1, window.okCounts[1], window.ngCounts[1], 'text1');
+                    break;
+                case 2:
+                    updateChart(chart2, window.okCounts[2], window.ngCounts[2], 'text2');
+                    break;
+                case 3:
+                    updateChart(chart3, window.okCounts[3], window.ngCounts[3], 'text3');
+                    break;
+            }
+
+            // 실시간 테이블 행 추가
+            const tbody = document.querySelector("table tbody");
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${p.productName}</td>
+                <td>${p.lotNumber}</td>
+                <td>${p.processStep}</td>
+                <td>${p.processResultStatus}</td>
+                <td>${p.createAt || '-'}</td>
+                <td>${p.errorCode || '-'}</td>
+            `;
+            if (tbody) {
+                tbody.prepend(tr);
+                // 최대 10개까지만 유지
+                if (tbody.children.length > 10) {
+                    tbody.removeChild(tbody.lastChild);
+                }
+            }
+        });
+    });
+</script>
+<!-- 도넛차트 그리기 -->
+<!--<script th:inline="javascript" layout:fragment="script">-->
+<!--    -->
+<!--    function drawChart(ctx, ok, ng, textElementId) {-->
+<!--        const total = ok + ng;-->
+<!--        const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;-->
+<!--        const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;-->
+
+<!--        const chart = new Chart(ctx, {-->
+<!--            type: 'doughnut',-->
+<!--            data: {-->
+<!--                labels: ['OK', 'NG'],-->
+<!--                datasets: [{-->
+<!--                    label: '공정 상태',-->
+<!--                    data: [ok, ng],-->
+<!--                    backgroundColor: ['#4CAF50', '#F44336'],-->
+<!--                    borderWidth: 0-->
+<!--                }]-->
+<!--            },-->
+<!--            options: {-->
+<!--                responsive: true,-->
+<!--                maintainAspectRatio: true,-->
+<!--                cutout: '40%',-->
+<!--                plugins: {-->
+<!--                    legend: { display: false }-->
+<!--                }-->
+<!--            }-->
+<!--        });-->
+
+
+<!--        const textDiv = document.getElementById(textElementId);-->
+<!--        if (textDiv) {-->
+<!--            textDiv.innerHTML =-->
+<!--                `<span style="display: inline-block; width: 20px; height: 10px; background-color: #4CAF50; margin-right: 5px;"></span>`-->
+<!--            + `<span style="font-weight:bold;  font-size: 15px">OK </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +-->
+<!--                `<span style="display: inline-block; width: 20px; height: 10px; background-color: #F44336; margin-right: 5px;"></span>` +-->
+<!--                `<span style="font-weight:bold; font-size: 15px">NG </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;-->
+
+<!--        }-->
+<!--        return chart; // 🔥 chart 객체 반환-->
+<!--    }-->
+<!--    // 전역 변수로 선언-->
+<!--    let chart1, chart2, chart3;-->
+<!--    // 차트생성-->
+<!--    chart1 = drawChart(document.getElementById('myChart1'),ok1,ng1, 'text1');-->
+<!--    chart2 = drawChart(document.getElementById('myChart2'),ok2,ng2, 'text2');-->
+<!--    chart3 = drawChart(document.getElementById('myChart3'),ok3,ng3, 'text3');-->
+
+<!--    // lotNumber별 step 상태 누적 저장-->
+<!--    const lotStepStatusMap = {}; // { lotNumberBase: {1: "OK", 2: "OK", 3: "OK"} }-->
+
+<!--    //웹소켓, 자동화면업데이트-->
+<!--    const socket = new SockJS("/ws");-->
+<!--    const stomp = Stomp.over(socket);-->
+
+<!--    stomp.connect({}, () => {-->
+<!--        stomp.subscribe("/topic/process", (msg) => {-->
+<!--            const p = JSON.parse(msg.body);-->
+<!--            // 여기서 step, status를 기준으로 동적으로 화면 업데이트-->
+<!--            console.log("실시간 처리됨:", msg.body);-->
+<!--            // 예: document.querySelector("#chart").updateChart(p);-->
+<!--            // {"lotNumber":"PINKTINT_6_010_01_20250516","step":1,"status":"OK","processDate":"2025-05-16T16:26:23.514135300","errorCode":"_","productName":"PINKTINT"}-->
+
+<!--            // 공정별 카운터 업데이트-->
+<!--            const step = p.processStep;-->
+<!--            const status = p.processResultStatus;-->
+<!--            const lotNumber = p.lotNumber;-->
+
+<!--            // lotNumber에서 base 추출-->
+<!--            const base = lotNumber.split("_").slice(0, 3).join("_");   //"PINKTINT_33_001"-->
+<!--            console.log(base)-->
+<!--            console.log(lotStepStatusMap[base])-->
+
+<!--            if (!lotStepStatusMap[base]) lotStepStatusMap[base] = {};-->
+<!--            lotStepStatusMap[base][step] = status;-->
+
+<!--            // 완제품 판별: step1, 2, 3이 모두 OK일 때만 카운팅-->
+<!--            const stepStatus = lotStepStatusMap[base];-->
+<!--            const today = new Date().toISOString().split("T")[0];-->
+
+<!--            if (-->
+<!--                p.createAt &&-->
+<!--                p.createAt.startsWith(today) &&-->
+<!--                stepStatus[1] === "OK" &&-->
+<!--                stepStatus[2] === "OK" &&-->
+<!--                stepStatus[3] === "OK" &&-->
+<!--                step === 3 // 마지막 공정에서만 처리-->
+<!--            ) {-->
+
+
+<!--                const span = document.getElementById("productCount");-->
+<!--                if (span) {-->
+<!--                    span.textContent = parseInt(span.textContent || '0') + 1;-->
+<!--                }-->
+<!--            }-->
+
+
+<!--            // 공정별 카운터 및 테이블-->
+<!--            const okSpan = document.querySelector(`#ok-${step}`);-->
+<!--            const ngSpan = document.querySelector(`#ng-${step}`);-->
+<!--            const totalSpan = document.querySelector(`#total-${step}`);-->
+
+<!--            if (status === 'OK' && okSpan) okSpan.textContent = parseInt(okSpan.textContent || '0') + 1;-->
+<!--            if (status === 'NG' && ngSpan) ngSpan.textContent = parseInt(ngSpan.textContent || '0') + 1;-->
+<!--            if (totalSpan) totalSpan.textContent = parseInt(totalSpan.textContent || '0') + 1;-->
+
+<!--            // 해당 step 차트 업데이트 호출-->
+<!--            switch (step) {-->
+<!--                case 1:-->
+<!--                    updateChart(chart1, window.okCounts[1], window.ngCounts[1], 'text1');-->
+<!--                    break;-->
+<!--                case 2:-->
+<!--                    updateChart(chart2, window.okCounts[2], window.ngCounts[2], 'text2');-->
+<!--                    break;-->
+<!--                case 3:-->
+<!--                    updateChart(chart3, window.okCounts[3], window.ngCounts[3], 'text3');-->
+<!--                    break;-->
+<!--            }-->
+
+<!--            const tbody = document.querySelector("table tbody");-->
+<!--            const tr = document.createElement("tr");-->
+<!--            tr.innerHTML = `-->
+<!--    <td>${p.productName}</td>-->
+<!--    <td>${p.lotNumber}</td>-->
+<!--    <td>${p.processStep}</td>-->
+<!--    <td>${p.processResultStatus}</td>-->
+<!--    <td>${p.createAt || '-'}</td>-->
+<!--    <td>${p.errorCode}</td>-->
+<!--`;-->
+<!--            tbody.prepend(tr);-->
+<!--        });-->
+<!--    });-->
+<!--</script>-->
+
+</html>

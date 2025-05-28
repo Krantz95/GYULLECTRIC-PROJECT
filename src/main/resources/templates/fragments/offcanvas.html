@@ -11,28 +11,27 @@
         <i class="bi bi-list" style="font-size: 55px; color: #09244B;"></i>
     </button>
     <!-- 로고 + 텍스트 -->
-    <div class="d-flex align-items-center" style="height: 56px;">
-        <a href="/" class="d-inline-block me-2">
+    <div class="d-flex align-items-center" style="height: 50px; color: white;">
+        <a href="/" class="me-2">
             <img src="/images/logo.png" alt="귤렉트릭로고" style="height: 40px;">
         </a>
-        <h5 class="fw-bold text-uppercase mb-0"
-            style="color: white; font-size: 18px; line-height: 1;">
-            GYULLECTRIC
-        </h5>
+        <h5 class="fw-bold text-uppercase mb-0 en-font">GYULLECTRIC</h5>
     </div>
 
     <!-- 오프캔버스 메뉴 -->
-    <div class="offcanvas offcanvas-start navbar_css text-white" tabindex="-1" id="offcanvasMenu">
-        <div class="offcanvas-header bg-transparent text-white">
-            <div class="d-flex align-items-end gap-2">
-                <a href="/" class="d-inline-block">
+    <div class="offcanvas offcanvas-start navbar_css text-white d-flex flex-column" tabindex="-1" id="offcanvasMenu">
+        <!-- 검정 배경으로 분리 (05.26) -->
+        <div class="navbar-top position-relative px-3">
+            <div class="d-flex flex-column align-items-center">
+                <a href="/" class="mb-2">
                     <img src="/images/logo.png" alt="귤렉트릭로고" style="height: 40px;" />
                 </a>
-                <h5 class="fw-bold text-uppercase mb-0">GYULLECTRIC</h5>
+                <h5 class="fw-bold text-uppercase mb-0 en-font">GYULLECTRIC</h5>
             </div>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="닫기"></button>
+            <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="offcanvas" aria-label="닫기"></button>
         </div>
 
+        <!-- 주황 배경 -->
         <div class="offcanvas-body">
             <div class="d-flex justify-content-between align-items-center small mx-auto" style="width: fit-content;">
                   <span th:if="${loginMember == null}">
@@ -48,6 +47,7 @@
             <a href="/logout" class="text-decoration-none text-white ms-4">LOGOUT</a>
             </span>
             </div>
+
 
             <!-- 상위 메뉴 -->
             <ul class="nav flex-column">
@@ -67,7 +67,7 @@
                         <ul class="nav flex-column ms-3">
                             <li><a href="/order/inventory" class="nav-link text-white px-2">재고관리</a></li>
                             <li><a href="/order/history" class="nav-link text-white px-2">발주조회</a></li>
-                            <li><a href="/order/list" class="nav-link text-white px-2">ORDER LIST</a></li>
+                            <li><a href="/product/list" class="nav-link text-white px-2">ORDER LIST</a></li>
                         </ul>
                     </div>
                 </li>

@@ -2,7 +2,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap');
 
-
 /* 전체 글꼴은 한글, 숫자는 Noto Sans KR 폰트 적용 */
 body {
     font-family: 'Noto Sans KR', sans-serif;
@@ -22,15 +21,55 @@ body {
     font-size: 24px;
 }
 
-/* 네비게이션 디자인 */
+/* 네비게이션 디자인 수정 */
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+.container-fluid {
+    flex: 1; /* 남은 공간 다 채움 */
+    display: flex;
+    flex-direction: column;
+}
+.col-lg-10 {
+    display: flex;
+    flex-direction: column;
+}
+.col-lg-10 > div {
+    flex: 1;
+}
+
 .navbar_css {
-    background-color: #F37221;
-    font-family: 'Source Sans Pro', 'Rubik', sans-serif;
-    font-size: 18px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    height: 100%;              /* 세로 늘리기 */
-    min-height: 100vh;         /* 화면보다 작을 때는 최소 100vh */
+    background-color: #FF6A00; /* 주황 */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.navbar-top {
+    background-color: #212529; /* Bootstrap bg-dark */
+    height: 150px; /* 검은배경은 이정도 쓰겠다 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+}
+.navbar-bottom {
+    flex: 1; /* 남은 공간 */
+    overflow-y: auto;
+    padding: 16px;
+}
+
+/* offcanvas 네비게이션 */
+nav.d-lg-none {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 1030;
+    height: auto;        /* 추가: 내용만큼만 높이 */
+    flex: none;          /* 추가: flex 부모 영향 안 받게 */
 }
 
 /* 폼 양식 sm, lg 구분 */
@@ -50,6 +89,20 @@ body {
     border-radius: 16px;
     padding: 80px 60px;
 }
+
+/* 생산분석 - 인사이트요약 폼 */
+.form_insight {
+    background-color: #ffffff;
+    border: 1px solid black;
+    width: 100%;
+    height: 200px;           /* 고정 높이 추가 */
+    border-radius: 16px;
+    padding: 40px 20px;          /* 세로(top/bottom) 50px, 좌우 20px로 넓힘 */
+    margin-bottom: 20px;
+    box-sizing: border-box;  /* padding 포함한 높이 계산 */
+    overflow: hidden;        /* 내용 넘치면 숨김 */
+}
+
 
 /* 폼내 입력칸 input칸 하나씩 지정 : 주황테두리 + 라운드 있음 */
 .line_css {
@@ -248,6 +301,64 @@ body {
     background-color: #FFEFBA;
 }
 
+/*********** 불량 예측 ************/
+/* 컬럼 가로 사이즈 조절 */
+.col-small {
+    width: 15%;
+}
+.col-large {
+    width: 50%;
+}
+.blinking {
+    animation: blink 0.7s infinite; /* 경고알림, 0.5초 속도로 깜빡~*/
+}
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+.defect-row {
+    display: flex;
+    flex: 0 1 auto;  /* grow 0, shrink 1, basis auto → 내용만큼만 */
+    margin: 0;
+    padding: 0;
+}
+
+.defect-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: auto;           /* 높이 강제 제한 */
+    margin: 0;
+    padding: 0;
+}
+
+
+/* 경고 메시지 디자인 통일 */
+.warning-box {
+    display: inline-block;          /* 가로는 내용 길이 기준 */
+    background-color: #ffe6f0;      /* 연한 분홍 배경 */
+    color: #ff0000;                 /* 빨간 글씨 */
+    font-weight: bold;              /* 굵은 글씨 */
+    min-height: 40px;               /* 세로 최소 높이 추가 */
+    margin-top: 30px;               /* 위쪽 여백 더 크게 */
+    padding: 10px 20px;             /* 좌우 여백 추가 */
+    line-height: 1.5;               /* 줄 간격 넓히기 (내용 많을 때) */
+    white-space: nowrap;            /* 한 줄로 유지 */
+}
+/* 경고창 위치 고정 */
+.warning-placeholder {
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 /* 일부 컬럼만 굵게 하고 싶을 때 - 발주예측에서 쓸것 */
 .bold-column td:nth-child(4),
 .bold-column th:nth-child(4) {
@@ -289,7 +400,7 @@ body {
 
 /* 대시보드 상단 에러알림 표시 */
 .dashboard_error {
-    animation: blink-red-clear 0.5s infinite; /* 1초 간격으로 애니메이션 무한 반복 */
+    animation: blink-red-clear 0.7s infinite; /* 1초 간격으로 애니메이션 무한 반복 */
     padding: 10px 0;                         /* 위아래 여백 */
     text-align: center;                      /* 텍스트 가운데 정렬 */
     color: white;                            /* 글자색 흰색 */
@@ -424,4 +535,3 @@ body {
     background-color: transparent;
     text-decoration: underline;
 }
-
