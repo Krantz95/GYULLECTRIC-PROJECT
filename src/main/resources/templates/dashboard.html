@@ -8,6 +8,107 @@
         <a href="/dashboard/notice" class="btn_black ms-2" style="display: inline-flex; width: 120px; height: 40px; border-radius: 10px; background-color: #E2E2E2; color: #000000">공지사항</a>
     </div>
 </th:block>
-</html>
+
+    <th:block layout:fragment="content">
+        <div class="py-4">
+
+            <!-- 1. 제품별 생산 현황 -->
+            <div class="row g-4">
+                <div class="col-lg-6 col-12">
+                    <!-- 제목 + NG율 메시지 한 줄로 -->
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <!-- 왼쪽: 제목 -->
+                        <div class="d-flex align-items-center fw-bold">
+                            <p class="fw-bold mb-2"><i class="bi bi-gear"></i></i> 공정별 생산 현황</p>
+                        </div>
+                        <!-- 오른쪽: NG 경고 메시지 -->
+                        <div id="ngWarningMessage"></div> <!-- #ngWarningMessage css로 고정높이 설정-->
+                    </div>
+
+                    <!-- 공정별 차트 -->
+                    <div class="d-flex flex-wrap gap-3 text-center">
+                        <div style="flex: 1; min-width: 100px;">
+                            <p class="text-center">1공정</p>
+                            <canvas id="myChart1"></canvas>
+                            <div id="chartText1" class="pt-2"></div>
+                        </div>
+                        <div style="flex: 1; min-width: 100px;">
+                            <p class="text-center">2공정</p>
+                            <canvas id="myChart2"></canvas>
+                            <div id="chartText2" class="pt-2"></div>
+                        </div>
+                        <div style="flex: 1; min-width: 100px;">
+                            <p class="text-center">3공정</p>
+                            <canvas id="myChart3"></canvas>
+                            <div id="chartText3" class="pt-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+
+            <!-- 구역 2: 생산 달성률 -->
+                    <div class="col-lg-6 col-12 pt-3">
+                        <p class="fw-bold mb-2"><i class="bi bi-bar-chart-steps"></i> 제품별 생산 달성률(%)</p>
+                        <canvas id="productAchievementChart"></canvas>
+                    </div>
+
+            <!-- 3. 실시간 KPI요약 -->
+                <p class="py-3 fw-bold gap-3"><i class="bi bi-graph-up"></i> 인사이트 요약</p>
+                <div class="row justify-content-center text-center">
+                    <div class="col-lg-4 col-12">
+                        <div class="form_insight" style="height: 150px;">
+                            <p class="fw-bold">오늘의 생산량</p>
+                            <p>450대</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-12">
+                        <div class="form_insight" style="height: 150px;">
+                            내용
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-12">
+                        <div class="form_insight" style="height: 150px;">
+                            내용
+                        </div>
+                    </div>
+                </div>
+
+            <!-- 4. 기계 이상 감지 -->
+                    <!-- 주조 공정 -->
+                    <div class="row justify-content-center">
+                        <div class="col-lg-6 col-12 text-center">
+                            <!-- 경고 메시지 위치 (높이 고정) -->
+                            <div id="castingWarning" class="warning-placeholder"></div> <!--warning-placeholder : 경고문구가 없어도 해당 행칸 유지 -->
+
+                            <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
+                                <canvas id="castingChart" style="display: block; width: 100%; height: 200px; margin-bottom: 0;"></canvas>
+                                <div id="castingStatus" class="d-flex justify-content-between align-items-center" style="margin-top: 0; padding-top: 0;">
+                                    <span class="status-label">압력/온도 감지 (0%)</span>
+                                    <button type="button" class="status-btn" style="background-color: #FF0004;">점검요청</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 용접 공정 -->
+                        <div class="col-lg-6 col-12 text-center">
+                            <!-- 경고 메시지 (높이 고정) -->
+                            <div id="weldingWarning" class="warning-placeholder"></div>
+
+                            <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
+                                <canvas id="weldingChart" style="display: block; width: 100%; height: 200px; margin-bottom: 0;"></canvas>
+                                <div id="weldingStatus" class="d-flex justify-content-between align-items-center" style="margin-top: 0; padding-top: 0;">
+                                    <span class="status-label">용접 출력 감지 (0%)</span>
+                                    <button type="button" class="status-btn" style="background-color: #FF0004;">점검요청</button>
+                                </div>
+                            </div>
+                        </div>
+                     </div>
+                </div>
+            </div>
+    </th:block>
+    <th:block layout:fragment="script">
+        <script src="/js/dashboard-charts.js"></script>
+    </th:block>
+    </html>
 
 
