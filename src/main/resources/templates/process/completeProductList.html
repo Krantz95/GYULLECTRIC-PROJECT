@@ -29,15 +29,15 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="order : ${orderLists}">
-                    <td th:text="${order.id}"></td>
-                    <td th:text="${order.productName}"></td>
-                    <td th:text="${order.quantity}"></td>
-                    <td th:text="${order.members.name}"></td>
-                    <td th:text="${#temporals.format(order.orderDate, 'yyyy-MM-dd HH:mm')}"></td>
-                    <td th:text="${errorCountMap[order.id]}"></td>
-                    <td th:text="${completeCountMap[order.id]}"></td>
-                    <td th:text="${#numbers.formatDecimal(achievementRateMap[order.id], 1, 'POINT', 1, 'POINT')} + '%'"></td>
+                <tr th:each="orderList : ${orderLists}">
+                    <td th:text="${orderList.id}">주문번호</td>
+                    <td th:text="${orderList.productName}">제품명</td>
+                    <td th:text="${orderList.quantity}">주문수량</td>
+                    <td th:text="${orderList.members.name}">담당직원</td>
+                    <td th:text="${#temporals.format(orderList.orderDate, 'yyyy-MM-dd HH:mm')}">주문날짜</td>
+                    <td th:text="${orderNgCountMap[orderList.id]} ?: 0">불량 수</td>
+                    <td th:text="${orderCompleteCountMap[orderList.id]} ?: 0">완제품 수</td>
+                    <td th:text="${orderAchievementRateMap[orderList.id]} + '%' ?: 0">달성률</td>
                 </tr>
                 </tbody>
             </table>
@@ -48,22 +48,32 @@
 
     <!-- 열어서 안에 주석 참고 // 임시 구현 가로 막대 차트 -->
     <script th:inline="javascript" layout:fragment="script">
-
         /*<![CDATA[*/
-        let chartData = /*[[${chartData}]]*/ '{}';
-        chartData = JSON.parse(chartData);
+        const chartData = /*[[${chartData}]]*/ '{}';
+
+        const parsedChartData = JSON.parse(chartData);
+        const labels = parsedChartData.labels;
+        const orderQty = parsedChartData.orderQuantity;
+        const completeQty = parsedChartData.productCount;
+
+        const achievementRates = completeQty.map((complete, idx) => {
+            const ordered = orderQty[idx] || 1;
+            return ((complete / ordered) * 100).toFixed(1);
+        });
 
         const ctx = document.getElementById('achievementChart').getContext('2d');
 
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: chartData.labels,
+                labels: labels,
                 datasets: [{
-                    label: '제품별 달성률 (%)',
-                    data: chartData.data,
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
+                    label: '달성률 (%)',
+                    data: achievementRates,
+                    backgroundColor: labels.map((_, i) => {
+                        const colors = ['#FFCC00', '#02AD16', '#FF5900', '#007bff', '#ff33cc'];
+                        return colors[i % colors.length];
+                    }),
                     borderWidth: 1
                 }]
             },
@@ -71,90 +81,27 @@
                 indexAxis: 'y',
                 scales: {
                     x: {
-                        beginAtZero: true,
+                        min: 0,
                         max: 100,
-                        title: {
-                            display: true,
-                            text: '달성률 (%)'
+                        ticks: {
+                            stepSize: 25,
+                            callback: function (value) {
+                                return value + '%';
+                            }
                         }
                     }
                 },
                 plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.parsed.x.toFixed(2) + '%';
-                            }
-                        }
-                    },
-                    legend: {
-                        display: false
+                    legend: { display: false },
+                    title: {
+                        display: true,
+                        text: '제품별 수율 (%)',
+                        font: { size: 16 }
                     }
                 }
             }
         });
-
         /*]]>*/
     </script>
-
-
-        // const chartData = /*[[${chartData}]]*/ 'null';
-        // const parsedChartData = JSON.parse(chartData);
-        //
-        // const labels = parsedChartData.labels;
-        // const orderQty = parsedChartData.orderQuantity;
-        // const completeQty = parsedChartData.productCount;
-        //
-        // const achievementRates = completeQty.map((complete, idx) => {
-        //     const ordered = orderQty[idx] || 1;
-        //     return ((complete / ordered) * 100).toFixed(1);
-        // });
-        //
-        // const ctx = document.getElementById('achievementChart').getContext('2d');
-        //
-        // const data = {
-        //     labels: labels,
-        //     datasets: [{
-        //         label: '달성률 (%)',
-        //         data: achievementRates,
-        //         backgroundColor: labels.map((_, i) => {
-        //             const colors = ['#FFCC00', '#02AD16', '#FF5900', '#007bff', '#ff33cc'];
-        //             return colors[i % colors.length];
-        //         }),
-        //         borderWidth: 1
-        //     }]
-        // };
-        //
-        // const options = {
-        //     indexAxis: 'y',
-        //     scales: {
-        //         x: {
-        //             min: 0,
-        //             max: 100,
-        //             ticks: {
-        //                 stepSize: 25,
-        //                 callback: function (value) {
-        //                     return value + '%';
-        //                 }
-        //             }
-        //         }
-        //     },
-        //     plugins: {
-        //         legend: { display: false },
-        //         title: {
-        //             display: true,
-        //             text: '제품별 수율 (%)',
-        //             font: { size: 16 }
-        //         }
-        //     }
-        // };
-        //
-        // new Chart(ctx, {
-        //     type: 'bar',
-        //     data: data,
-        //     options: options
-        // });
-      //  /*]]>*/
-
 
 </html>

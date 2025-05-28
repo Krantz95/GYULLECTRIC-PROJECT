@@ -21,4 +21,6 @@ public class ProcessDataDto {
     private long productCount;
 
     private int totalCount;
+
+
 }

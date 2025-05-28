@@ -8,11 +8,10 @@
         <!-- 폼 -->
         <div class="d-flex justify-content-center pt-3">
             <div class="form_lg_css mb-5 shadow-sm">
-                <form>
-
+                <form th:object="${errorReportForm}" method="post">
                     <div class="mb-3">
-                        <label class="form-label">제목</label>
-                        <input type="text" class="form-control line_css">
+                        <label class="form-label" th:for="*{title}">제목</label>
+                        <input type="text" class="form-control line_css" th:feild="*{title}" th:text="${errorReportForm.getTitle()}">
                     </div>
 
                     <div class="mb-3">

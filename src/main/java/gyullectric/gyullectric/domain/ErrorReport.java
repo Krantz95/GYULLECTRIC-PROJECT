@@ -1,9 +1,17 @@
 package gyullectric.gyullectric.domain;
 
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
+@Setter
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 @Table(name = "error_report")
 public class ErrorReport {
 
@@ -32,13 +40,14 @@ public class ErrorReport {
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "error_author_id", nullable = false)
-    private Members error_author;
+    @JoinColumn(name = "member_id", nullable = false)
+    private Members members;
 
     @Column(name = "written_at", nullable = false, columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime writtenAt;
-
-    public ErrorReport() {}
+    @ManyToOne
+    @JoinColumn(name = "process_id") // 외래키 컬럼
+    private ProcessLog processLog;
 
     // getters, setters 생략
 }
