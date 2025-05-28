@@ -14,6 +14,7 @@ import java.util.List;
 //@Component
 @AllArgsConstructor
 public class DummyDataLoader implements CommandLineRunner {
+
     private final ProductService productService;
     private final MemberService memberService;
     private final OrderService orderService;
@@ -29,9 +30,9 @@ public class DummyDataLoader implements CommandLineRunner {
                 .createDate(LocalDateTime.now())
                 .positionName(PositionName.ADMIN)
                 .build();
-
         memberService.save(members);
 
+        // 부품 목록
         List<PartName> partNames = List.of(
                 PartName.FRAME,
                 PartName.MOTOR,
@@ -40,58 +41,40 @@ public class DummyDataLoader implements CommandLineRunner {
                 PartName.BATTERY_PACK
         );
 
-        List<Inventory> inventories = partNames.stream().map(partName -> Inventory.builder()
-                .members(members)
-                .orderAt(LocalDateTime.now())
-                .supplier(Supplier.NEOCONTROL)
-                .quantity(100)
-                .partName(partName)
-                .build()).toList();
-        inventories.forEach(orderService::saveInventory);
-
-        for(PartName partName : partNames){
-            Inventory inventory = Inventory.builder()
-                    .partName(partName)
-                    .quantity(100)
-                    .supplier(Supplier.ECO_POWER_CELL)
-                    .orderAt(LocalDateTime.now())
-                    .members(members)
-                    .build();
-            orderService.saveInventory(inventory);
+        // 공급업체 2종 반복
+        for (PartName partName : partNames) {
+            for (Supplier supplier : List.of(Supplier.NEOCONTROL, Supplier.ECO_POWER_CELL)) {
+                Inventory inventory = Inventory.builder()
+                        .members(members)
+                        .orderAt(LocalDateTime.now())
+                        .supplier(supplier)
+                        .quantity(100)
+                        .partName(partName)
+                        .build();
+                orderService.saveInventory(inventory);
+            }
         }
 
+        // 제품 더미 (필요 시 주석 해제하여 사용)
+        /*
         List<ProductName> productNames = List.of(
                 ProductName.Pedal_at_4,
                 ProductName.GyulRide,
                 ProductName.InteliBike
         );
 
-//        List<OrderList> dummyOrders = productNames.stream()
-//                .map(productName -> OrderList.builder()
-//                        .productName(productName)
-//                        .processStatus(ProcessStatus.PENDING)
-//                        .quantity(30)
-//                        .members(members)  // 로그인한 멤버 객체 넣음
-//                        .orderDate(LocalDateTime.now())
-//                        .dueDate(LocalDateTime.now().plusDays(7))
-//                        .build()
-//                ).toList();
-//
-//
-//        dummyOrders.forEach(productService::saveOrderList);
-//
-//    }
-//        for (ProductName productName : productNames) {
-//            OrderList order = OrderList.builder()
-//                    .productName(productName)
-//                    .processStatus(ProcessStatus.PENDING)
-//                    .quantity(30)
-//                    .members(members)
-//                    .orderDate(LocalDateTime.now())
-//                    .dueDate(LocalDateTime.now().plusDays(7))
-//                    .build();
-//
-//            productService.saveOrderList(order);
-//        }
+        List<OrderList> dummyOrders = productNames.stream()
+                .map(productName -> OrderList.builder()
+                        .productName(productName)
+                        .processStatus(ProcessStatus.PENDING)
+                        .quantity(30)
+                        .members(members)
+                        .orderDate(LocalDateTime.now())
+                        .dueDate(LocalDateTime.now().plusDays(7))
+                        .build()
+                ).toList();
+
+        dummyOrders.forEach(productService::saveOrderList);
+        */
     }
 }
