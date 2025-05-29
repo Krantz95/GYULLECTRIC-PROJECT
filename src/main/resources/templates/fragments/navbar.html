@@ -1,43 +1,53 @@
-<!-- 기본 네비게이션 (lg사이즈에서만 고정으로 나오는것) -->
+<!-- 기본 네비게이션 (lg사이즈에서만 고정으로 나오는 것) -->
 <!-- layout/navbar.html -->
 <div class="side-nav border-end text-white min-vh-100 navbar_css"
      th:fragment="navbarFragment">
 
-    <!-- 검정 배경 : 로고 + 사용자 /  -->
-    <div class="navbar-top">
+    <!-- 검정 배경 : 로고 + 텍스트 -->
+    <div class="navbar-top text-center py-3">
         <a href="/">
-            <img src="/images/logo.png" alt="귤렉트릭로고" style="height: 50px;">
+            <img src="/images/logo2.png" alt="귤렉트릭로고" style="height: 50px; margin-bottom: 5px;">
         </a>
-        <a href="/" class="fw-bold text-uppercase mb-0 en-font" style="text-decoration: none; color: white">GYULLECTRIC</a>
+        <a href="/" class="fw-bold text-uppercase mb-0 en-font d-block" style="text-decoration: none; color: white;">
+            GYULLECTRIC
+        </a>
     </div>
 
     <!-- 주황 배경 -->
     <div class="navbar-bottom">
-        <div class="d-flex justify-content-between align-items-center small mx-auto" style="width: fit-content; margin: 0 auto;">
+        <div class="d-flex justify-content-between align-items-center small mx-auto" style="width: fit-content;">
             <span th:if="${loginMember == null}">
-                <a th:href="@{/signup}" class="text-white" style="text-decoration: none;" >SIGN UP</a>
+                <a th:href="@{/signup}" class="text-white" style="text-decoration: none;">SIGN UP</a>
             </span>
             <span th:if="${loginMember != null}">
                 <span th:text="${loginMember.name} + '님'"></span>
             </span>
             <span th:if="${loginMember == null}">
-            <a href="/login" class="text-decoration-none text-white ms-4">LOGIN</a>
+                <a href="/login" class="text-decoration-none text-white ms-4">LOGIN</a>
             </span>
             <span th:if="${loginMember != null}">
-            <a href="/logout" class="text-decoration-none text-white ms-4">LOGOUT</a>
+                <a href="/logout" class="text-decoration-none text-white ms-4">LOGOUT</a>
             </span>
         </div>
 
         <!-- 상위 메뉴 -->
-        <ul class="mt-2 nav flex-column">
-            <li class="nav-item" th:if="${loginMember != null}"><a th:href="@{/user/{id}/edit(id=${loginMember.id})}" class="nav-link text-white px-0">MY PAGE</a></li>
-            <li class="nav-item" th:if="${loginMember != null and loginMember.positionName.name() == 'ADMIN'}"><a href="/members/list" class="nav-link text-white px-0" >사용자 관리</a></li>
-            <li class="nav-item"><a href="/dashboard/main" class="nav-link text-white px-0">
-                <i class="bi bi-easel"></i> 대시보드</a></li>
+        <ul class="nav flex-column mt-3">
+            <li class="nav-item" th:if="${loginMember != null}">
+                <a th:href="@{/user/{id}/edit(id=${loginMember.id})}" class="nav-link text-white px-0">MY PAGE</a>
+            </li>
+            <li class="nav-item" th:if="${loginMember != null and loginMember.positionName.name() == 'ADMIN'}">
+                <a href="/members/list" class="nav-link text-white px-0">사용자 관리</a>
+            </li>
+            <li class="nav-item">
+                <a href="/dashboard/main" class="nav-link text-white px-0">
+                    <i class="bi bi-easel"></i> 대시보드
+                </a>
+            </li>
 
             <!-- ORDER -->
             <li class="nav-item mt-0">
-                <a class="nav-link text-white px-0 d-flex align-items-center justify-content-between" data-bs-toggle="collapse" href="#orderMenu" role="button">
+                <a class="nav-link text-white px-0 d-flex align-items-center justify-content-between"
+                   data-bs-toggle="collapse" href="#orderMenu" role="button">
                     <span><i class="bi bi-box-seam me-1"></i> ORDER</span>
                     <i class="bi bi-caret-down-fill"></i>
                 </a>
@@ -52,13 +62,17 @@
             </li>
 
             <!-- 공정 모니터링 -->
-            <li class="nav-item" ><a th:href="@{/monitoring/list}" class="nav-link text-white px-0">
-                <i class="bi bi-easel"></i> 공정 모니터링 </a></li>
+            <li class="nav-item">
+                <a th:href="@{/monitoring/list}" class="nav-link text-white px-0">
+                    <i class="bi bi-easel"></i> 공정 모니터링
+                </a>
+            </li>
 
             <!-- 에러관리 -->
             <li class="nav-item mt-2">
-                <a class="nav-link text-white px-0 d-flex align-items-center justify-content-between" data-bs-toggle="collapse" href="#errorMenu" role="button">
-                    <span><i class="bi bi-exclamation-triangle-fill"></i> 에러관리 </span>
+                <a class="nav-link text-white px-0 d-flex align-items-center justify-content-between"
+                   data-bs-toggle="collapse" href="#errorMenu" role="button">
+                    <span><i class="bi bi-exclamation-triangle-fill"></i> 에러관리</span>
                     <i class="bi bi-caret-down-fill"></i>
                 </a>
                 <div class="collapse show" id="errorMenu">
@@ -69,10 +83,11 @@
                 </div>
             </li>
 
-            <!-- 생산지표 관리 -->
+            <!-- 생산지표 -->
             <li class="nav-item mt-2">
-                <a class="nav-link text-white px-0 d-flex align-items-center justify-content-between" data-bs-toggle="collapse" href="#prodMenu" role="button">
-                    <span><i class="bi bi-bar-chart-fill"></i> 생산지표 관리 </span>
+                <a class="nav-link text-white px-0 d-flex align-items-center justify-content-between"
+                   data-bs-toggle="collapse" href="#prodMenu" role="button">
+                    <span><i class="bi bi-bar-chart-fill"></i> 생산지표 관리</span>
                     <i class="bi bi-caret-down-fill"></i>
                 </a>
                 <div class="collapse show" id="prodMenu">
