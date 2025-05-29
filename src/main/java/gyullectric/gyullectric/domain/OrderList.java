@@ -1,6 +1,7 @@
 package gyullectric.gyullectric.domain;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.core.Base64Variant;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -58,5 +59,6 @@ public class OrderList {
 //        이걸로 자식 => 부모 방향이 연결
 
     }
+
 
 }

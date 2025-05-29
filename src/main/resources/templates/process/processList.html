@@ -15,115 +15,107 @@
         <!-- 공정별 OK/NG율 -->
         <p class="fw-bold">공정별 OK/NG율</p>
 
-        <div class="row p-3 justify-content-between">
-            <!-- 1공정 -->
-            <div class="col-lg-3 col-12 d-flex justify-content-center">
-                <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;">
-                    <p class="align-self-start">1공정</p>
-                    <canvas id="myChart1" style="width: 100%; height: auto;"></canvas>
-                    <div id="chartText1" class="pt-2"></div>
-                </div>
-            </div>
-
-            <!-- 2공정 -->
-            <div class="col-lg-3 col-12 d-flex justify-content-center">
-                <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;">
-                    <p class="align-self-start">2공정</p>
-                    <canvas id="myChart2" style="width: 100%; height: auto;"></canvas>
-                    <div id="chartText2" class="pt-2"></div>
-                </div>
-            </div>
-
-            <!-- 3공정 -->
-            <div class="col-lg-3 col-12 d-flex justify-content-center">
-                <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;">
-                    <p class="align-self-start">3공정</p>
-                    <canvas id="myChart3" style="width: 100%; height: auto;"></canvas>
-                    <div id="chartText3" class="pt-2"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 공정 로그 테이블 -->
-        <div class="d-flex justify-content-between align-items-center">
-            <p class="fw-bold mb-0">공정 로그</p>
-            <a href="/monitoring/product/list" class="refreshTime_css" style="text-decoration: none;">제품리스트</a>
-        </div>
-
-        <div class="table-responsive pt-2" style="overflow-x: auto;">
-            <table class="table table-bordered text-center align-middle table2_css">
-                <thead>
-                <tr>
-                    <th>제품명</th>
-                    <th>로트넘버</th>
-                    <th>공정No.</th>
-                    <th>공정상태</th>
-                    <th>공정생성일</th>
-                    <th>에러코드</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="processForm : ${processes}">
-                    <td th:text="${processForm.productName}"></td>
-                    <td th:text="${processForm.lotNumber}"></td>
-                    <td th:text="${processForm.processStep}"></td>
-                    <td th:text="${processForm.processResultStatus}"></td>
-                    <td th:text="${#temporals.format(processForm.createAt,'yyyy-MM-dd HH-mm')}"></td>
-                    <td th:text="${processForm.errorCode}"></td>
-                </tr>
-                </tbody>
-            </table>
+<div class="row p-3 justify-content-around">
+    <!-- 1공정 -->
+    <div class="col-lg-3 col-12 d-flex justify-content-center">
+        <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;">
+            <p class="align-self-start">1공정</p>
+            <canvas id="myChart1" style="width: 100%; height: auto;"></canvas>
+            <div id="chartText1" class="pt-2"></div>
         </div>
     </div>
 
-    <!-- 도넛차트 JS -->
-    <script th:inline="javascript" layout:fragment="script">
-        // 서버에서 Thymeleaf로 주입되는 OK/NG 수치
-        const ok1 = /*[[${okCountByStep[1]?:0}]]*/ 0;
-        const ng1 = /*[[${ngCountByStep[1]?:0}]]*/ 0;
-        const ok2 = /*[[${okCountByStep[2]?:0}]]*/ 0;
-        const ng2 = /*[[${ngCountByStep[2]?:0}]]*/ 0;
-        const ok3 = /*[[${okCountByStep[3]?:0}]]*/ 0;
-        const ng3 = /*[[${ngCountByStep[3]?:0}]]*/ 0;
+    <!-- 2공정 -->
+    <div class="col-lg-3 col-12 d-flex justify-content-center">
+        <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;">
+            <p class="align-self-start">2공정</p>
+            <canvas id="myChart2" style="width: 100%; height: auto;"></canvas>
+            <div id="chartText2" class="pt-2"></div>
+        </div>
+    </div>
 
-        function drawChart(ctx, ok, ng, textElementId) {
-            const total = ok + ng;
-            const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
-            const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
+    <!-- 3공정 -->
+    <div class="col-lg-3 col-12 d-flex justify-content-center">
+        <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;">
+            <p class="align-self-start">3공정</p>
+            <canvas id="myChart3" style="width: 100%; height: auto;"></canvas>
+            <div id="chartText3" class="pt-2"></div>
+        </div>
+    </div>
+</div>
 
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['OK', 'NG'],
-                    datasets: [{
-                        data: [ok, ng],
-                        backgroundColor: ['#4CAF50', '#F44336'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    cutout: '40%',
-                    plugins: {
-                        legend: { display: false }
+<!-- 파이차트 스크립트 -->
+<script th:inline="javascript" layout:fragment="script">
+    const ok1 = /*[[${okCountByStep[1]?:0}]]*/ 0;
+    const ng1 = /*[[${ngCountByStep[1]?:0}]]*/ 0;
+    const ok2 = /*[[${okCountByStep[2]?:0}]]*/ 0;
+    const ng2 = /*[[${ngCountByStep[2]?:0}]]*/ 0;
+    const ok3 = /*[[${okCountByStep[3]?:0}]]*/ 0;
+    const ng3 = /*[[${ngCountByStep[3]?:0}]]*/ 0;
+
+    Chart.register(ChartDataLabels);
+
+    function drawChart(ctx, ok, ng, textElementId) {
+        const total = ok + ng;
+        const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
+        const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
+
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['OK', 'NG'],
+                datasets: [{
+                    data: [ok, ng],
+                    backgroundColor: ['#009913', '#ea2402'],
+                    borderColor: '#fff',
+                    borderWidth: 5,
+                    offset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        clip: false,
+                        clamp: true,
+                        color: '#fff',
+                        formatter: (value, context) => {
+                            const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(0) : 0;
+                            return `${percentage}%`;
+                        },
+                        font: (context) => {
+                            const data = context.chart.data.datasets[0].data;
+                            const value = context.dataset.data[context.dataIndex];
+                            const total = data.reduce((a, b) => a + b, 0);
+                            const percent = value / total;
+                            if (percent < 0.1) return { size: 10, weight: 'bold' };
+                            else if (percent < 0.2) return { size: 15, weight: 'bold' };
+                            else return { size: 20, weight: 'bold' };
+                        }
                     }
                 }
-            });
+            },
+            plugins: [ChartDataLabels]
+        });
 
-            const textDiv = document.getElementById(textElementId);
+        const textDiv = document.getElementById(textElementId);
+        if (textDiv) {
             textDiv.innerHTML =
-                `<span style="display: inline-block; width: 20px; height: 10px; background-color: #4CAF50; margin-right: 5px;"></span>` +
+                `<span style="display: inline-block; width: 20px; height: 10px; background-color: #009913; margin-right: 5px;"></span>` +
                 `<span style="font-weight:bold; font-size: 15px">OK </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +
-                `<span style="display: inline-block; width: 20px; height: 10px; background-color: #F44336; margin-right: 5px;"></span>` +
+                `<span style="display: inline-block; width: 20px; height: 10px; background-color: #ea2402; margin-right: 5px;"></span>` +
                 `<span style="font-weight:bold; font-size: 15px">NG </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;
         }
+    }
 
-        // 차트 렌더링 실행
-        drawChart(document.getElementById('myChart1'), ok1, ng1, 'chartText1');
-        drawChart(document.getElementById('myChart2'), ok2, ng2, 'chartText2');
-        drawChart(document.getElementById('myChart3'), ok3, ng3, 'chartText3');
-    </script>
+    drawChart(document.getElementById('myChart1'), ok1, ng1, 'chartText1');
+    drawChart(document.getElementById('myChart2'), ok2, ng2, 'chartText2');
+    drawChart(document.getElementById('myChart3'), ok3, ng3, 'chartText3');
+</script>
+
 
 </th:block>
 </html>

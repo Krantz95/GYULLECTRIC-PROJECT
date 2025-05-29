@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Getter
@@ -44,7 +47,6 @@ public class ProcessLog {
     @JoinColumn(name = "order_id")
     private OrderList orderList;
 
-
-
-
+    @OneToMany(mappedBy = "processLog", cascade = CascadeType.ALL)
+    private List<ErrorReport> errorReportList = new ArrayList<>();
 }

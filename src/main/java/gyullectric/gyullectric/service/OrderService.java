@@ -58,7 +58,7 @@ public class OrderService {
     private static final Map<ProductName, List<PartName>> PRODUCT_NAME_LIST_MAP = Map.of(
             ProductName.GyulRide, List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK),
             ProductName.InteliBike, List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK),
-            ProductName.Pedal_at_4, List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK)
+            ProductName.PedalAt4, List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK)
 );
 
 //    원재료 수 총합 구하기

@@ -61,7 +61,7 @@ public class DummyDataLoader implements CommandLineRunner {
         }
 
         List<ProductName> productNames = List.of(
-                ProductName.Pedal_at_4,
+                ProductName.PedalAt4,
                 ProductName.GyulRide,
                 ProductName.InteliBike
         );

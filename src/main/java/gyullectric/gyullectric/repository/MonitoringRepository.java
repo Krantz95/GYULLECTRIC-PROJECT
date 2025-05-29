@@ -16,7 +16,7 @@ import java.util.Optional;
 
 public interface MonitoringRepository extends JpaRepository<ProcessLog, Long> {
 
-    List<ProcessLog> findAllByOrderList_Id(Long id);
+    List<ProcessLog> findByOrderList_Id(Long orderId);
 
     Optional<ProcessLog> findFirstByProcessResultStatusOrderByOrderList_IdAsc(ProcessResultStatus processResultStatus);
 

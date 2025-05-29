@@ -3,11 +3,10 @@ package gyullectric.gyullectric.controller;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gyullectric.gyullectric.domain.Members;
-import gyullectric.gyullectric.domain.OrderList;
-import gyullectric.gyullectric.domain.ProcessLog;
-import gyullectric.gyullectric.domain.ProcessStatus;
+import gyullectric.gyullectric.domain.*;
+import gyullectric.gyullectric.dto.ComplateSummaryDto;
 import gyullectric.gyullectric.dto.MonitoringDto;
+import gyullectric.gyullectric.dto.OrderSummaryDto;
 import gyullectric.gyullectric.dto.ProcessDataDto;
 import gyullectric.gyullectric.repository.OrderListRepository;
 import gyullectric.gyullectric.service.MonitoringDataService;
@@ -23,6 +22,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,9 +51,18 @@ public class MonitoringController {
         Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
 
         ProcessDataDto processDataDto = monitoringDataService.getProcessData(id);
+        List<ProcessLog> sortedProcesses = processDataDto.getProcesses().stream()
+                .sorted(Comparator.comparing(ProcessLog::getCreateAt).reversed()
+                        .thenComparing(ProcessLog::getLotNumber)
+                        .thenComparingInt(ProcessLog::getProcessStep))
+                .collect(Collectors.toList());
+
+        model.addAttribute("processes", sortedProcesses);
+
+
         model.addAttribute("loginMember", loginMember);
 
-        model.addAttribute("processes", processDataDto.getProcesses());
+//        model.addAttribute("processes", processDataDto.getProcesses());
         model.addAttribute("orderId", id);
         model.addAttribute("productCount", processDataDto.getProductCount());
         model.addAttribute("totalCount", processDataDto.getTotalCount());
@@ -63,34 +73,37 @@ public class MonitoringController {
 
     @GetMapping("/monitoring/list")
     public String monitoringListChart(Model model){
+        // 현재 진행 중인 작업 조회
         List<OrderList> orderLists = orderListRepository.findByProcessStatus(ProcessStatus.IN_PROGRESS);
         Long orderId = !orderLists.isEmpty()
                 ? orderLists.get(0).getId()
                 : orderListRepository.findTopByOrderByIdDesc().map(OrderList::getId).orElse(null);
 
-        ProcessDataDto processDataDto =  monitoringDataService.getProcessData(orderId);
+        ProcessDataDto processDataDto = monitoringDataService.getProcessData(orderId);
+        log.info("현재작업중인 id: {}", orderId);
 
-        log.info("현재작업중인 id{}", orderId);
+        List<ProcessLog> sortedProcesses = processDataDto.getProcesses().stream()
+                .sorted(Comparator.comparing(ProcessLog::getCreateAt).reversed()
+                        .thenComparing(ProcessLog::getLotNumber)
+                        .thenComparingInt(ProcessLog::getProcessStep))
+                .collect(Collectors.toList());
 
-        model.addAttribute("processes", processDataDto.getProcesses());
+        model.addAttribute("processes", sortedProcesses);
+
         model.addAttribute("orderId", orderId);
 
-//        차트를 위한 추가 ProcessController의 processList메서드를 복붙
+        // 차트용 데이터
         model.addAttribute("productCount", processDataDto.getProductCount());
         model.addAttribute("totalCount", processDataDto.getTotalCount());
         model.addAttribute("ngCountByStep", processDataDto.getNgCountByStep());
         model.addAttribute("okCountByStep", processDataDto.getOkCountByStep());
         model.addAttribute("countByStep", processDataDto.getCountBystep());
 
-//        날짜별 완제품 수 계산
+        // 날짜별 완제품 수 계산
         LocalDate today = LocalDate.now();
         ProcessDataDto dto = monitoringDataService.getProcessDataByDate(today);
-
         model.addAttribute("date", today);
         model.addAttribute("productCountDate", dto.getProductCount());
-
-
-
 
         return "process/processWebSocket";
 
@@ -99,73 +112,114 @@ public class MonitoringController {
     @GetMapping("/monitoring/product/list")
     public String monitoringProduct(Model model) throws JsonProcessingException {
         List<OrderList> orderLists = productService.allFindOrderList();
+        List<ProcessLog> processLogs = monitoringService.allFindProcesses();
 
-        // 제품별 누적 데이터
-        Map<String, Long> totalOrderQuantityByProduct = new HashMap<>();
-        Map<String, Long> totalProductCountByProduct = new HashMap<>();
-        Map<String, Long> totalNgCountByProduct = new HashMap<>();
+        // 주문별 완제품/불량품/전체 로트 수 집계
+        Map<Long, OrderSummaryDto> orderSummaryMap = monitoringDataService.getOrderSummaryByOrderId(processLogs);
 
-        // 주문별 상세 데이터
-        Map<Long, Long> errorCountMap = new HashMap<>();
-        Map<Long, Long> completeCountMap = new HashMap<>();
-        Map<Long, Double> achievementRateMap = new HashMap<>();
+        Map<Long, Integer> orderCompleteCountMap = new HashMap<>();
+        Map<Long, Integer> orderNgCountMap = new HashMap<>();
+        Map<Long, Double> orderAchievementRateMap = new HashMap<>();
 
-        for (OrderList orderList : orderLists) {
-            String productName = String.valueOf(orderList.getProductName());
-            Long orderId = orderList.getId();
-            int orderQty = orderList.getQuantity();
+        // 제품명 기준 누적 집계용
+        Map<String, Long> totalOrderQtyByProduct = new HashMap<>();
+        Map<String, Long> totalCompleteByProduct = new HashMap<>();
+        Map<String, Long> totalNgByProduct = new HashMap<>();
 
-            // 제품별 누적 데이터 계산
-            totalOrderQuantityByProduct.put(productName,
-                    totalOrderQuantityByProduct.getOrDefault(productName, 0L) + orderQty);
+        // 주문 ID별 제품 기준 누적 정보 맵
+        Map<Long, Long> orderProductTotalOrderMap = new HashMap<>();
+        Map<Long, Long> orderProductTotalCompleteMap = new HashMap<>();
+        Map<Long, Double> orderProductLevelAchievementMap = new HashMap<>();
 
-            ProcessDataDto processData = monitoringDataService.getProcessData(orderId);
+        for (OrderList order : orderLists) {
+            Long orderId = order.getId();
+            int orderQty = order.getQuantity();
+            String productName = order.getProductName().name();
 
-            long completeCount = processData.getProductCount();
-            long ngCount = processData.getNgCountByStep().values().stream().mapToLong(Long::longValue).sum();
+            OrderSummaryDto summary = orderSummaryMap.getOrDefault(orderId, new OrderSummaryDto(0, 0, 0));
+            int completeCount = summary.getFinishedLots();
+            int ngCount = summary.getNgLots();
 
-            totalProductCountByProduct.put(productName,
-                    totalProductCountByProduct.getOrDefault(productName, 0L) + completeCount);
+            orderCompleteCountMap.put(orderId, completeCount);
+            orderNgCountMap.put(orderId, ngCount);
 
-            totalNgCountByProduct.put(productName,
-                    totalNgCountByProduct.getOrDefault(productName, 0L) + ngCount);
+            // 달성률 계산 (주문수 대비 완제품 비율)
+            double achievementRate = (orderQty == 0) ? 0.0 : Math.round((completeCount * 1000.0 / orderQty)) / 10.0;
+            orderAchievementRateMap.put(orderId, achievementRate);
 
-            // 주문별 데이터 계산
-            errorCountMap.put(orderId, ngCount);
-            completeCountMap.put(orderId, completeCount);
-            double achievementRate = (orderQty == 0) ? 0.0 : (completeCount * 100.0 / orderQty);
-            achievementRateMap.put(orderId, achievementRate);
+            // 제품별 누적 데이터 갱신
+            totalOrderQtyByProduct.put(productName,
+                    totalOrderQtyByProduct.getOrDefault(productName, 0L) + orderQty);
+            totalCompleteByProduct.put(productName,
+                    totalCompleteByProduct.getOrDefault(productName, 0L) + completeCount);
+            totalNgByProduct.put(productName,
+                    totalNgByProduct.getOrDefault(productName, 0L) + ngCount);
         }
 
-        // 제품명 리스트 (차트용)
-        List<String> productNames = new ArrayList<>(totalOrderQuantityByProduct.keySet());
+        // 각 주문별 제품 누적 정보 저장
+        for (OrderList order : orderLists) {
+            Long orderId = order.getId();
+            String productName = order.getProductName().name();
 
-        // 제품별 달성률 리스트 계산
+            long totalOrder = totalOrderQtyByProduct.getOrDefault(productName, 0L);
+            long totalComplete = totalCompleteByProduct.getOrDefault(productName, 0L);
+            double productLevelAchievement = (totalOrder == 0) ? 0.0 : Math.round((totalComplete * 1000.0 / totalOrder)) / 10.0;
+
+            orderProductTotalOrderMap.put(orderId, totalOrder);
+            orderProductTotalCompleteMap.put(orderId, totalComplete);
+            orderProductLevelAchievementMap.put(orderId, productLevelAchievement);
+        }
+        // 제품명 기준 달성률 계산
+        List<String> labels = new ArrayList<>();
         List<Double> achievementRates = new ArrayList<>();
-        for (String productName : productNames) {
-            long orderQty = totalOrderQuantityByProduct.getOrDefault(productName, 0L);
-            long productCount = totalProductCountByProduct.getOrDefault(productName, 0L);
-            double rate = (orderQty == 0) ? 0.0 : (productCount * 100.0 / orderQty);
+
+        for (String productName : totalOrderQtyByProduct.keySet()) {
+            long totalOrder = totalOrderQtyByProduct.get(productName);
+            long totalComplete = totalCompleteByProduct.getOrDefault(productName, 0L);
+            double rate = (totalOrder == 0) ? 0.0 : Math.round((totalComplete * 1000.0 / totalOrder)) / 10.0;
+
+            labels.add(productName);
             achievementRates.add(rate);
         }
 
-        // 차트 데이터
-        Map<String, Object> chartData = new HashMap<>();
-        chartData.put("labels", productNames);
-        chartData.put("data", achievementRates);
-
-        // 모델에 데이터 전달
-        model.addAttribute("chartData", objectMapper.writeValueAsString(chartData));
-
-        model.addAttribute("productNames", productNames);
-        model.addAttribute("totalOrderQuantityByProduct", totalOrderQuantityByProduct);
-        model.addAttribute("totalProductCountByProduct", totalProductCountByProduct);
-        model.addAttribute("totalNgCountByProduct", totalNgCountByProduct);
-
+        // 주문 리스트 및 주문별 통계
         model.addAttribute("orderLists", orderLists);
-        model.addAttribute("errorCountMap", errorCountMap);
-        model.addAttribute("completeCountMap", completeCountMap);
-        model.addAttribute("achievementRateMap", achievementRateMap);
+        model.addAttribute("orderCompleteCountMap", orderCompleteCountMap);
+        model.addAttribute("orderNgCountMap", orderNgCountMap);
+        model.addAttribute("orderAchievementRateMap", orderAchievementRateMap);
+
+        // 제품명 기준 누적 정보 전달 (주문별 기반)
+        model.addAttribute("orderProductTotalOrderMap", orderProductTotalOrderMap);
+        model.addAttribute("orderProductTotalCompleteMap", orderProductTotalCompleteMap);
+        model.addAttribute("orderProductLevelAchievementMap", orderProductLevelAchievementMap);
+
+        // 제품명 기준 누적 정보 전달 (직접 조회 가능하도록)
+        model.addAttribute("totalOrderQtyByProduct", totalOrderQtyByProduct);
+        model.addAttribute("totalCompleteByProduct", totalCompleteByProduct);
+        model.addAttribute("totalNgByProduct", totalNgByProduct);
+
+        for (OrderList order : orderLists) {
+            String productName = order.getProductName().name();
+            System.out.println("OrderID=" + order.getId() + ", productName=" + productName
+                    + ", orderQty=" + order.getQuantity());
+        }
+        System.out.println("totalOrderQtyByProduct: " + totalOrderQtyByProduct);
+        System.out.println("totalCompleteByProduct: " + totalCompleteByProduct);
+        for (Map.Entry<Long, OrderSummaryDto> entry : orderSummaryMap.entrySet()) {
+            System.out.println("OrderID=" + entry.getKey()
+                    + ", finishedLots=" + entry.getValue().getFinishedLots()
+                    + ", ngLots=" + entry.getValue().getNgLots());
+        }
+
+//         차트 데이터 구성
+        Map<String, Object> chartData = new HashMap<>();
+        chartData.put("labels", labels);
+        chartData.put("orderQuantity", labels.stream().map(totalOrderQtyByProduct::get).toList());
+        chartData.put("productCount", labels.stream().map(totalCompleteByProduct::get).toList());
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonChartData = objectMapper.writeValueAsString(chartData);
+        model.addAttribute("chartData", jsonChartData);
 
         return "process/completeProductList";
     }
