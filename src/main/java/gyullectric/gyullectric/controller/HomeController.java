@@ -58,7 +58,7 @@ public class HomeController {
         session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);
         model.addAttribute("loginForm", loginForm);
 
-        return "redirect:/";
+        return "redirect:/dashboard/main";
     }
     @GetMapping("/logout")
     public String logout(HttpServletRequest request){
