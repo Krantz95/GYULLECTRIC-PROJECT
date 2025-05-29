@@ -23,7 +23,7 @@ public class ErrorReport {
     private String errorTitle;
 
     @Column(name = "occurred_at", nullable = false)
-    private LocalDateTime occurredAt;
+    private String occurredAt;
 
     @Column(name = "process_step", length = 20, nullable = false)
     private String processStep;
@@ -33,7 +33,6 @@ public class ErrorReport {
     private Priority priority;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "product_name", length = 20, nullable = false)
     private ProductName productName;
 
     @Column(columnDefinition = "TEXT", nullable = false)
@@ -45,9 +44,12 @@ public class ErrorReport {
 
     @Column(name = "written_at", nullable = false, columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime writtenAt;
+
     @ManyToOne
     @JoinColumn(name = "process_id") // 외래키 컬럼
     private ProcessLog processLog;
+    @Enumerated(EnumType.STRING)
+    private ErrorCode errorCode;
 
-    // getters, setters 생략
+
 }
