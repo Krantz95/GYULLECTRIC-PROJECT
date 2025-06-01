@@ -3,7 +3,7 @@
 
     <div class="py-4">
         <!-- 서브타이틀 -->
-        <div class="subtitle_css en-font">ORDER_ORDER LIST</div>
+        <div class="subtitle_css en-font"><i class="bi bi-journal-text"></i> ORDER_ORDER LIST</div>
 
         <!-- 테이블 -->
         <div class="table-responsive pt-3" style="overflow-x: auto;"> <!-- sm사이즈에서는 스크롤 생성 -->
@@ -28,24 +28,24 @@
                     <td th:text="${#temporals.format(order.dueDate,'yyyy-MM-dd HH:mm' )}">납기일</td>
                     <td th:text="${order.processStatus}">공정상태</td>
                     <td>
-                        <div class="d-flex">
+                        <div class="d-flex justify-content-center">
                         <form th:action="@{/monitoring/new/{id}(id=${order.id})}" method="post">
-                            <button type="submit" class="btn btn-warning btn-sm d-inline"
+                            <button type="submit" class="btn btn-sm d-inline" style="background-color: #F37221; color: white"
                                     th:text="${order.processStatus.name() == 'COMPLETED'}? '공정완료':'공정시작'"
-                                    th:disabled="${order.processStatus.name()== 'IN_PROGRESS' or order.processStatus.name() == 'COMPLETED'}">공정시작</button>
+                                    th:disabled="${order.processStatus.name()== 'IN_PROGRESS' or order.processStatus.name() == 'COMPLETED'}">
+                                공정시작</button>
                         </form>
 
-
                         <button type="button"
-                                class="btn btn-danger btn-sm d-inline ms-2"
+                                class="btn btn-sm d-inline ms-2" style="background-color: red; color: white"
                                 data-bs-toggle="modal"
                                 th:attr="data-bs-target='#deleteModal-' + ${order.id}"
                                 th:disabled="${order.processStatus.name()== 'IN_PROGRESS' or order.processStatus.name() == 'COMPLETED'}">
-                            삭제
-                        </button>
+                                삭제</button>
 
                         <a th:href="@{/monitoring/list/{id}(id=${order.id})}" class="btn btn-success btn-sm ms-2"
-                           th:if="${order.processStatus.name()== 'IN_PROGRESS' or order.processStatus.name() == 'COMPLETED'}">공정보기</a>
+                           th:if="${order.processStatus.name()== 'IN_PROGRESS' or order.processStatus.name() == 'COMPLETED'}">
+                                공정보기</a>
                         </div>
 
                         <!-- 삭제 확인 모달 -->
@@ -58,8 +58,8 @@
                                     </div>
                                     <div class="modal-body" th:text="'정말로 ' + ${order.productName} + ' 주문을 삭제하시겠습니까?'"></div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">취소</button>
-                                        <a th:href="@{/product/delete/{id}(id=${order.id})}" class="btn btn-primary">삭제</a>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                                        <a th:href="@{/product/delete/{id}(id=${order.id})}" class="btn btn-danger" style="background-color: red; color: white">삭제</a>
                                     </div>
                                 </div>
                             </div>

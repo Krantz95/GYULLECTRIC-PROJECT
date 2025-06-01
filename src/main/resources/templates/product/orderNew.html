@@ -3,41 +3,83 @@
 
     <div class="py-4">
         <!-- 서브타이틀 -->
-        <div class="subtitle_css">제품주문</div>
+        <div class="subtitle_css"><i class="bi-clipboard-check"></i> 생산지시</div>
 
-        <div class="container mt-5">
-            <div class="row">
-                <div class="col-lg-6 col-12 pb-5">
+        <div class="d-flex justify-content-center">
+            <div class="row g-9 order-container">
+                <div class="col-lg-6 col-12 order-form-col">
                     <form role="form" th:object="${productOrderForm}" method="post">
                         <div class="alert alert-danger" role="alert" th:if="${#fields.hasAnyErrors()}">
                             <div th:each="err : ${#fields.allErrors()}" th:text="${err}"></div>
                         </div>
                         <div class="mb-3">
-                            <label  th:for="*{productName}" class="form-label">상품명</label>
-                            <select class="form-select" th:field="*{productName}">
+                            <label th:for="*{productName}" class="form-label">상품명</label>
+                            <select id="bikeSelect" class="pointer_orange_round form-select" th:field="*{productName}" onchange="changeImage()">
                                 <option value="">주문할 상품을 선택하세요</option>
                                 <option th:each="productName : ${T(gyullectric.gyullectric.domain.ProductName).values()}"
-                                th:text="${productName}" th:value="${productName}"></option>
+                                        th:text="${productName}" th:value="${productName}"></option>
                             </select>
                         </div>
-
                         <div class="mb-3">
                             <label th:for="*{quantity}" class="form-label">수량</label>
-                            <input type="number" class="form-control" th:field="*{quantity}" placeholder="수량을 입력하세요">
+                            <input type="number" class="form-control line_css" th:field="*{quantity}" placeholder="수량을 입력하세요">
                         </div>
-                        <div class="text-end pt-3">
-                            <button type="submit" class="btn" style="background-color: #F37221; color: white">주문</button>
+
+                        <div class="mt-4 p-3 daily-output-box">
+                            <strong>일일 생산량</strong><br>
+                            GyulRide : 200대<br>
+                            InteliBike : 100대<br>
+                            RedalAt4 : 80대
                         </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn_orange my-3" style="background-color: #F37221">
+                                생산지시</button>
+                        </div>
+
+
                     </form>
                 </div>
-
-                <!-- 오른쪽: 이미지 -->
-                <div class="col-lg-6 col-12 d-flex justify-content-center align-items-center">
-                    <img src="/images/전기자전거1.jpg" alt="전기자전거" class="img-fluid" style="max-height: 300px;">
+                    <!-- 오른쪽: 제품사진 + 일일생산량 -->
+                    <div class="col-lg-6 col-12 order-image-col">
+                        <div class="order-image-wrapper">
+                            <img id="bikeImage" src="/images/logo.png" class="img-fluid rounded-4">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-    </div>
+    <script th:inline="javascript" layout:fragment="script">
+        document.addEventListener("DOMContentLoaded", function() {
+            changeImage();  // 페이지 로드 시 기본 이미지 세팅
+        });
+        function changeImage() {
+            // 선택한 값 가져오기
+            var selectedProduct = document.getElementById("bikeSelect").value;
+            // 이미지 요소 찾기
+            var imageElement = document.getElementById("bikeImage");
+
+            if (!selectedProduct) {
+                imageElement.src = "/images/logo.png";
+                imageElement.style.maxWidth = "60%";   // 기본이미지만 폭 줄임 (예: 60%)
+                imageElement.style.maxHeight = "60%";  // 높이도 같이 줄임
+            } else if (selectedProduct === "GyulRide") {
+                imageElement.src = "/images/bike1.jpg";
+                imageElement.style.maxWidth = "100%";  // 자전거 이미지들은 꽉 채움
+                imageElement.style.maxHeight = "100%";
+            } else if (selectedProduct === "InteliBike") {
+                imageElement.src = "/images/bike2.jpg";
+                imageElement.style.maxWidth = "100%";  // 자전거 이미지들은 꽉 채움
+                imageElement.style.maxHeight = "100%";
+            } else {
+                imageElement.src = "/images/bike3.jpg";
+                imageElement.style.maxWidth = "100%";  // 자전거 이미지들은 꽉 채움
+                imageElement.style.maxHeight = "100%";
+            }
+        }
+    </script>
 </th:block>
 </html>
+
+
+

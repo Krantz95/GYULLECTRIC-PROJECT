@@ -3,7 +3,7 @@
 
     <div class="py-4">
         <!-- 서브타이틀 -->
-        <div class="subtitle_css">공정 모니터링</div>
+        <div class="subtitle_css"><i class="bi bi-graph-up"></i> 공정 모니터링</div>
 
         <!-- 새로고침 버튼 -->
         <div class="py-3 d-flex align-items-center gap-3">
@@ -15,35 +15,68 @@
         <!-- 공정별 OK/NG율 -->
         <p class="fw-bold">공정별 OK/NG율</p>
 
-<div class="row p-3 justify-content-around">
-    <!-- 1공정 -->
-    <div class="col-lg-3 col-12 d-flex justify-content-center">
-        <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;">
-            <p class="align-self-start">1공정</p>
-            <canvas id="myChart1" style="width: 100%; height: auto;"></canvas>
-            <div id="chartText1" class="pt-2"></div>
+        <div class="row p-3 justify-content-around">
+            <!-- 1공정 -->
+            <div class="col-lg-3 col-12 d-flex justify-content-center">
+                <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;">
+                    <p class="align-self-start">1공정</p>
+                    <canvas id="myChart1" style="width: 100%; height: auto;"></canvas>
+                    <div id="chartText1" class="pt-2"></div>
+                </div>
+            </div>
+
+            <!-- 2공정 -->
+            <div class="col-lg-3 col-12 d-flex justify-content-center">
+                <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;">
+                    <p class="align-self-start">2공정</p>
+                    <canvas id="myChart2" style="width: 100%; height: auto;"></canvas>
+                    <div id="chartText2" class="pt-2"></div>
+                </div>
+            </div>
+
+            <!-- 3공정 -->
+            <div class="col-lg-3 col-12 d-flex justify-content-center">
+                <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;">
+                    <p class="align-self-start">3공정</p>
+                    <canvas id="myChart3" style="width: 100%; height: auto;"></canvas>
+                    <div id="chartText3" class="pt-2"></div>
+                </div>
+            </div>
+
+            <!-- 테이블 -->
+            <div class="d-flex justify-content-between align-items-center">
+                <p class="fw-bold mb-0">공정 로그</p>
+                <a href="/monitoring/product/list" class="refreshTime_css" style="text-decoration: none;">제품리스트</a>
+            </div>
+
+            <div class="table-responsive pt-2" style="overflow-x: auto;">
+                <table class="table table-bordered text-center align-middle table2_css">
+                    <thead>
+                    <tr>
+                        <th>제품명</th>
+                        <th>로트넘버</th>
+                        <th>공정No.</th>
+                        <th>공정상태</th>
+                        <th>공정생성일</th>
+                        <th>에러코드</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="processForm : ${processes}">
+                        <td th:text="${processForm.productName}"></td>
+                        <td th:text="${processForm.lotNumber}"></td>
+                        <td th:text="${processForm.processStep}"></td>
+                        <td th:text="${processForm.processResultStatus}"></td>
+                        <td th:text="${#temporals.format(processForm.createAt,'yyyy-MM-dd HH-mm')}"></td>
+                        <td th:text="${processForm.errorCode}"></td>
+                    </tr>
+
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
-    <!-- 2공정 -->
-    <div class="col-lg-3 col-12 d-flex justify-content-center">
-        <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;">
-            <p class="align-self-start">2공정</p>
-            <canvas id="myChart2" style="width: 100%; height: auto;"></canvas>
-            <div id="chartText2" class="pt-2"></div>
-        </div>
-    </div>
-
-    <!-- 3공정 -->
-    <div class="col-lg-3 col-12 d-flex justify-content-center">
-        <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;">
-            <p class="align-self-start">3공정</p>
-            <canvas id="myChart3" style="width: 100%; height: auto;"></canvas>
-            <div id="chartText3" class="pt-2"></div>
-        </div>
-    </div>
-</div>
-
+</th:block>
 <!-- 파이차트 스크립트 -->
 <script th:inline="javascript" layout:fragment="script">
     const ok1 = /*[[${okCountByStep[1]?:0}]]*/ 0;
@@ -115,7 +148,4 @@
     drawChart(document.getElementById('myChart2'), ok2, ng2, 'chartText2');
     drawChart(document.getElementById('myChart3'), ok3, ng3, 'chartText3');
 </script>
-
-
-</th:block>
 </html>
