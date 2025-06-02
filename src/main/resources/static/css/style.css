@@ -24,18 +24,20 @@ body {
 
 /* 경고 메시지 디자인 통일 */
 .warning-box {
-    display: inline-block;          /* 가로는 내용 길이 기준 */
+    display: inline-block;          /* 내용 길이 기준 가로 */
     background-color: #ffe6f0;      /* 연한 분홍 배경 */
     color: #ff0000;                 /* 빨간 글씨 */
     font-weight: bold;              /* 굵은 글씨 */
-    min-height: 40px;               /* 세로 최소 높이 추가 */
-    margin-top: 30px;               /* 위쪽 여백 더 크게 */
-    padding: 10px 20px;             /* 좌우 여백 추가 */
-    line-height: 1.5;               /* 줄 간격 넓히기 (내용 많을 때) */
-    white-space: nowrap;            /* 한 줄로 유지 */
+    font-size: 20px;                /* 글씨 더 크게 */
+    min-height: 50px;               /* 최소 높이 넉넉히 확보 */
+    margin-top: 30px;               /* 위쪽 여백 유지 */
+    padding: 12px 24px;             /* 좌우 여백 더 넓힘 */
+    line-height: 1.5;               /* 줄 간격 */
+    white-space: nowrap;            /* 한 줄 유지 */
+    border-radius: 8px;             /* 살짝 둥글게 (더 세련되게) */
 }
 .warning-placeholder {
-    height: 30px;
+    height: 50px;                   /* 경고 있을 때 높이에 맞춤 */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -463,7 +465,24 @@ nav.d-lg-none {
     align-items: center;     /* 세로 방향 가운데 정렬 */
 }
 
-
+/* ────────────────────────────  페이지별 (재고관리)  ──────────────────────────── */
+.inventory-box {
+    border: 2px solid #F37221;
+    border-radius: 10px;
+    background-color: #fff3e0;
+    width: 100%;
+    max-width: 250px;
+    min-width: 220px;
+    text-align: left;             /* ← 왼쪽 정렬 */
+    word-break: break-word;
+    overflow-wrap: break-word;
+    padding: 10px;
+    font-size: clamp(12px, 2.5vw, 16px);
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    flex-shrink: 0;
+    white-space: normal;
+}
 
 /* ────────────────────────────  페이지별 (발주조회)  ──────────────────────────── */
 /* 취소된 행 스타일 */
@@ -541,6 +560,13 @@ nav.d-lg-none {
     white-space: normal;                 /* 줄바꿈 허용 */
 }
 
+/* ────────────────────────────  페이지별 (ORDER LIST)  ──────────────────────────── */
+/* 버튼 비활성화 시 색상처리 */
+button[name="processButton"]:disabled {
+    background-color: #878787 !important;
+    color: white !important;
+    cursor: not-allowed;
+}
 
 
 /* ────────────────────────────  페이지별 (공정모니터링)  ──────────────────────────── */
@@ -572,7 +598,7 @@ nav.d-lg-none {
     border: none;                       /* 테두리 없음 */
     border-radius: 12px;                /* 둥근 모서리 */
     color: white;                       /* 글씨 색 */
-    font-size: 18px;                    /* 글씨 크기 */
+    font-size: 15px;                    /* 글씨 크기 */
     cursor: pointer;                    /* 마우스 커서 손가락 모양 */
 }
 .status-btn:disabled {
@@ -581,6 +607,8 @@ nav.d-lg-none {
     background-color: #cccccc !important; /* 회색 배경 */
     border: none;                       /* 테두리 제거 */
 }
+
+
 .status-unchecked { background-color: #FF0004; }    /* 미처리: 빨강 */
 .status-checking  { background-color: #FFCC00; color: black; } /* 점검중: 노랑, 글씨 검정 */
 .status-resolved  { background-color: #02AD16; }    /* 처리 완료: 초록 */
@@ -599,6 +627,13 @@ nav.d-lg-none {
     display: flex;                      /* 중앙 정렬용 flex */
     justify-content: center;            /* 가로 가운데 정렬 */
     align-items: center;                /* 세로 가운데 정렬 */
+}
+
+/* 공지 체크 버튼 디자인 */
+.notice-row {
+    border: 2px solid #FF9100; /* 밝은 주황색 */
+    border-radius: 8px;         /* 살짝 둥글게 */
+    background-color: #fff8dc; /* 연한 배경색 */
 }
 
 
@@ -651,7 +686,8 @@ nav.d-lg-none {
     margin: 0;                            /* 바깥 여백 없음 */
     padding: 0;                           /* 안쪽 여백 없음 */
 }
-/* 불량예측열 flex 정렬 */
+
+/* 불량예측 차트아래 행 정렬 */
 .defect-col {
     display: flex;                        /* flexbox 열 */
     flex-direction: column;               /* 세로 정렬 */
@@ -661,3 +697,60 @@ nav.d-lg-none {
     margin: 0;                            /* 바깥 여백 없음 */
     padding: 0;                           /* 안쪽 여백 없음 */
 }
+.defect-box {
+    display: flex;                              /* 한 줄 배치 */
+    justify-content: space-between;             /* 양끝 정렬 (또는 center로 중앙 정렬 가능) */
+    align-items: center;                        /* 수직 중앙 정렬 */
+    width: 100%;                                /* 부모 크기에 맞춤 */
+    margin: 0 auto;                             /* 가운데 정렬 */
+    padding-top: 10px;                          /* 위쪽 간격 */
+    padding-right: 20px;                         /* 오른쪽 공간 줄여서 버튼을 왼쪽으로 밀어줌 */
+}
+.defect-label {
+    font-size: 18px;                                /* 글자 크기 16px */
+    font-weight: bold;                              /* 글자를 굵게 */
+    margin-bottom: 8px;                             /* 아래쪽 여백 8px (버튼과 간격) */
+}
+
+.defect-btn {
+    padding: 6px 16px;                              /* 버튼 안쪽 여백: 세로 6px, 가로 16px */
+    border: none;                                   /* 버튼 테두리 제거 */
+    border-radius: 15px;                            /* 버튼 모서리를 둥글게 (20px) */
+    color: white;                                   /* 버튼 글씨 색: 흰색 */
+    font-size: 18px;                                /* 버튼 글자 크기 16px */
+    cursor: pointer;                                /* 마우스 올리면 손가락 모양 */
+    transition: background-color 0.3s;              /* 배경색 변화에 0.3초 부드러운 효과 */
+}
+.defect-btn:disabled {
+    cursor: not-allowed;                            /* 금지 표시 커서 */
+    opacity: 1;                                     /* 반투명 제거 → 선명하게 */
+    background-color: #666666 !important;           /* 진한 회색으로 강제 */
+    color: white !important;                        /* 글씨 색도 보이게 강제 */
+}
+
+/* sm사이즈에서 위치 정렬 지정 */
+@media (max-width: 600px) {
+    .defect-box {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 0 30px;    /* 좌우 여백 주기 → 버튼·글씨 둘 다 안쪽으로 밀림 */
+    }
+
+    .defect-label {
+        font-size: 14px;
+        flex: 0 1 auto;      /* 내용만큼만 너비 차지 */
+        text-align: left;
+    }
+
+    .defect-btn {
+        font-size: 16px;
+        padding: 8px 20px;
+        width: 100px;        /* 버튼 고정 너비 */
+        text-align: center;
+    }
+}
+
+
