@@ -8,7 +8,7 @@
         <!-- 재고 주문 제목 -->
         <div class="d-flex justify-content-center">
             <div style="width: 100%; max-width: 600px;">
-                <h5 class="text-start pt-4 pb-2">재고 주문</h5>
+                <h5 class="text-start pt-4 pb-2 fw-bold">재고 주문</h5>
             </div>
         </div>
 
@@ -78,8 +78,9 @@
         </div>
 
         <!-- 테이블 -->
+        <h5 class="text-start pt-5 pb-2 fw-bold">재고 목록</h5>
         <div class="table-responsive">
-            <table class="table table-bordered text-center align-middle table1_css" >
+            <table class="table table-bordered text-center align-middle table1_css">
                 <thead>
                 <tr>
                     <th>자재명</th>
@@ -104,7 +105,7 @@
             </table>
         </div>
 
-        <!--페이징 처리 시작-->
+        <!--페이징 처리-->
         <div th:if="${!paging.isEmpty()}" class="py-3 d-flex justify-content-center">
             <nav aria-label="Page navigation example">
                 <ul class="pagination">
@@ -126,9 +127,10 @@
 
 </th:block>
 
+<!-- ✅ JS: 품목별 합계 집계 -->
 <script th:inline="javascript" layout:fragment="script">
     $(function () {
-        // 페이지 번호 클릭 시
+        // 페이지 번호 클릭
         $(".page-link").on('click', function (e) {
             e.preventDefault();
             let page = $(this).data('page');
@@ -137,7 +139,36 @@
                 $('#searchForm').submit();
             }
         });
+
+        // 합계 계산
+        const counts = {
+            BatteryPack: 0,
+            Motor: 0,
+            Controller: 0,
+            Wheel: 0,
+            Frame: 0
+        };
+
+        $('tbody tr').each(function () {
+            let partName = $(this).find('td:nth-child(1)').text().trim();
+            let quantity = parseInt($(this).find('td:nth-child(3)').text().trim());
+
+            if (!isNaN(quantity)) {
+                Object.keys(counts).forEach(key => {
+                    if (partName.toLowerCase().includes(key.toLowerCase())) {
+                        counts[key] += quantity;
+                    }
+                });
+            }
+        });
+
+        // 결과 출력
+        $('#BatteryPackCount').text(counts.BatteryPack);
+        $('#MotorCount').text(counts.Motor);
+        $('#ControllerCount').text(counts.Controller);
+        $('#WheelCount').text(counts.Wheel);
+        $('#FrameCount').text(counts.Frame);
     });
 </script>
-
+</th:block>
 </html>
