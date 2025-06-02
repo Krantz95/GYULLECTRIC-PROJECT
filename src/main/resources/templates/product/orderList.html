@@ -30,13 +30,13 @@
                     <td>
                         <div class="d-flex justify-content-center">
                         <form th:action="@{/monitoring/new/{id}(id=${order.id})}" method="post">
-                            <button type="submit" class="btn btn-sm d-inline" style="background-color: #F37221; color: white"
+                            <button type="submit" name="processButton" class="btn btn-sm d-inline" style="background-color: #F37221; color: white"
                                     th:text="${order.processStatus.name() == 'COMPLETED'}? '공정완료':'공정시작'"
                                     th:disabled="${order.processStatus.name()== 'IN_PROGRESS' or order.processStatus.name() == 'COMPLETED'}">
                                 공정시작</button>
                         </form>
 
-                        <button type="button"
+                        <button type="button" name="processButton"
                                 class="btn btn-sm d-inline ms-2" style="background-color: red; color: white"
                                 data-bs-toggle="modal"
                                 th:attr="data-bs-target='#deleteModal-' + ${order.id}"
@@ -69,7 +69,6 @@
                 </tbody>
             </table>
         </div>
-
     </div>
 </th:block>
 </html>
