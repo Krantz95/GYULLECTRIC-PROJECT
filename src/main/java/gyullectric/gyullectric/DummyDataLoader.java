@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.List;
 
-//@Component
+@Component
 @AllArgsConstructor
 public class DummyDataLoader implements CommandLineRunner {
 
