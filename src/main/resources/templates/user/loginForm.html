@@ -2,13 +2,13 @@
     <th:block layout:fragment="content">
 
         <div class="py-4">
-            <div class="subtitle_css">로그인</div>
+            <div class="subtitle_css"><i class="bi bi-person"></i> 로그인</div>
 
             <!-- div에 너비 제한 + 중앙정렬 -->
             <div class="mx-auto py-5" style="max-width: 1400px;">
                 <div class="d-flex flex-column flex-lg-row align-items-center justify-content-center gap-5">
                     <!-- 왼쪽: 로그인 폼 -->
-                    <div class="form_sm_css d-flex flex-column justify-content-center" style="height: 500px;">
+                    <div class="form_sm_css d-flex flex-column justify-content-start" style="height: 500px;">
                         <form th:Object="${loginForm}" method="post" >
                             <div class="alert alert-warning" role="alert" th:if="${#fields.hasErrors()}">
                                 <div th:each="err : ${#fields.allErrors()}" th:text="${err}"></div>
@@ -17,11 +17,11 @@
                                 <label class="form-label" th:for="*{loginId}">아이디</label>
                                 <input type="text" class="form-control line_css" placeholder="아이디 입력" th:field="*{loginId}">
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-5">
                                 <label class="form-label" th:for="*{password}">비밀번호</label>
                                 <input type="password" class="form-control line_css" placeholder="비밀번호 입력" th:field="*{password}">
                             </div>
-                            <div class="d-flex justify-content-center gap-5 pt-3">
+                            <div class="d-flex justify-content-center gap-5">
                                 <button type="submit" class="btn_orange">로그인</button>
                                 <a href="/" class="btn_black">취소</a>
                             </div>
