@@ -16,8 +16,6 @@ import java.util.Optional;
 public class GlobalControllerAdvice {
 
     private  final HttpSession session;
-    private final ProductService productService;
-
     @ModelAttribute
     public void addLoginMemberToModel(Model model) {
         Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);

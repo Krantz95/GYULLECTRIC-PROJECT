@@ -60,7 +60,6 @@
             </table>
         </div>
     </div>
-
 </th:block>
 
 <!-- 공정별 파이차트 스크립트 -->
@@ -112,7 +111,7 @@
                 responsive: true,
                 maintainAspectRatio: true,
                 plugins: {
-                    legend: { display: false }, // 범례 비표시
+                    legend: { display: false },
                     datalabels: {
                         color: '#fff',
                         formatter: (value, context) => {
@@ -135,7 +134,7 @@
             plugins: [ChartDataLabels]
         });
 
-        // 차트 텍스트 설명 출력
+        // 차트 수치 텍스트 출력
         if (chartText) {
             chartText.innerHTML =
                 `<span style="display: inline-block; width: 20px; height: 10px; background-color: #009913; margin-right: 5px;"></span>` +
