@@ -1,12 +1,13 @@
+// PredictionClient.java
 package gyullectric.gyullectric.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.*;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,12 +19,14 @@ public class PredictionClient {
     private final RestTemplate restTemplate;
 
     public PredictionClient(RestTemplateBuilder restTemplateBuilder) {
-        this.restTemplate = restTemplateBuilder.build();
+        this.restTemplate = restTemplateBuilder
+                .setConnectTimeout(Duration.ofSeconds(5))
+                .setReadTimeout(Duration.ofSeconds(10))
+                .build();
     }
 
-    public Map<String, Object> callPredictionApi(String product, String startDate, String endDate) {
+    public Map<String, Object> callPredictionApi(String startDate, String endDate) {
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("product", product);
         requestBody.put("startDate", startDate);
         requestBody.put("endDate", endDate);
 
@@ -32,16 +35,23 @@ public class PredictionClient {
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
         try {
-            ResponseEntity<Map> response = restTemplate.postForEntity(API_URL, entity, Map.class);
+            ResponseEntity<Map<String, Object>> response = restTemplate.postForEntity(API_URL, entity, (Class<Map<String, Object>>) (Class<?>) Map.class);
             if (response.getStatusCode().is2xxSuccessful()) {
-                return response.getBody();
+                Map<String, Object> body = response.getBody();
+                if (body == null) {
+                    log.warn("⚠️ 예측 API 응답은 200이지만 body가 null입니다.");
+                    return Map.of("status", "error", "message", "예측 응답 내용이 없습니다.");
+                }
+                return body;
             } else {
-                log.error("예측 API 호출 실패 - 상태코드: {}", response.getStatusCode());
+                log.warn("⚠️ 예측 API 응답 실패 - 상태코드: {}", response.getStatusCode());
             }
         } catch (HttpStatusCodeException e) {
-            log.error("HTTP 오류 응답: {}, 내용: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            log.error("❌ HTTP 오류 응답 - 상태: {}, 응답 내용: {}", e.getStatusCode(), e.getResponseBodyAsString());
+        } catch (ResourceAccessException e) {
+            log.error("❌ Flask 서버에 접근할 수 없습니다. 서버가 실행 중인지 확인하세요.", e);
         } catch (Exception e) {
-            log.error("예측 API 호출 중 예외 발생", e);
+            log.error("❌ 예측 API 호출 중 알 수 없는 예외 발생", e);
         }
 
         return Map.of("status", "error", "message", "Flask 서버 호출 실패");

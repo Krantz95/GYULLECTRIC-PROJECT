@@ -1,11 +1,12 @@
 package gyullectric.gyullectric.service;
 
-import gyullectric.gyullectric.domain.*;
+import gyullectric.gyullectric.domain.Inventory;
+import gyullectric.gyullectric.domain.PartName;
+import gyullectric.gyullectric.domain.ProductName;
+import gyullectric.gyullectric.domain.OrderHistory;
 import gyullectric.gyullectric.repository.InventoryRepository;
 import gyullectric.gyullectric.repository.OrderHistoryRepository;
-import gyullectric.gyullectric.repository.OrderListRepository;
 import gyullectric.gyullectric.repository.OrderRepository;
-
 import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,17 +24,18 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OrderService {
 
-    // 두 브랜치에서 사용하던 리포지토리들을 모두 포함
     private final InventoryRepository inventoryRepository;
     private final OrderRepository orderRepository;
     private final OrderHistoryRepository orderHistoryRepository;
 
-    // ======== Inventory 관련 기능 ========
+    private static final Map<ProductName, List<PartName>> PRODUCT_NAME_LIST_MAP = Map.of(
+            ProductName.GyulRide, List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK),
+            ProductName.InteliBike, List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK),
+            ProductName.PedalAt4, List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK)
+    );
 
     @Transactional
     public void saveInventory(Inventory inventory) {
-        // 원래는 inventoryRepository.save()였으나 orderRepository.save() 쪽 코드도 있으니
-        // 만약 Inventory 관련은 inventoryRepository로 저장하는게 맞다면 아래처럼 유지하세요.
         inventoryRepository.save(inventory);
     }
 
@@ -54,43 +56,37 @@ public class OrderService {
         inventoryRepository.deleteById(id);
     }
 
-//    제품별 원재료 맵핑
-    private static final Map<ProductName, List<PartName>> PRODUCT_NAME_LIST_MAP = Map.of(
-            ProductName.GyulRide, List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK),
-            ProductName.InteliBike, List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK),
-            ProductName.PedalAt4, List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK)
-);
-
-//    원재료 수 총합 구하기
-    public Map<PartName, Long> getInventoryQuantity(){
-        List<Inventory> inventories = inventoryRepository.findAll();
-
-        Map<PartName, Long> partNameLongMap = inventories.stream().collect(Collectors.groupingBy(
-                Inventory::getPartName,
-                Collectors.summingLong(Inventory::getQuantity)
-        ));
-        return  partNameLongMap;
+    public Map<PartName, Long> getInventoryQuantity() {
+        return inventoryRepository.findAll().stream()
+                .collect(Collectors.groupingBy(
+                        Inventory::getPartName,
+                        Collectors.summingLong(Inventory::getQuantity)
+                ));
     }
 
-    public Map<PartName, Long> getRequiredInventoryStock(ProductName productName){
+    public Map<PartName, Long> getRequiredInventoryStock(ProductName productName) {
         Map<PartName, Long> inventoryQuantities = getInventoryQuantity();
         List<PartName> requiredInventories = PRODUCT_NAME_LIST_MAP.getOrDefault(productName, List.of());
 
         log.info("원재료 리스트 : {}", requiredInventories);
 
-        Map<PartName, Long> partNameLongMap = requiredInventories.stream().collect(Collectors.toMap(
+        return requiredInventories.stream().collect(Collectors.toMap(
                 partName -> partName,
                 partName -> inventoryQuantities.getOrDefault(partName, 0L)
         ));
-        return partNameLongMap;
     }
 
-    public boolean isEnoughInventory(ProductName productName, int quantity){
-        Map<PartName, Long> requiredInventoryStock = getRequiredInventoryStock(productName);
+    public boolean isEnoughInventory(ProductName productName, int quantity) {
         Map<PartName, Long> inventoryQuantities = getInventoryQuantity();
+        List<PartName> requiredParts = PRODUCT_NAME_LIST_MAP.getOrDefault(productName, List.of());
 
-        return  requiredInventoryStock.entrySet().stream().allMatch(entry-> inventoryQuantities.getOrDefault(
-                entry.getKey(), 0L) >= quantity);
+        for (PartName part : requiredParts) {
+            long availableQty = inventoryQuantities.getOrDefault(part, 0L);
+            if (availableQty < quantity) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public Page<Inventory> orderGetList(int page, String kw, String partName, String supplier) {
@@ -112,8 +108,8 @@ public class OrderService {
             List<Predicate> predicates = new ArrayList<>();
 
             if (kw != null && !kw.trim().isEmpty()) {
-                Predicate partNameLike = cb.like(root.get("partName"), "%" + kw + "%");
-                Predicate supplierLike = cb.like(root.get("supplier"), "%" + kw + "%");
+                Predicate partNameLike = cb.like(cb.lower(root.get("partName").as(String.class)), "%" + kw.toLowerCase() + "%");
+                Predicate supplierLike = cb.like(cb.lower(root.get("supplier").as(String.class)), "%" + kw.toLowerCase() + "%");
                 predicates.add(cb.or(partNameLike, supplierLike));
             }
 
@@ -129,10 +125,6 @@ public class OrderService {
         };
     }
 
-
-
-
-    // ======== 재고 OrderHistory 관련 기능 ========
     @Transactional
     public void saveOrderHistory(OrderHistory history) {
         orderHistoryRepository.save(history);
@@ -157,5 +149,10 @@ public class OrderService {
             return orderHistoryRepository.findAll(Sort.by(Sort.Order.desc("orderedAt")));
         }
         return Collections.emptyList();
+    }
+
+    public int getInventoryQuantity(PartName partName) {
+        Map<PartName, Long> inventoryMap = getInventoryQuantity();
+        return inventoryMap.getOrDefault(partName, 0L).intValue();
     }
 }
