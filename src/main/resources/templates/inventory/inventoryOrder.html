@@ -3,7 +3,7 @@
 
     <div class="py-4">
         <!-- 서브타이틀 -->
-        <div class="subtitle_css"><span class="en-font">ORDER</span>_발주조회</div>
+        <div class="subtitle_css"><i class="bi bi-file-text"></i><span class="en-font"> ORDER</span>_발주조회</div>
 
         <!-- 테이블 -->
         <div class="table-responsive pt-3" style="overflow-x: auto;">
@@ -46,9 +46,9 @@
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                                    <button type="button" class="btn btn-danger confirm-cancel-btn"
+                                    <button type="button" class="btn btn-danger" style="background-color: red; color: white"
                                             th:data-id="${inventoryLists.id}"
-                                            th:onclick="|location.href='@{/order/{id}/delete(id=${inventoryLists.id})}'|">재고삭제</button>
+                                            th:onclick="|location.href='@{/order/{id}/delete(id=${inventoryLists.id})}'|">주문삭제</button>
                                 </div>
                             </div>
                         </div>

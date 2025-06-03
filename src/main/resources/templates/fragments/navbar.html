@@ -6,7 +6,7 @@
     <!-- 검정 배경 : 로고 + 텍스트 -->
     <div class="navbar-top text-center py-3">
         <a href="/">
-            <img src="/images/logo2.png" alt="귤렉트릭로고" style="height: 50px; margin-bottom: 5px;">
+            <img src="/images/logo2.png" alt="귤렉트릭로고" style="height: 65px; margin-bottom: 15px;">
         </a>
         <a href="/" class="fw-bold text-uppercase mb-0 en-font d-block" style="text-decoration: none; color: white;">
             GYULLECTRIC
@@ -55,7 +55,7 @@
                     <ul class="nav flex-column ms-3">
                         <li><a th:href="@{/order/inventory}" class="nav-link text-white px-2">재고관리</a></li>
                         <li><a href="/order/history" class="nav-link text-white px-2">발주조회</a></li>
-                        <li><a href="/product/create" class="nav-link text-white px-2">제품주문</a></li>
+                        <li><a href="/product/create" class="nav-link text-white px-2">생산지시</a></li>
                         <li><a href="/product/list" class="nav-link text-white px-2">ORDER LIST</a></li>
                     </ul>
                 </div>
@@ -92,7 +92,6 @@
                 </a>
                 <div class="collapse show" id="prodMenu">
                     <ul class="nav flex-column ms-3">
-                        <li><a href="/indicators/statistics" class="nav-link text-white px-2">생산통계</a></li>
                         <li><a href="/indicators/analysis" class="nav-link text-white px-2">생산분석</a></li>
                         <li><a href="/indicators/order-predict" class="nav-link text-white px-2">발주예측</a></li>
                         <li><a href="/indicators/defect-predict" class="nav-link text-white px-2">불량예측</a></li>
