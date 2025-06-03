@@ -6,15 +6,19 @@
         <div class="subtitle_css">에러 리포트</div>
 
         <!-- 검색 필터 -->
-        <div class="d-flex justify-content-end align-items-center my-3 gap-2">
-            <select class="pointer_orange form-select" style="width: 200px;">
-                <option selected disabled>제목/작성자</option>
-                <option>제목</option>
-                <option>작성자</option>
-            </select>
-            <input type="text" class="form-control line2_css" style="width: 200px;">
-            <button class="btn_search" type="button">검색</button>
+        <div class="my-3">
+            <form th:action="@{/errors/report}" method="get" id="searchForm" class="d-flex justify-content-end align-items-center my-3 gap-2">
+                <select name="type" class="pointer_orange form-select" style="width: 200px;">
+                    <option value="" th:selected="${type == ''}">제목/작성자</option>
+                    <option value="errorTitle" th:selected="${type == 'errorTitle'}">제목</option>
+                    <option value="members" th:selected="${type == 'members'}">작성자</option>
+                </select>
+                <input type="text" class="form-control line2_css" style="width: 200px;" id="search_kw" th:value="${kw}" name="kw">
+                <button class="btn_search px-4" id="btn_search" type="submit">검색</button>
+                <input type="hidden" id="page" name="page" th:value="${paging != null ? paging.number : 0}">
+            </form>
         </div>
+
 
         <!-- 테이블 -->
         <div class="table-responsive">
@@ -32,32 +36,16 @@
                 </thead>
                 <tbody>
                 <!-- 임시 구현 - 해당 행 클릭시 페이지 넘어가게 -->
-                <tr onclick="location.href='/errors/report_id'" style="cursor: pointer;">
-                    <td>1</td>
-                    <td>높음_204ERROR</td>
-                    <td>A 타입</td>
-                    <td>2공정</td>
-                    <td>25-02-23 10:44</td>
-                    <td>백현장</td>
+                <tr onclick="location.href='/errors/report_id'" style="cursor: pointer;" th:each="error, loop : ${paging.content}">
+                    <td th:text="${error.id}">ID</td>
+                    <td th:text="${error.getErrorTitle()}">제목</td>
+                    <td th:text="${error.productName.name()}">제품명</td>
+                    <td th:text="${error.getProcessStep()}">발생공정</td>
+                    <td th:text="${#temporals.format(error.getWrittenAt(), 'yyyy-MM-dd HH:mm')}">작성일시</td>
+                    <td th:text="${error.getMembers().name}">담당자</td>
                     <td>
                         <button class="status-btn status-unchecked" onclick="toggleStatus(this)">미처리</button>
                     </td>
-                </tr>
-                <tr>
-                    <td>2</td><td></td><td></td><td></td><td></td><td></td>
-                    <td><button class="status-btn status-unchecked" onclick="toggleStatus(this)">미처리</button></td>
-                </tr>
-                <tr>
-                    <td>3</td><td></td><td></td><td></td><td></td><td></td>
-                    <td><button class="status-btn status-unchecked" onclick="toggleStatus(this)">미처리</button></td>
-                </tr>
-                <tr>
-                    <td>4</td><td></td><td></td><td></td><td></td><td></td>
-                    <td><button class="status-btn status-unchecked" onclick="toggleStatus(this)">미처리</button></td>
-                </tr>
-                <tr>
-                    <td>5</td><td></td><td></td><td></td><td></td><td></td>
-                    <td><button class="status-btn status-unchecked" onclick="toggleStatus(this)">미처리</button></td>
                 </tr>
                 </tbody>
             </table>
@@ -66,31 +54,30 @@
 
     <!-- 글쓰기 -->
     <div class="d-flex justify-content-end mt-1">
-        <a href="/errors/report/form/{id}" class="write_css">글쓰기</a>
+        <a th:href="@{/errors/recent-exceptions}" class="write_css">글쓰기</a>
     </div>
 
     <!-- 페이지네이션 (디자인)-->
     <div class="d-flex justify-content-center mt-4">
-        <nav>
-            <ul class="pagination">
-                <li class="page-item">
-                    <a class="page-link prev-next" href="?page=1">&laquo;</a>
-                </li>
-                <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
-                <li class="page-item"><a class="page-link" href="?page=2">2</a></li>
-                <li class="page-item"><a class="page-link" href="?page=3">3</a></li>
-                <li class="page-item"><a class="page-link" href="?page=4">4</a></li>
-                <li class="page-item"><a class="page-link" href="?page=5">5</a></li>
-                <li class="page-item"><a class="page-link" href="?page=6">6</a></li>
-                <li class="page-item"><a class="page-link" href="?page=7">7</a></li>
-                <li class="page-item"><a class="page-link" href="?page=8">8</a></li>
-                <li class="page-item"><a class="page-link" href="?page=9">9</a></li>
-                <li class="page-item"><a class="page-link" href="?page=10">10</a></li>
-                <li class="page-item">
-                    <a class="page-link prev-next" href="?page=10">&raquo;</a>
-                </li>
-            </ul>
-        </nav>
+        <!-- 페이징 처리 시작 -->
+        <div th:if="${!paging.isEmpty()}" class="py-3 d-flex justify-content-center">
+            <nav aria-label="Page navigation example">
+                <ul class="pagination">
+                    <li class="page-item" th:classappend="${!paging.hasPrevious()} ? 'disabled'">
+                        <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number - 1}">&laquo;</a>
+                    </li>
+                    <li class="page-item"
+                        th:each="page : ${#numbers.sequence(0, paging.totalPages - 1)}"
+                        th:if="${page >= paging.number - 5 and page <= paging.number + 5}"
+                        th:classappend="${page == paging.number} ? 'active'">
+                        <a class="page-link" href="javascript:void(0)" th:text="${page + 1}" th:data-page="${page}">1</a>
+                    </li>
+                    <li class="page-item" th:classappend="${!paging.hasNext()} ? 'disabled'">
+                        <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number + 1}">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
     </div>
 
     <!-- 처리상태 비율 (%) -->
@@ -102,24 +89,51 @@
             <div class="status-segment status-resolved" id="bar-resolved">처리(%)</div>
         </div>
     </div>
-
+</th:block>
     <!-- 처리여부 버튼 + 처리상태 비율 스크립트 -->
     <script th:inline="javascript" layout:fragment="script">
-        function toggleStatus(button) {
-            if (button.classList.contains("status-unchecked")) {
-                button.classList.remove("status-unchecked");
-                button.classList.add("status-checking");
-                button.textContent = "점검중";
-            } else if (button.classList.contains("status-checking")) {
-                button.classList.remove("status-checking");
-                button.classList.add("status-resolved");
-                button.textContent = "처리";
-            } else {
-                button.classList.remove("status-resolved");
-                button.classList.add("status-unchecked");
-                button.textContent = "미처리";
-            }
-            updateStatusBar();
+
+            $(function () {
+            $(document).on('click', '.page-link', function () {
+                let page = $(this).data('page');
+                console.log("선택된 페이지 번호:", page);  // 반드시 숫자 확인
+                if (page !== undefined) {
+                    $('#page').val(page);
+                    $('#searchForm').submit();
+                }
+            });
+
+            // 검색 버튼 클릭
+            $("#btn_search").on('click', function () {
+            $('#page').val(0);
+            $('#searchForm').submit();
+        });
+
+            // 엔터 입력 처리
+            $("#search_kw").on("keypress", function(e) {
+            if (e.which === 13) {
+            e.preventDefault();
+            $("#btn_search").click();
+        }
+        });
+        });
+
+
+    function toggleStatus(button) {
+    if (button.classList.contains("status-unchecked")) {
+    button.classList.remove("status-unchecked");
+    button.classList.add("status-checking");
+    button.textContent = "점검중";
+    } else if (button.classList.contains("status-checking")) {
+    button.classList.remove("status-checking");
+    button.classList.add("status-resolved");
+    button.textContent = "처리";
+    } else {
+    button.classList.remove("status-resolved");
+    button.classList.add("status-unchecked");
+    button.textContent = "미처리";
+    }
+    updateStatusBar();
         }
 
         function updateStatusBar() {
@@ -160,7 +174,24 @@
         window.addEventListener('load', function () {
             updateStatusBar();
         });
+
+
+            document.getElementById('writeBtn').addEventListener('click', () => {
+                fetch('/api/errors/recent-exceptions?limit=5')
+                    .then(res => res.json())
+                    .then(data => {
+                        // 예를 들어 가장 최근 에러의 제목을 글쓰기 제목란에 넣기
+                        if(data.length > 0) {
+                            document.getElementById('errorTitleInput').value = data[0].title;
+                            document.getElementById('errorDescriptionInput').value = data[0].description;
+                            document.getElementById('errorProductNameInput').value = data[0].productName;
+                            document.getElementById('errorProcessStepInput').value = data[0].processStep;
+                            document.getElementById('errorContentInput').value = data[0].;
+                            // 필요하면 더 넣기
+                        }
+                    });
+            });
     </script>
 
-</th:block>
+
 </html>

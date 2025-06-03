@@ -46,7 +46,7 @@ public class ProcessLog {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "order_id")
     private OrderList orderList;
-
+    @Builder.Default
     @OneToMany(mappedBy = "processLog", cascade = CascadeType.ALL)
     private List<ErrorReport> errorReportList = new ArrayList<>();
 }

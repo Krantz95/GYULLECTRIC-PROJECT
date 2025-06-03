@@ -7,5 +7,6 @@ public enum ErrorCode {
     ERROR_110,
     ERROR_111,
     ERROR_201,
-    ERROR_202
+    ERROR_202,
+    EXCEPTION_ERROR
 }
