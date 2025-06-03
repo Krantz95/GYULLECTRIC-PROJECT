@@ -3,7 +3,7 @@
 
     <div class="py-4">
         <!-- 서브타이틀 -->
-        <div class="subtitle_css"><i class="bi bi-graph-up"></i> 공정 모니터링</div>
+        <div class="subtitle_css">공정 모니터링</div>
 
         <!-- 새로고침 버튼 -->
         <div class="py-3 d-flex align-items-center gap-3">
@@ -12,87 +12,90 @@
             </button>
         </div>
 
-        <!-- 공정별 OK/NG율 -->
+        <!-- 공정별 OK/NG율 파이차트 영역 -->
         <p class="fw-bold">공정별 OK/NG율</p>
-
         <div class="row p-3 justify-content-around">
-            <!-- 1공정 -->
-            <div class="col-lg-3 col-12 d-flex justify-content-center">
-                <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;">
-                    <p class="align-self-start">1공정</p>
-                    <canvas id="myChart1" style="width: 100%; height: auto;"></canvas>
-                    <div id="chartText1" class="pt-2"></div>
+            <!-- 공정 차트를 1~3번 공정에 대해 루프 렌더링 -->
+            <div th:each="step : ${#numbers.sequence(1,3)}" class="col-lg-3 col-12 d-flex justify-content-center">
+                <div class="d-flex flex-column align-items-center" style="width: 100%; max-width: 500px;">
+                    <p class="align-self-start" th:text="|${step}공정|"></p>
+                    <!-- 차트 캔버스: ID는 myChart1, myChart2, ... -->
+                    <canvas th:attr="id=${'myChart' + step}" style="width: 100%; height: auto;"></canvas>
+                    <!-- 차트 수치 설명 텍스트 영역 -->
+                    <div th:attr="id=${'chartText' + step}" class="pt-2"></div>
                 </div>
-            </div>
-
-            <!-- 2공정 -->
-            <div class="col-lg-3 col-12 d-flex justify-content-center">
-                <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;">
-                    <p class="align-self-start">2공정</p>
-                    <canvas id="myChart2" style="width: 100%; height: auto;"></canvas>
-                    <div id="chartText2" class="pt-2"></div>
-                </div>
-            </div>
-
-            <!-- 3공정 -->
-            <div class="col-lg-3 col-12 d-flex justify-content-center">
-                <div class="d-flex flex-column align-items-center" style="width: 80%; max-width: 500px;">
-                    <p class="align-self-start">3공정</p>
-                    <canvas id="myChart3" style="width: 100%; height: auto;"></canvas>
-                    <div id="chartText3" class="pt-2"></div>
-                </div>
-            </div>
-
-            <!-- 테이블 -->
-            <div class="d-flex justify-content-between align-items-center">
-                <p class="fw-bold mb-0">공정 로그</p>
-                <a href="/monitoring/product/list" class="refreshTime_css" style="text-decoration: none;">제품리스트</a>
-            </div>
-
-            <div class="table-responsive pt-2" style="overflow-x: auto;">
-                <table class="table table-bordered text-center align-middle table2_css">
-                    <thead>
-                    <tr>
-                        <th>제품명</th>
-                        <th>로트넘버</th>
-                        <th>공정No.</th>
-                        <th>공정상태</th>
-                        <th>공정생성일</th>
-                        <th>에러코드</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="processForm : ${processes}">
-                        <td th:text="${processForm.productName}"></td>
-                        <td th:text="${processForm.lotNumber}"></td>
-                        <td th:text="${processForm.processStep}"></td>
-                        <td th:text="${processForm.processResultStatus}"></td>
-                        <td th:text="${#temporals.format(processForm.createAt,'yyyy-MM-dd HH-mm')}"></td>
-                        <td th:text="${processForm.errorCode}"></td>
-                    </tr>
-
-                    </tbody>
-                </table>
             </div>
         </div>
-    </div>
-</th:block>
-<!-- 파이차트 스크립트 -->
-<script th:inline="javascript" layout:fragment="script">
-    const ok1 = /*[[${okCountByStep[1]?:0}]]*/ 0;
-    const ng1 = /*[[${ngCountByStep[1]?:0}]]*/ 0;
-    const ok2 = /*[[${okCountByStep[2]?:0}]]*/ 0;
-    const ng2 = /*[[${ngCountByStep[2]?:0}]]*/ 0;
-    const ok3 = /*[[${okCountByStep[3]?:0}]]*/ 0;
-    const ng3 = /*[[${ngCountByStep[3]?:0}]]*/ 0;
 
+        <!-- 공정 로그 테이블 헤더 -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <p class="fw-bold mb-0">공정 로그</p>
+            <a href="/monitoring/product/list" class="refreshTime_css" style="text-decoration: none;">제품리스트</a>
+        </div>
+
+        <!-- 공정 로그 테이블 -->
+        <div class="table-responsive pt-2" style="overflow-x: auto;">
+            <table class="table table-bordered text-center align-middle table2_css">
+                <thead>
+                <tr>
+                    <th>제품명</th>
+                    <th>로트넘버</th>
+                    <th>공정No.</th>
+                    <th>공정상태</th>
+                    <th>공정생성일</th>
+                    <th>에러코드</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- 각 공정 로그 출력 -->
+                <tr th:each="processForm : ${processes}">
+                    <td th:text="${processForm.productName}"></td>
+                    <td th:text="${processForm.lotNumber}"></td>
+                    <td th:text="${processForm.processStep}"></td>
+                    <td th:text="${processForm.processResultStatus}"></td>
+                    <td th:text="${#temporals.format(processForm.createAt,'yyyy-MM-dd HH:mm')}"></td>
+                    <td th:text="${processForm.errorCode}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</th:block>
+
+<!-- 공정별 파이차트 스크립트 -->
+<script th:inline="javascript" layout:fragment="script">
+    // Chart.js 플러그인 등록
     Chart.register(ChartDataLabels);
 
-    function drawChart(ctx, ok, ng, textElementId) {
+    // OK/NG 건수 맵핑 (서버에서 전달된 통계값 사용)
+    const okCounts = {
+        1: /*[[${okCountByStep[1]?:0}]]*/ 0,
+        2: /*[[${okCountByStep[2]?:0}]]*/ 0,
+        3: /*[[${okCountByStep[3]?:0}]]*/ 0
+    };
+
+    const ngCounts = {
+        1: /*[[${ngCountByStep[1]?:0}]]*/ 0,
+        2: /*[[${ngCountByStep[2]?:0}]]*/ 0,
+        3: /*[[${ngCountByStep[3]?:0}]]*/ 0
+    };
+
+    // 차트 그리는 공통 함수
+    function drawChart(step) {
+        const ok = okCounts[step];
+        const ng = ngCounts[step];
         const total = ok + ng;
+
+        // 백분율 계산
         const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
         const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
 
+        // 캔버스 및 텍스트 요소 선택
+        const ctx = document.getElementById(`myChart${step}`);
+        const chartText = document.getElementById(`chartText${step}`);
+
+        // 차트 생성
         new Chart(ctx, {
             type: 'pie',
             data: {
@@ -109,24 +112,22 @@
                 responsive: true,
                 maintainAspectRatio: true,
                 plugins: {
-                    legend: { display: false },
+                    legend: { display: false }, // 범례 비표시
                     datalabels: {
-                        clip: false,
-                        clamp: true,
                         color: '#fff',
                         formatter: (value, context) => {
-                            const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                            const percentage = total > 0 ? ((value / total) * 100).toFixed(0) : 0;
-                            return `${percentage}%`;
+                            const sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                            return sum > 0 ? `${((value / sum) * 100).toFixed(0)}%` : "0%";
                         },
-                        font: (context) => {
-                            const data = context.chart.data.datasets[0].data;
-                            const value = context.dataset.data[context.dataIndex];
+                        font: (ctx) => {
+                            const data = ctx.chart.data.datasets[0].data;
+                            const val = ctx.dataset.data[ctx.dataIndex];
                             const total = data.reduce((a, b) => a + b, 0);
-                            const percent = value / total;
-                            if (percent < 0.1) return { size: 10, weight: 'bold' };
-                            else if (percent < 0.2) return { size: 15, weight: 'bold' };
-                            else return { size: 20, weight: 'bold' };
+                            const ratio = val / total;
+                            // 비율에 따라 폰트 크기 조절
+                            if (ratio < 0.1) return { size: 10, weight: 'bold' };
+                            if (ratio < 0.2) return { size: 15, weight: 'bold' };
+                            return { size: 20, weight: 'bold' };
                         }
                     }
                 }
@@ -134,18 +135,17 @@
             plugins: [ChartDataLabels]
         });
 
-        const textDiv = document.getElementById(textElementId);
-        if (textDiv) {
-            textDiv.innerHTML =
+        // 차트 텍스트 설명 출력
+        if (chartText) {
+            chartText.innerHTML =
                 `<span style="display: inline-block; width: 20px; height: 10px; background-color: #009913; margin-right: 5px;"></span>` +
-                `<span style="font-weight:bold; font-size: 15px">OK </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +
+                `<strong>OK</strong> ${ok}건 / ${okPercent}%<br>` +
                 `<span style="display: inline-block; width: 20px; height: 10px; background-color: #ea2402; margin-right: 5px;"></span>` +
-                `<span style="font-weight:bold; font-size: 15px">NG </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;
+                `<strong>NG</strong> ${ng}건 / ${ngPercent}%`;
         }
     }
 
-    drawChart(document.getElementById('myChart1'), ok1, ng1, 'chartText1');
-    drawChart(document.getElementById('myChart2'), ok2, ng2, 'chartText2');
-    drawChart(document.getElementById('myChart3'), ok3, ng3, 'chartText3');
+    // 1~3공정 차트 반복 생성
+    [1, 2, 3].forEach(drawChart);
 </script>
 </html>
