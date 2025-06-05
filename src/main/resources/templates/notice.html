@@ -20,9 +20,7 @@
             <table class="table table-bordered text-center align-middle table1_css">
                 <thead>
                 <tr>
-                    <th style="text-align: center;">
-                        <input type="checkbox" onchange="toggleAllCheckboxes(this)" />
-                    </th>
+                    <th>공지여부</th>
                     <th>제목</th>
                     <th>작성일</th>
                     <th>작성자</th>
@@ -32,7 +30,8 @@
                 <tbody>
                 <tr>
                     <td style="text-align: center;">
-                        <input type="checkbox" class="row-checkbox" onchange="markAsNotice(this)" /></td>
+                        <input type="checkbox" class="row-checkbox" onchange="markAsNotice(this)" onclick="event.stopPropagation();" />
+                    </td>
                     <td>5월 휴무 안내</td>
                     <td>2025-05-12</td>
                     <td>윤팀장</td>
@@ -40,7 +39,8 @@
                 </tr>
                 <tr>
                     <td style="text-align: center;">
-                        <input type="checkbox" class="row-checkbox" onchange="markAsNotice(this)" /></td>
+                        <input type="checkbox" class="row-checkbox" onchange="markAsNotice(this)" onclick="event.stopPropagation();" />
+                    </td>
                     <td>1공정 요즘 NG가 많습니다....</td>
                     <td>2025-05-10</td>
                     <td>최대표</td>
@@ -51,11 +51,11 @@
         </div>
 
         <div class="d-flex justify-content-end mt-3">
-            <button class="btn_orange" style="background-color: #FFC373; border-radius: 0px; width: 100px; height: 40px; padding: 15px 30px;">글쓰기</button>
+            <button type="button" class="write_css">글쓰기</button>
         </div>
     </div>
 
-    <!-- 공지기능 추가 : 체크 선택하면 공지행으로 변경됌 (굵은글씨+상단) -->
+    <!-- 공지기능 추가 : 체크 선택하나만 + 새로고침 시 유지 -->
     <script th:inline="javascript" layout:fragment="script">
         function toggleAllCheckboxes(master) {
             const checkboxes = document.querySelectorAll('.row-checkbox');
@@ -66,22 +66,50 @@
                 cb.dispatchEvent(new Event('change'));
             });
         }
-
         function markAsNotice(checkbox) {
-            const row = checkbox.closest("tr");
             const tbody = document.querySelector("tbody");
+            const allCheckboxes = tbody.querySelectorAll(".row-checkbox");
+
+            allCheckboxes.forEach(cb => {
+                if (cb !== checkbox) {
+                    cb.checked = false;
+                    cb.closest("tr").classList.remove("notice-row");
+                }
+            });
+            const row = checkbox.closest("tr");
+            const noticeTitle = row.querySelector("td:nth-child(2)").textContent.trim();
 
             if (checkbox.checked) {
                 row.classList.add("notice-row");
                 tbody.prepend(row);
+                localStorage.setItem("noticePost", noticeTitle);
             } else {
                 row.classList.remove("notice-row");
                 tbody.append(row);
+                localStorage.removeItem("noticePost");
             }
         }
-    </script>
+        window.addEventListener('load', () => {
+            const savedTitle = localStorage.getItem("noticePost");
+            if (savedTitle) {
+                const tbody = document.querySelector("tbody");
+                const rows = Array.from(tbody.querySelectorAll("tr"));
 
+                rows.forEach(row => {
+                    const rowTitle = row.querySelector("td:nth-child(2)").textContent.trim();
+                    const checkbox = row.querySelector(".row-checkbox");
+
+                    if (rowTitle === savedTitle) {
+                        row.classList.add("notice-row");
+                        checkbox.checked = true;
+                        tbody.prepend(row);
+                    } else {
+                        checkbox.checked = false;
+                        row.classList.remove("notice-row");
+                    }
+                });
+            }
+        });
+    </script>
 </th:block>
 </html>
-
-
