@@ -3,7 +3,7 @@
 
     <div class="py-4">
         <!-- 서브타이틀 -->
-        <div class="subtitle_css">에러 리포트</div>
+        <div class="subtitle_css"><i class="bi bi-exclamation-triangle"></i> 에러 리포트</div>
 
         <!-- 검색 필터 -->
         <div class="my-3">
@@ -19,8 +19,7 @@
             </form>
         </div>
 
-
-        <!-- 테이블 -->
+        <!-- 에러 리포트 테이블 -->
         <div class="table-responsive">
             <table class="table table-bordered text-center align-middle table1_css">
                 <thead>
@@ -35,22 +34,36 @@
                 </tr>
                 </thead>
                 <tbody>
-                <!-- 임시 구현 - 해당 행 클릭시 페이지 넘어가게 -->
-                <tr th:onclick="|location.href='/errors/report/form/${error.id}'|" style="cursor: pointer;" th:each="error, loop : ${paging.content}">
-                    <td th:text="${error.id}">ID</td>
-                    <td th:text="${error.getErrorTitle()}">제목</td>
-                    <td th:text="${error.productName.name()}">제품명</td>
-                    <td th:text="${error.getProcessStep()}">발생공정</td>
-                    <td th:text="${#temporals.format(error.getWrittenAt(), 'yyyy-MM-dd HH:mm')}">작성일시</td>
-                    <td th:text="${error.getMembers().name}">담당자</td>
+
+                <!-- 해당 행 클릭시 페이지 넘어가게 -->
+                <tr th:each="error, loop : ${paging.content}" th:data-error-id="${error.id}"
+                    th:data-comments="${#lists.size(error.errorAnswerList)}"
+                    onclick="onRowClick(this)"
+                    style="cursor: pointer;">
+<!--                    th:onclick="|location.href='/errors/detail/' + ${error.id}|"-->
+
+                    <td th:text="${paging.getTotalElements() - (paging.number*paging.size)-loop.index}">ID</td>
                     <td>
-                        <button class="status-btn status-unchecked" onclick="toggleStatus(this)">미처리</button>
+                        <span th:text="${error.errorTitle}"></span>
+                        <span class="text-danger small ms-2" th:if="${#lists.size(error.errorAnswerList) > 0}" th:text="|[${#lists.size(error.errorAnswerList)}]|"> 제목</span></td>
+                    <td th:text="${error.productName.name()}">제품명</td>
+                    <td th:text="${error.processStep}">발생공정</td>
+                    <td th:text="${#temporals.format(error.writtenAt, 'yyyy-MM-dd HH:mm')}">작성일시</td>
+                    <td th:text="${error.members.name}">담당자</td>
+                    <td>
+                        <button class="status-btn"
+                                th:classappend="${#lists.size(error.errorAnswerList) > 0} ? 'status-resolved' :
+                        (error.status == 'CHECKING' ? 'status-checking' : 'status-unchecked')"
+                                th:text="${#lists.size(error.errorAnswerList) > 0} ? '처리' :
+                 (error.status == 'CHECKING' ? '점검중' : '미처리')"
+                                style="pointer-events: none;">
+                        </button>
                     </td>
                 </tr>
                 </tbody>
             </table>
         </div>
-    </div>
+
 
     <!-- 글쓰기 -->
     <div class="d-flex justify-content-end mt-1">
@@ -80,102 +93,113 @@
         </div>
     </div>
 
-    <!-- 처리상태 비율 (%) -->
-    <div class="pt-2">
-        <p>처리상태 비율(%)</p>
-        <div class="status-bar-container">
-            <div class="status-segment status-unchecked" id="bar-unchecked">미처리(%)</div>
-            <div class="status-segment status-checking" id="bar-checking">점검중(%)</div>
-            <div class="status-segment status-resolved" id="bar-resolved">처리(%)</div>
+        <!-- 처리상태 비율 바 -->
+        <div class="pt-2">
+            <p>처리상태 비율(%)</p>
+            <div class="status-bar-container">
+                <div class="status-segment status-unchecked" id="bar-unchecked">미처리(%)</div>
+                <div class="status-segment status-checking" id="bar-checking">점검중(%)</div>
+                <div class="status-segment status-resolved" id="bar-resolved">처리(%)</div>
+            </div>
         </div>
     </div>
+
+
 </th:block>
-    <!-- 처리여부 버튼 + 처리상태 비율 스크립트 -->
-    <script th:inline="javascript" layout:fragment="script">
 
-            $(function () {
-            $(document).on('click', '.page-link', function () {
-                let page = $(this).data('page');
-                console.log("선택된 페이지 번호:", page);  // 반드시 숫자 확인
-                if (page !== undefined) {
-                    $('#page').val(page);
-                    $('#searchForm').submit();
-                }
-            });
+<!-- 상태 토글 및 검색/페이지 처리 스크립트 -->
+<script th:inline="javascript" layout:fragment="script">
+    $(function () {
+        // 페이지네이션 클릭
+        $(document).on('click', '.page-link', function () {
+            const page = $(this).data('page');
+            if (page !== undefined) {
+                $('#page').val(page);
+                $('#searchForm').submit();
+            }
+        });
 
-            // 검색 버튼 클릭
-            $("#btn_search").on('click', function () {
+        // 검색 버튼 클릭
+        $("#btn_search").on('click', function () {
             $('#page').val(0);
             $('#searchForm').submit();
         });
 
-            // 엔터 입력 처리
-            $("#search_kw").on("keypress", function(e) {
+        // 검색어 엔터 입력
+        $("#search_kw").on("keypress", function (e) {
             if (e.which === 13) {
-            e.preventDefault();
-            $("#btn_search").click();
-        }
+                e.preventDefault();
+                $("#btn_search").click();
+            }
         });
-        });
+    });
 
 
-    function toggleStatus(button) {
-    if (button.classList.contains("status-unchecked")) {
-    button.classList.remove("status-unchecked");
-    button.classList.add("status-checking");
-    button.textContent = "점검중";
-    } else if (button.classList.contains("status-checking")) {
-    button.classList.remove("status-checking");
-    button.classList.add("status-resolved");
-    button.textContent = "처리";
-    } else {
-    button.classList.remove("status-resolved");
-    button.classList.add("status-unchecked");
-    button.textContent = "미처리";
+    function onRowClick(row) {
+        toggleStatusRow(row);
+
+        const errorId = row.dataset.errorId;
+        setTimeout(() => {
+            window.location.href = '/errors/detail/' + errorId;
+        }, 300);
     }
-    updateStatusBar();
+
+    function toggleStatusRow(row) {
+        const button = row.querySelector('.status-btn');
+        const commentCount = parseInt(row.dataset.comments, 10) || 0;
+
+        if (commentCount > 0) {
+            button.classList.remove('status-unchecked', 'status-checking');
+            button.classList.add('status-resolved');
+            button.textContent = '처리';
+        } else {
+            if (button.classList.contains('status-unchecked')) {
+                button.classList.remove('status-unchecked');
+                button.classList.add('status-checking');
+                button.textContent = '점검중';
+            } else if (button.classList.contains('status-checking')) {
+                button.classList.remove('status-checking');
+                button.classList.add('status-resolved');
+                button.textContent = '처리';
+            } else if (button.classList.contains('status-resolved')) {
+                button.classList.remove('status-resolved');
+                button.classList.add('status-unchecked');
+                button.textContent = '미처리';
+            }
         }
 
-        function updateStatusBar() {
-            const buttons = document.querySelectorAll('.status-btn');
-            let unchecked = 0, checking = 0, resolved = 0;
+        updateStatusBar();
+    }
 
-            buttons.forEach(btn => {
-                if (btn.classList.contains('status-unchecked')) unchecked++;
-                else if (btn.classList.contains('status-checking')) checking++;
-                else if (btn.classList.contains('status-resolved')) resolved++;
-            });
+    // 상태 비율 바 업데이트
+    function updateStatusBar() {
+        const buttons = document.querySelectorAll('.status-btn');
+        let counts = {unchecked: 0, checking: 0, resolved: 0};
 
-            const total = unchecked + checking + resolved;
-            const uncheckedPercent = total ? (unchecked / total * 100) : 0;
-            const checkingPercent = total ? (checking / total * 100) : 0;
-            const resolvedPercent = total ? (resolved / total * 100) : 0;
-
-            const barUnchecked = document.getElementById('bar-unchecked');
-            const barChecking = document.getElementById('bar-checking');
-            const barResolved = document.getElementById('bar-resolved');
-
-            // width 적용
-            barUnchecked.style.width = uncheckedPercent + '%';
-            barChecking.style.width = checkingPercent + '%';
-            barResolved.style.width = resolvedPercent + '%';
-
-            // 텍스트 설정
-            barUnchecked.textContent = `미처리(${uncheckedPercent.toFixed(0)}%)`;
-            barChecking.textContent = `점검중(${checkingPercent.toFixed(0)}%)`;
-            barResolved.textContent = `처리(${resolvedPercent.toFixed(0)}%)`;
-
-            // display 제어
-            barUnchecked.style.display = uncheckedPercent > 0 ? 'flex' : 'none';
-            barChecking.style.display = checkingPercent > 0 ? 'flex' : 'none';
-            barResolved.style.display = resolvedPercent > 0 ? 'flex' : 'none';
-        }
-
-        window.addEventListener('load', function () {
-            updateStatusBar();
+        buttons.forEach(btn => {
+            if (btn.classList.contains('status-unchecked')) counts.unchecked++;
+            else if (btn.classList.contains('status-checking')) counts.checking++;
+            else if (btn.classList.contains('status-resolved')) counts.resolved++;
         });
 
-    </script>
 
 
+        const total = counts.unchecked + counts.checking + counts.resolved;
+        const percent = key => total ? (counts[key] / total * 100).toFixed(0) : 0;
+
+        const setBar = (id, label, value) => {
+            const el = document.getElementById(id);
+            el.style.width = value + '%';
+            el.textContent = `${label}(${value}%)`;
+            el.style.display = value > 0 ? 'flex' : 'none';
+        };
+
+
+        setBar('bar-unchecked', '미처리', percent('unchecked'));
+        setBar('bar-checking', '점검중', percent('checking'));
+        setBar('bar-resolved', '처리', percent('resolved'));
+    }
+
+    window.addEventListener('load', updateStatusBar);
+</script>
 </html>

@@ -44,7 +44,7 @@ public class ErrorController {
         return "errors/errorReportList";
     }
 
-    @GetMapping("/guide_id") // 임시 저장주소명
+    @GetMapping("/errorGuideDetail") // 주소변경 (view로만 보여줄것)
     public String getGuideDetail() {
         return "errors/errorGuideDetail";
     }

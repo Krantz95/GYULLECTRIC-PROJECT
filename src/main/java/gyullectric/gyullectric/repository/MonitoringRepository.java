@@ -1,9 +1,6 @@
 package gyullectric.gyullectric.repository;
 
-import gyullectric.gyullectric.domain.OrderList;
-import gyullectric.gyullectric.domain.OrderStatus;
-import gyullectric.gyullectric.domain.ProcessLog;
-import gyullectric.gyullectric.domain.ProcessResultStatus;
+import gyullectric.gyullectric.domain.*;
 import gyullectric.gyullectric.dto.MonitoringDto;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,6 +12,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MonitoringRepository extends JpaRepository<ProcessLog, Long> {
+
+    /** ✅ 생산량 카운트 메서드 */
+    int countByProductNameAndCreateAtBetween(ProductName productName, LocalDateTime start, LocalDateTime end);
 
     List<ProcessLog> findByOrderList_Id(Long orderId);
 
@@ -36,4 +36,5 @@ public interface MonitoringRepository extends JpaRepository<ProcessLog, Long> {
 
 
     Optional<ProcessLog> findTopByOrderByCreateAtDesc();
+
 }
