@@ -36,7 +36,7 @@
                 </thead>
                 <tbody>
                 <!-- 임시 구현 - 해당 행 클릭시 페이지 넘어가게 -->
-                <tr onclick="location.href='/errors/report_id'" style="cursor: pointer;" th:each="error, loop : ${paging.content}">
+                <tr th:onclick="|location.href='/errors/report/form/${error.id}'|" style="cursor: pointer;" th:each="error, loop : ${paging.content}">
                     <td th:text="${error.id}">ID</td>
                     <td th:text="${error.getErrorTitle()}">제목</td>
                     <td th:text="${error.productName.name()}">제품명</td>
@@ -54,7 +54,7 @@
 
     <!-- 글쓰기 -->
     <div class="d-flex justify-content-end mt-1">
-        <a th:href="@{/errors/recent-exceptions}" class="write_css">글쓰기</a>
+        <a th:href="@{/errors/report/form}" class="write_css">글쓰기</a>
     </div>
 
     <!-- 페이지네이션 (디자인)-->
@@ -175,22 +175,6 @@
             updateStatusBar();
         });
 
-
-            document.getElementById('writeBtn').addEventListener('click', () => {
-                fetch('/api/errors/recent-exceptions?limit=5')
-                    .then(res => res.json())
-                    .then(data => {
-                        // 예를 들어 가장 최근 에러의 제목을 글쓰기 제목란에 넣기
-                        if(data.length > 0) {
-                            document.getElementById('errorTitleInput').value = data[0].title;
-                            document.getElementById('errorDescriptionInput').value = data[0].description;
-                            document.getElementById('errorProductNameInput').value = data[0].productName;
-                            document.getElementById('errorProcessStepInput').value = data[0].processStep;
-                            document.getElementById('errorContentInput').value = data[0].;
-                            // 필요하면 더 넣기
-                        }
-                    });
-            });
     </script>
 
 

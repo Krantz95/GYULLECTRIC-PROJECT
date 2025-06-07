@@ -35,5 +35,5 @@ public interface MonitoringRepository extends JpaRepository<ProcessLog, Long> {
     long countByOrderList_IdAndProcessStep(Long orderId, int processStep);
 
 
-
+    Optional<ProcessLog> findTopByOrderByCreateAtDesc();
 }

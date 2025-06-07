@@ -48,7 +48,7 @@ public class ProcessScheduler {
             errorCode1 = "_"; // OK일 때는 에러 없음
         } else {
             // NG일 때 에러코드 배열 (EXCEPTION_ERROR 포함)
-            ErrorCode[] errorCodes1 = ErrorCode.values(); // 여기에 EXCEPTION_ERROR가 들어있다고 가정
+            ErrorCode[] errorCodes1 = ErrorCode.values();
             errorCode1 = errorCodes1[random.nextInt(errorCodes1.length)].name();
         }
         step1.setProcessResultStatus(isOk1 ? ProcessResultStatus.OK : ProcessResultStatus.NG);
@@ -71,7 +71,7 @@ public class ProcessScheduler {
             errorCode2 = "_"; // OK일 때는 에러 없음
         } else {
             // NG일 때 에러코드 배열 (EXCEPTION_ERROR 포함)
-            ErrorCode[] errorCodes2 = ErrorCode.values(); // 여기에 EXCEPTION_ERROR가 들어있다고 가정
+            ErrorCode[] errorCodes2 = ErrorCode.values();
             errorCode2 = errorCodes2[random.nextInt(errorCodes2.length)].name();
         }
         ProcessLog step2 = ProcessLog.builder()
@@ -100,7 +100,7 @@ public class ProcessScheduler {
             errorCode3 = "_"; // OK일 때는 에러 없음
         } else {
             // NG일 때 에러코드 배열 (EXCEPTION_ERROR 포함)
-            ErrorCode[] errorCodes3 = ErrorCode.values(); // 여기에 EXCEPTION_ERROR가 들어있다고 가정
+            ErrorCode[] errorCodes3 = ErrorCode.values();
             errorCode3 = errorCodes3[random.nextInt(errorCodes3.length)].name();
         }
         ProcessLog step3 = ProcessLog.builder()
