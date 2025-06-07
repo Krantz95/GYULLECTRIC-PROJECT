@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -53,48 +54,40 @@ public class ErrorController {
         return "errors/errorGuideList";
     }
 
-    @GetMapping("/report/form") // 임시 저장주소명
-    public String getReport(Model model) {
-        model.addAttribute("errorReportForm", new ErrorReportForm());
-        return "errors/errorReportForm";
-    }
-
-    @GetMapping("/recent-exceptions")
-    public ResponseEntity<List<ErrorReport>> getRecentExceptionErrors(
-            @RequestParam(defaultValue = "5") int limit,
-            Model model) {
-        List<ErrorReport> errors = errorService.getRecentExceptionErrors(limit);
-        model.addAttribute("errorReportForm", new ErrorReportForm());
-        return ResponseEntity.ok(errors);
-    }
-    @PostMapping("report/form")
-    public String postReport(@Valid @ModelAttribute("errorReportForm")ErrorReportForm errorReportForm, BindingResult bindingResult,
-                             HttpSession session){
-
-        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
-
-        if(bindingResult.hasErrors()){
-            return "errors/errorReportForm";
-        }
-        Long processLogId = errorReportForm.getId();
-        ProcessLog processLog = monitoringService.oneFindProcess(processLogId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid processLogId: " + processLogId));
-
-        ErrorReport errorReport = ErrorReport.builder()
-                .errorTitle(errorReportForm.getTitle())
-                .content(errorReportForm.getDescription())
-                .members(loginMember)
-                .processLog(processLog)
-                .writtenAt(LocalDateTime.now())
-                .priority(errorReportForm.getPriority())
-                .occurredAt(errorReportForm.getCreatedAt())
-                .processStep(String.valueOf(errorReportForm.getProcessStep()))
-                .productName(ProductName.valueOf(errorReportForm.getProductName()))
-                .build();
-        errorService.errorSave(errorReport);
-        return "errors/errorReportList";
-
-    }
+//    @GetMapping("/report/form")
+//    public String getReport(Model model) {
+//        model.addAttribute("errorReportForm", new ErrorReportForm());
+//        return "errors/errorReportForm";
+//    }
+//
+//    @PostMapping("report/form")
+//    public String postReport(@Valid @ModelAttribute("errorReportForm")ErrorReportForm errorReportForm, BindingResult bindingResult,
+//                             HttpSession session){
+//
+//        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+//
+//        if(bindingResult.hasErrors()){
+//            return "errors/errorReportForm";
+//        }
+//        Long processLogId = errorReportForm.getId();
+//        ProcessLog processLog = monitoringService.oneFindProcess(processLogId)
+//                .orElseThrow(() -> new IllegalArgumentException("Invalid processLogId: " + processLogId));
+//
+//        ErrorReport errorReport = ErrorReport.builder()
+//                .errorTitle(errorReportForm.getTitle())
+//                .content(errorReportForm.getDescription())
+//                .members(loginMember)
+//                .processLog(processLog)
+//                .writtenAt(LocalDateTime.now())
+//                .priority(errorReportForm.getPriority())
+//                .occurredAt(errorReportForm.getCreatedAt())
+//                .processStep(String.valueOf(errorReportForm.getProcessStep()))
+//                .productName(ProductName.valueOf(errorReportForm.getProductName()))
+//                .build();
+//        errorService.errorSave(errorReport);
+//        return "errors/errorReportList";
+//
+//    }
 
     @GetMapping("/report/form/{id}")
     public String errorReportForm(Model model,
@@ -107,6 +100,7 @@ public class ErrorController {
                 .orElseThrow(() -> new IllegalArgumentException("해당 공정의 아이디를 찾을 수 없습니다."));
 
         ErrorReportForm errorReportForm = ErrorReportForm.builder()
+                .id(processLog.getId())
                 .title(processLog.getErrorCode() + "예외 에러 코드 발생")
                 .productName(processLog.getProductName().name())
                 .processStep(processLog.getProcessStep())
@@ -145,5 +139,10 @@ public class ErrorController {
          errorService.errorSave(errorReport);
         return "errors/errorReportList";
 
+    }
+
+    @GetMapping("report/qna")
+    public String getReportQna() {
+        return "errors/errorReportDetail";
     }
 }
