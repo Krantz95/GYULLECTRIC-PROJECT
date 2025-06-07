@@ -1,8 +1,10 @@
 package gyullectric.gyullectric.service;
 
+import gyullectric.gyullectric.domain.ErrorAnswer;
 import gyullectric.gyullectric.domain.ErrorCode;
 import gyullectric.gyullectric.domain.ErrorReport;
 import gyullectric.gyullectric.domain.Members;
+import gyullectric.gyullectric.repository.ErrorAnswerRepository;
 import gyullectric.gyullectric.repository.ErrorRepository;
 import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +23,17 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ErrorService {
     private final ErrorRepository errorRepository;
+    private final ErrorAnswerRepository errorAnswerRepository;
     public ErrorReport errorSave(ErrorReport errorReport){
         errorRepository.save(errorReport);
         return errorReport;
+    }
+    public void validateDuplicateMember(ErrorReport errorReport) {
+       Optional<ErrorReport> findErrorReportId = errorRepository.findById(errorReport.getId());
+       if(findErrorReportId.isPresent()){
+           throw new IllegalStateException("이미 존재하는 게시글입니다");
+       }
+
     }
     public List<ErrorReport> allFindErrorList(){
         return errorRepository.findAll();
@@ -38,7 +48,7 @@ public class ErrorService {
 
     public Page<ErrorReport> getList(int page, String kw, String type){
         List<Sort.Order> sorts = new ArrayList<>();
-        sorts.add(Sort.Order.desc("occurredAt"));
+        sorts.add(Sort.Order.desc("writtenAt"));
         PageRequest pageable = PageRequest.of(page,10,Sort.by(sorts));
 
 
@@ -79,5 +89,14 @@ public class ErrorService {
         Page<ErrorReport> page = errorRepository.findByErrorCode(ErrorCode.EXCEPTION_ERROR, pageable);
         return page.getContent();
     }
-
+// 에러리포트 답변
+    public void answerError(ErrorAnswer errorAnswer){
+        errorAnswerRepository.save(errorAnswer);
+    }
+    public Optional<ErrorAnswer> getAnswerById(Long id){
+        return errorAnswerRepository.findById(id);
+    }
+    public void deleteAnswerById(Long id){
+        errorAnswerRepository.deleteById(id);
+    }
 }

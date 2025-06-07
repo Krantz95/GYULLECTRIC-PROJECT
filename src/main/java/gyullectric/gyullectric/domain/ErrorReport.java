@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -17,6 +18,7 @@ public class ErrorReport {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "error_id")
     private Long id;
 
     @Column(name = "error_title", length = 100, nullable = false)
@@ -50,6 +52,9 @@ public class ErrorReport {
     private ProcessLog processLog;
     @Enumerated(EnumType.STRING)
     private ErrorCode errorCode;
+
+    @OneToMany(mappedBy = "errorReport", cascade = CascadeType.REMOVE)
+    private List<ErrorAnswer> errorAnswerList;
 
 
 }

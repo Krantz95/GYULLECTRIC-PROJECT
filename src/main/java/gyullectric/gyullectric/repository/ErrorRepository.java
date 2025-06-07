@@ -11,10 +11,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 public interface ErrorRepository extends JpaRepository<ErrorReport, Long> {
     @Query("SELECT e FROM ErrorReport e JOIN e.members m WHERE m.name LIKE %:name%")
     Page<ErrorReport> findByMemberName(@Param("name") String name, Pageable pageable);
     Page<ErrorReport> findAll(Specification<ErrorReport> spec, Pageable pageable);
 
     Page<ErrorReport> findByErrorCode(ErrorCode errorCode, Pageable pageable);
+
 }

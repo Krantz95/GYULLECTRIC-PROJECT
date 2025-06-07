@@ -36,6 +36,13 @@ public class Members {
     @OneToMany(mappedBy = "members")
     private List<OrderList> orderLists = new ArrayList<>();
 
+    @OneToMany(mappedBy = "members", cascade = CascadeType.ALL)
+    private List<ErrorReport> errorReportList;
+
+    @OneToMany(mappedBy = "members", cascade = CascadeType.ALL)
+    private List<ErrorAnswer> errorAnswerList;
+
+
 
 
 }

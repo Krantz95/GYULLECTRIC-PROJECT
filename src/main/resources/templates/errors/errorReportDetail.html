@@ -5,27 +5,22 @@
 
         <div class="d-flex justify-content-center pt-3">
             <div class="form_lg_css mb-5 shadow-sm">
-                <form>
+                <form th:object="${errorReport}">
 
                     <div class="mb-3">
-                        <label class="form-label">제목</label>
-                        <input type="text" class="form-control line_css">
+                        <label class="form-label" th:for="*{errorTitle}">제목</label>
+                        <input type="text" class="form-control line_css" th:field="*{errorTitle}">
                     </div>
 
                     <div class="mb-3">
                         <div class="row">
                             <div class="col-6">
-                                <label class="form-label">발생일시</label>
-                                <input type="datetime-local" class="form-control line_css">
+                                <label class="form-label" th:for="*{occurredAt}">발생일시</label>
+                                <input type="datetime-local" class="form-control line_css" th:field="*{occurredAt}">
                             </div>
                             <div class="col-6">
-                                <label class="form-label">발생공정</label>
-                                <select class="form-select pointer_orange_round">
-                                    <option selected disabled>선택</option>
-                                    <option>1공정</option>
-                                    <option>2공정</option>
-                                    <option>3공정</option>
-                                </select>
+                                <label class="form-label" th:for="*{processStep}">발생공정</label>
+                                <input type="text" class="form-control line_css" th:field="*{processStep}">
                             </div>
                         </div>
                     </div>
@@ -33,63 +28,77 @@
                     <div class="mb-3">
                         <div class="row">
                             <div class="col-6">
-                                <label class="form-label">우선순위(긴급도)</label>
-                                <select class="form-select pointer_orange_round">
-                                    <option selected disabled>선택</option>
-                                    <option>높음</option>
-                                    <option>보통</option>
-                                    <option>낮음</option>
-                                </select>
+                                <label class="form-label" th:for="*{priority}">우선순위(긴급도)</label>
+                                <input type="text" class="form-control line_css" th:field="*{priority}">
+
                             </div>
                             <div class="col-6">
-                                <label class="form-label">제품명</label>
-                                <select class="form-select pointer_orange_round">
-                                    <option selected disabled>선택</option>
-                                    <option>A타입</option>
-                                    <option>B타입</option>
-                                    <option>C타입</option>
-                                </select>
+                                <label class="form-label" th:for="*{productName}">제품명</label>
+                               <input type="text" class="form-control line_css" th:field="*{productName}">
                             </div>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">에러 내용</label>
-                        <textarea class="form-control line_css" style="height: 200px;"></textarea>
+                        <label class="form-label" th:for="*{content}">에러 내용</label>
+                        <textarea class="form-control line_css" style="height: 200px;" th:field="*{content}"></textarea>
                     </div>
-
+                </form>
                     <div class="mb-3">
-                        <label class="form-label">댓글</label>
+                        <label class="form-label" th:text="|${#lists.size(errorReport.errorAnswerList)}개의 답변이 있습니다|">댓글</label>
 
                         <!-- 내용 카드 -->
-                        <div class="card my-3" style="border: 1px solid #FF5900; padding: 10px; border-radius: 8px;">
+                        <div class="card my-3" style="border: 1px solid #FF5900; padding: 10px; border-radius: 8px;" th:each="answer : ${errorReport.errorAnswerList}">
                             <div class="card-body">
 
                                 <!-- 본문 내용 -->
-                                <div class="card-text">
-                                    제품 전원이 켜지지 않는 경우, 아래 절차를 따라 점검해 주세요...
+                                <div class="card-text" th:text="${answer.content}">
+
                                 </div>
 
                                 <!-- 작성자 + 작성일 -->
                                 <div class="d-flex justify-content-end mt-3">
                                     <div class="badge bg-light text-dark p-2 text-start">
-                                        <div class="mb-2">작성자: 홍길동</div>
-                                        <div>2025-05-22 14:30</div>
+                                        <div class="mb-2" th:if="${answer.members != null and answer.members.loginId != null}"
+                                        th:text="${answer.members.name}">작성자: 홍길동</div>
+                                        <div th:text="${#temporals.format(answer.createDate,'yyyy-MM-dd hh:mm')}">2025-05-22 14:30</div>
                                     </div>
                                 </div>
 
                                 <!-- 댓글 - 수정/삭제 버튼 -->
                                 <div class="d-flex justify-content-start gap-2">
-                                    <a href="#" class="btn_sm_orange" style="margin: 0; justify-content: center;">수정</a> <!-- 나중에 th:href="@{/members/{id}/edit(id=${member.getId()})}" 식으로 변경 -->
-                                    <button type="button" class="btn_sm_orange" style="margin: 0; justify-content: center; color: black; border-color: black"
-                                            data-bs-toggle="modal" data-bs-target="#deleteComment">삭제</button>
+                                    <a th:href="@{|/errors/answer/modify/${answer.id}|}" class="btn_sm_orange" style="margin: 0; justify-content: center;" th:if="${errorReport.members.loginId != null and loginMember.loginId == errorReport.members.loginId}" th:text="수정">수정</a> <!-- 나중에 th:href="@{/members/{id}/edit(id=${member.getId()})}" 식으로 변경 -->
+                                    <a th:href="@{/errors/answer/delete/{id} (id=${answer.id})}" type="button" class="btn_sm_orange" style="margin: 0; justify-content: center; color: black; border-color: black"
+                                            data-bs-toggle="modal" th:attr="data-bs-target='#deleteComment'+${answer.id}">삭제</a>
+                                </div>
+                                <!-- 모달창 : 댓글 삭제 모달창 -->
+                                <div class="modal fade" th:id="'deleteComment'+${answer.id}" tabindex="-1" aria-labelledby="deleteCommentLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h1 class="modal-title fs-5" id="deleteCommentLabel">댓글 삭제</h1>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                댓글을 삭제하시겠습니까?
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                                                <a type="button" class="btn btn-primary" th:href="@{/errors/answer/delete/{id}(id=${answer.id})}">확인</a> <!-- 나중에 th:href="@{/answer/delete/{id}(id=${answer.id})} 식 추가 -->
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- 답글작성 폼+버튼 -->
-                        <div class="position-relative mb-1">
-                            <textarea class="form-control line_css" style="min-height: 100px; margin-bottom: 60px;"></textarea>
+                        <form method="post" th:action="@{|/errors/answer/${errorReport.id}|}" th:object="${answerForm}">
+                            <div class="alert alert-warning" role="alert" th:if="${#fields.hasAnyErrors()}">
+                                <div th:each="err : ${#fields.allErrors()}" th:text="${err}"></div>
+                            </div>
+                            <div class="position-relative mb-1">
+                            <textarea class="form-control line_css" style="min-height: 100px; margin-bottom: 60px;" th:field="*{content}"></textarea>
                             <button type="submit"
                                     class="btn_orange btn-sm px-4 position-absolute"
                                     style="color: white; bottom: 10px; right: 10px; width: 100px; height: 40px">
@@ -98,33 +107,18 @@
                         </div>
                         <div class="d-flex justify-content-end gap-2" style="margin-top: -10px;">
                             <a href="/errors/report" class="btn_red" style="margin: 0; justify-content: center; background-color: black; height: 50px">목록</a>
-                            <button type="button" class="btn_red" style="margin: 0; justify-content: center; height: 50px"
+                            <button type="button" class="btn_red" style="margin: 0; justify-content: center; height: 50px" th:if="${errorReport.members.loginId != null
+                            and loginMember.loginId == errorReport.members.loginId}" th:text="삭제"
                                     data-bs-toggle="modal" data-bs-target="#deleteReport">삭제</button>
                         </div>
+                        </form>
                     </div>
-                </form>
+
             </div>
         </div>
     </div>
 
-    <!-- 모달창 : 댓글 삭제 모달창 -->
-    <div class="modal fade" id="deleteComment" tabindex="-1" aria-labelledby="deleteCommentLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="deleteCommentLabel">댓글 삭제</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    댓글을 삭제하시겠습니까?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
-                    <a type="button" class="btn btn-primary">확인</a> <!-- 나중에 th:href="@{/answer/delete/{id}(id=${answer.id})} 식 추가 -->
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- 모달창 : 리포트 게시글 삭제 -->
     <div class="modal fade" id="deleteReport" tabindex="-1" aria-labelledby="deleteReportLabel" aria-hidden="true">
@@ -139,7 +133,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
-                    <a type="button" class="btn btn-primary">확인</a> <!-- 나중에 th:href="@{/question/delete/{id}(id=${question.id})} 식 추가 -->
+                    <a type="button" class="btn btn-danger" th:href="@{/errors/report/delete/{id}(id=${errorReport.id})}">확인</a> <!-- 나중에 th:href="@{/question/delete/{id}(id=${question.id})} 식 추가 -->
                 </div>
             </div>
         </div>

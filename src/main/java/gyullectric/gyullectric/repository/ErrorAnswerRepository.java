@@ -1,4 +1,7 @@
 package gyullectric.gyullectric.repository;
 
-public class ErrorAnswerRepository {
+import gyullectric.gyullectric.domain.ErrorAnswer;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ErrorAnswerRepository extends JpaRepository<ErrorAnswer, Long> {
 }
