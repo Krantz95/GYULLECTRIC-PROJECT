@@ -51,7 +51,7 @@ public class ProcessScheduler {
         String errorMessage1 = "정상";
 
         if (!isOk1) {
-            double errorProb = 0.1; // 10%
+            double errorProb = 0.5; // 50%
             if (random.nextDouble() < errorProb) {
                 if (frameOutput < 200) {
                     errorCode1 = "ERROR_102";
@@ -71,8 +71,10 @@ public class ProcessScheduler {
         step1.setProcessResultStatus(isOk1 ? ProcessResultStatus.OK : ProcessResultStatus.NG);
         step1.setCreateAt(LocalDateTime.now());
         step1.setErrorCode(errorCode1);
+        step1.setErrorValue(!isOk1 ? frameOutput : null);
         monitoringRepository.save(step1);
         sendProcessLog(step1, errorMessage1);
+
 
 
         // Step 2: 도장 온도 체크
@@ -117,6 +119,11 @@ public class ProcessScheduler {
                 .processResultStatus(isOk2 ? ProcessResultStatus.OK : ProcessResultStatus.NG)
                 .createAt(LocalDateTime.now())
                 .errorCode(errorCode2)
+                .errorValue(!isOk2 ? (
+                        errorCode2.equals("ERROR_201")
+                                ? Math.max(castPressure, Math.max(upperMoldTemp, lowerMoldTemp))
+                                : Math.min(castPressure, Math.min(upperMoldTemp, lowerMoldTemp))
+                ) : null)
                 .build();
         monitoringRepository.save(step2);
         sendProcessLog(step2, errorMessage2);
@@ -134,7 +141,7 @@ public class ProcessScheduler {
         String errorMessage3 = "정상";
         if (!isOk3) {
             // 에러 발생 시 4% 확률로 예외 에러, 나머지는 다른 에러 중 랜덤 선택
-            double exceptionErrorProb = 0.04;  // 4% 확률
+            double exceptionErrorProb = 0.4;  // 4% 확률
 
             if (random.nextDouble() < exceptionErrorProb) {
                 errorCode3 = "EXCEPTION_ERROR";
@@ -153,6 +160,7 @@ public class ProcessScheduler {
                 .processResultStatus(isOk3 ? ProcessResultStatus.OK : ProcessResultStatus.NG)
                 .createAt(LocalDateTime.now())
                 .errorCode(isOk3 ? "_" : errorCode3)
+                .errorValue(null)
                 .build();
         monitoringRepository.save(step3);
         sendProcessLog(step3, errorMessage3); // WebSocket 전송
@@ -176,7 +184,8 @@ public class ProcessScheduler {
                 process.getCreateAt() != null ? process.getCreateAt().toString() : null,
                 process.getErrorCode(),
                 process.getProductName().name(),
-                errorMessage
+                errorMessage,
+                process.getErrorValue()
         );
         simpMessagingTemplate.convertAndSend("/topic/process", dto);
         log.info("WebSocket 전송: {} - {}", process.getLotNumber(), errorMessage);
@@ -186,13 +195,13 @@ public class ProcessScheduler {
     public String getErrorDescription(String errorCode, Double value) {
         switch (errorCode) {
             case "ERROR_101":
-                return String.format("용접 출력 과다 (%.1fV)", value);
+                return value != null ? String.format("용접 출력 과다 (%.1fV)", value) : "용접 출력 과다";
             case "ERROR_102":
-                return String.format("용접 출력 부족 (%.1fV)", value);
+                return value != null ? String.format("용접 출력 부족 (%.1fV)", value) : "용접 출력 부족";
             case "ERROR_201":
-                return String.format("온도 이상 (%.1f℃)", value);
+                return value != null ? String.format("온도 이상 (%.1f℃)", value) : "온도 이상";
             case "ERROR_202":
-                return String.format("온도 이하 (%.1f℃)", value);
+                return value != null ? String.format("온도 이하 (%.1f℃)", value) : "온도 이하";
             case "ERROR_103":
                 return "데이터 누락";
             case "ERROR_110":
@@ -200,7 +209,8 @@ public class ProcessScheduler {
             case "ERROR_111":
                 return "출력 초과";
             default:
-                return "알 수 없는 에러";
+                return "EXCEPTION_ERROR";
+
         }
     }
 }

@@ -20,6 +20,10 @@ public class MonitoringDto {
 
     private String errorDescription;
 
+    private Double errorValue;
+
+
+
 
 
 }

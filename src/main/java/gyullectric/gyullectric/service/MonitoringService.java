@@ -152,6 +152,8 @@ public class MonitoringService {
     public Optional<ProcessLog> getLatestProcessLog() {
         return monitoringRepository.findTopByOrderByCreateAtDesc(); // JPA 예시
     }
+
+
 }
 
 
