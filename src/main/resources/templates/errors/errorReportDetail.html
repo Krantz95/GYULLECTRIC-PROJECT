@@ -67,9 +67,9 @@
 
                                 <!-- 댓글 - 수정/삭제 버튼 -->
                                 <div class="d-flex justify-content-start gap-2">
-                                    <a th:href="@{|/errors/answer/modify/${answer.id}|}" class="btn_sm_orange" style="margin: 0; justify-content: center;" th:if="${errorReport.members.loginId != null and loginMember.loginId == errorReport.members.loginId}" th:text="수정">수정</a> <!-- 나중에 th:href="@{/members/{id}/edit(id=${member.getId()})}" 식으로 변경 -->
+                                    <a th:href="@{|/errors/answer/modify/${answer.id}|}" class="btn_sm_orange" style="margin: 0; justify-content: center;" th:if="${errorReport.members.loginId != null and loginMember.loginId == answer.members.loginId}" th:text="수정">수정</a> <!-- 나중에 th:href="@{/members/{id}/edit(id=${member.getId()})}" 식으로 변경 -->
                                     <a th:href="@{/errors/answer/delete/{id} (id=${answer.id})}" type="button" class="btn_sm_orange" style="margin: 0; justify-content: center; color: black; border-color: black"
-                                            data-bs-toggle="modal" th:attr="data-bs-target='#deleteComment'+${answer.id}">삭제</a>
+                                            data-bs-toggle="modal" th:attr="data-bs-target='#deleteComment'+${answer.id}" th:if="${errorReport.members.loginId != null and loginMember.loginId == answer.members.loginId}" th:text="삭제">삭제</a>
                                 </div>
                                 <!-- 모달창 : 댓글 삭제 모달창 -->
                                 <div class="modal fade" th:id="'deleteComment'+${answer.id}" tabindex="-1" aria-labelledby="deleteCommentLabel" aria-hidden="true">

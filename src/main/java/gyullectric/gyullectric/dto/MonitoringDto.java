@@ -18,6 +18,8 @@ public class MonitoringDto {
     private String errorCode;
     private String productName;
 
+    private String errorDescription;
+
 
 
 }

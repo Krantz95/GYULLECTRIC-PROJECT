@@ -10,7 +10,7 @@
             <button type="button" class="refreshTime_css" th:onclick="|location.href='@{/monitoring/list}'|">
                 새로고침
             </button>
-
+            <div id="alert-bar" style="display:none; background-color: red; color: white; padding: 10px; font-weight: bold; text-align: center;"></div>
         </div>
 
         <!-- 공정별 OK/NG율 (sm일때는 차트1개씩 보이게)-->
@@ -19,7 +19,7 @@
         <div class="row p-3 justify-content-around">
             <div class="col-lg-3 col-12 d-flex justify-content-center">
                 <div class="d-flex flex-column align-items-center" style="width: 100%; max-width: 500px;"> <!-- sm에서 차트 크기 설정 -->
-                    <p class="align-self-start">1공정</p>
+                    <p class="align-self-start">1공정 : 프레임</p>
                     <canvas id="myChart1" style="width: 100%; height: auto;"></canvas>
                     <div id="text1" class="pt-2"></div>
                 </div>
@@ -27,7 +27,7 @@
 
         <div class="col-lg-3 col-12 d-flex justify-content-center">
             <div class="d-flex flex-column align-items-center" style="width: 100%; max-width: 500px;">
-                <p class="align-self-start">2공정</p>
+                <p class="align-self-start">2공정 : 도장</p>
                 <canvas id="myChart2" style="width: 100%; height: auto;"></canvas>
                 <div id="text2" class="pt-2"></div>
             </div>
@@ -35,7 +35,7 @@
 
         <div class="col-lg-3 col-12 d-flex justify-content-center">
             <div class="d-flex flex-column align-items-center" style="width: 100%; max-width: 500px;">
-                <p class="align-self-start">3공정</p>
+                <p class="align-self-start">3공정 : 검수</p>
                 <canvas id="myChart3" style="width: 100%; height: auto;"></canvas>
                 <div id="text3" class="pt-2"></div>
             </div>
