@@ -2,11 +2,14 @@ package gyullectric.gyullectric.repository;
 
 import gyullectric.gyullectric.domain.Inventory;
 import gyullectric.gyullectric.domain.PartName;
+import gyullectric.gyullectric.domain.ProductName;
 import gyullectric.gyullectric.domain.Supplier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -28,4 +31,6 @@ public interface OrderRepository extends JpaRepository<Inventory, Long> {
     // Page<Inventory> findBySupplierContaining(Supplier supplier, Pageable pageable);  // 삭제 권장
 
     Page<Inventory> findAll(Pageable pageable);
+
+
 }

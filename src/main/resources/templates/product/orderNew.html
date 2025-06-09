@@ -3,7 +3,7 @@
 
     <div class="py-4">
         <!-- 서브타이틀 -->
-        <div class="subtitle_css"><i class="bi-clipboard-check"></i> 생산지시</div>
+        <div class="subtitle_css"><i class="bi-clipboard-check"></i> 생산지시서</div>
 
         <div class="d-flex justify-content-center">
             <div class="row g-9 order-container">
@@ -26,10 +26,15 @@
                         </div>
 
                         <div class="mt-4 p-3 daily-output-box">
-                            <strong>일일 생산량</strong><br>
-                            GyulRide : 200대<br>
-                            InteliBike : 100대<br>
-                            RedalAt4 : 80대
+                            <strong>일일 생산량 (목표수량 / 주문된 수량 / 주문 가능 수량)</strong><br>
+                            <th:block th:each="entry : ${dailyTargetMap}">
+                                <span>
+                                    <span th:text="${entry.key}">제품명</span> :
+                                    <span th:text="${entry.value} + '대'">목표수량</span> /
+                                    <span th:text="${orderedCountMap[entry.key] != null ? orderedCountMap[entry.key] : 0} + '대'">주문수량</span> /
+                                    <span th:text="${(orderedCountMap[entry.key] != null ? (entry.value - orderedCountMap[entry.key]) : 0)} + '대'">남은 수량</span>
+                                </span><br>
+                            </th:block>
                         </div>
                         <div class="d-flex justify-content-end">
                             <button type="submit" class="btn_orange my-3" style="background-color: #F37221">

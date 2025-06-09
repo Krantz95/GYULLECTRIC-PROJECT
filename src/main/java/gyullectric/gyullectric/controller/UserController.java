@@ -1,9 +1,9 @@
 package gyullectric.gyullectric.controller;
 
+import gyullectric.gyullectric.MyPageFormValidator;
 import gyullectric.gyullectric.domain.Members;
 import gyullectric.gyullectric.dto.MyPageForm;
 import gyullectric.gyullectric.service.MemberService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final MemberService memberService;
+    private final MyPageFormValidator myPageFormValidator;
 
     @GetMapping("/{id}/edit")
     public String myPage(@PathVariable("id")Long id, Model model) {
@@ -33,10 +34,15 @@ public class UserController {
         return "user/myPageForm";
     }
     @PostMapping("/{id}/edit")
-    public String updateUser(Model model, @Valid @ModelAttribute("myPageForm")MyPageForm myPageForm, BindingResult bindingResult){
+    public String updateUser(Model model, @ModelAttribute("myPageForm")MyPageForm myPageForm, BindingResult bindingResult){
 
-        if(bindingResult.hasErrors()){
-            Members members = memberService.oneFindMembers(myPageForm.getId()).orElseThrow(()->new IllegalArgumentException("해당 아이디를 찾을 수 없습니다"));
+        myPageFormValidator.validate(myPageForm, bindingResult);
+
+        if(bindingResult.hasErrors()) {
+
+            return "user/myPageForm";
+        }
+            Members members = memberService.oneFindMembers(myPageForm.getId()).orElseThrow(() -> new IllegalArgumentException("해당 아이디를 찾을 수 없습니다"));
 
             MyPageForm myPageForms = MyPageForm.builder()
                     .id(members.getId())
@@ -47,8 +53,8 @@ public class UserController {
                     .positionName(members.getPositionName())
                     .build();
             model.addAttribute("myPageForm", myPageForms);
-        }
-        Members members = memberService.oneFindMembers(myPageForm.getId()).orElseThrow(()->new IllegalArgumentException("해당 아이디를 찾을 수 없습니다"));
+
+
 
         // 비밀번호 변경 요청이 있을 때만 확인
         if (myPageForm.getNewPassword() != null && !myPageForm.getNewPassword().isBlank()) {
