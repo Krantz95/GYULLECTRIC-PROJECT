@@ -8,71 +8,71 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class PredictionService {
 
     private final PredictionClient predictionClient;
-    private final OrderService orderService;
+    private final OrderService orderService; // 현재 재고 조회용
 
-    public List<Map<String, Object>> getPrediction(String startDate, String endDate) {
-        Map<String, Object> response = predictionClient.callPredictionApi(startDate, endDate);
+    /**
+     * 📦 3일치 수요 입력 → 7일 수요 예측 → 재고 조회 → 권장 발주량 계산
+     */
+    public List<Map<String, Object>> getForecastAndRecommendations(List<Integer> demandValues) {
+        Map<String, Object> response = predictionClient.callPredictionApi(demandValues);
 
-        if (response == null) {
-            log.error("❌ 예측 API 호출 실패: 응답이 null입니다.");
+        if (response == null || !"success".equals(response.get("status"))) {
+            log.error("❌ 예측 API 응답 실패 또는 오류 발생: {}", response);
             return Collections.emptyList();
         }
 
-        Object status = response.get("status");
-        if (!(status instanceof String) || !"success".equals(status)) {
-            log.error("❌ 예측 API 실패 상태 반환: {}", status);
-            return Collections.emptyList();
-        }
+        List<Integer> predictedDaily = (List<Integer>) response.get("predicted_daily");
+        int predictedTotal = (int) response.get("predicted_total");
 
-        Object dataObj = response.get("data");
-        if (!(dataObj instanceof List<?>)) {
-            log.error("❌ 예측 API 데이터 형식 오류: {}", dataObj);
-            return Collections.emptyList();
-        }
-
-        List<?> rawList = (List<?>) dataObj;
         List<Map<String, Object>> result = new ArrayList<>();
 
-        for (Object item : rawList) {
-            if (!(item instanceof Map)) {
-                log.warn("⚠️ 예측 항목이 Map 타입이 아님: {}", item);
-                continue;
-            }
+        for (PartName partName : PartName.values()) {
+            log.info("✅ 예측 대상 부품: {}", partName);
 
-            Map<?, ?> rawMap = (Map<?, ?>) item;
-            try {
-                String part = Objects.toString(rawMap.get("part"), null);
-                Number predictedNum = (Number) rawMap.get("predicted");
+            int currentStock = orderService.getInventoryQuantity(partName);
+            int recommendedOrder = Math.max(predictedTotal - currentStock, 0);
 
-                if (part == null || predictedNum == null) {
-                    log.warn("⚠️ part 또는 predicted 값이 null임 → 건너뜀: {}", rawMap);
-                    continue;
-                }
+            log.info("📦 {} 현재 재고 수량: {}", partName, currentStock);
 
-                PartName partName = PartName.fromString(part);
-                int predictedDemand = predictedNum.intValue();
-                int currentStock = orderService.getInventoryQuantity(partName);
-                int recommendedOrder = Math.max(predictedDemand - currentStock, 0);
+            Map<String, Object> row = new HashMap<>();
+            row.put("part", partName.getLabel());
+            row.put("predicted", predictedTotal);
+            row.put("currentStock", currentStock);
+            row.put("recommended", recommendedOrder);
+            row.put("dailyForecast", predictedDaily);
 
-                Map<String, Object> rowMap = new HashMap<>();
-                rowMap.put("part", partName.getLabel());  // 한글 라벨
-                rowMap.put("predicted", predictedDemand);
-                rowMap.put("currentStock", currentStock);
-                rowMap.put("recommended", recommendedOrder);
+            log.info("📝 결과 추가 - 부품: {}, 예측수요: {}, 재고: {}, 권장발주: {}",
+                    partName.getLabel(), predictedTotal, currentStock, recommendedOrder);
 
-                result.add(rowMap);
+            result.add(row);
+        }
 
-            } catch (IllegalArgumentException e) {
-                log.warn("⚠️ 알 수 없는 부품명: '{}' → 스킵됨", rawMap.get("part"));
-            } catch (ClassCastException e) {
-                log.warn("⚠️ 형변환 실패 (predicted 값): {}", rawMap.get("predicted"));
-            }
+        return result;
+    }
+
+    /**
+     * 📊 예측 없이 현재 재고만 조회 (초기 진입 시 사용)
+     */
+    public List<Map<String, Object>> getInventoryStatusOnly() {
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (PartName partName : PartName.values()) {
+            int currentStock = orderService.getInventoryQuantity(partName);
+
+            Map<String, Object> row = new HashMap<>();
+            row.put("part", partName.getLabel());
+            row.put("predicted", null);
+            row.put("currentStock", currentStock);
+            row.put("recommended", null);
+            row.put("dailyForecast", null);
+
+            result.add(row);
         }
 
         return result;
