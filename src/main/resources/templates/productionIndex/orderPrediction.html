@@ -34,15 +34,15 @@
             </form>
         </div>
 
-        <!-- 발주 예측 테이블 -->
+        <!-- 예측 결과 테이블 -->
         <div class="table-responsive pt-2" style="overflow-x: auto;">
             <table class="table table-bordered text-center align-middle table2_css" style="color: black;">
                 <thead class="table-light">
                 <tr>
                     <th>부품명</th>
                     <th>현재 재고</th>
-                    <th>예측수요량</th>
-                    <th>권장발주량</th>
+                    <th>예측 수요량</th>
+                    <th>권장 발주량</th>
                     <th>발주 필요</th>
                 </tr>
                 </thead>
@@ -58,7 +58,7 @@
                               th:text="${row.recommended > 0} ? '필요' : '불필요'">필요</span>
                     </td>
                 </tr>
-                <tr th:if="${predictedData == null or #lists.isEmpty(predictedData)}">
+                <tr th:if="${#lists.isEmpty(predictedData)}">
                     <td colspan="5" class="text-center text-muted py-3">
                         🔎 예측 결과가 없습니다. 날짜를 선택한 뒤 예측을 실행해주세요.
                     </td>

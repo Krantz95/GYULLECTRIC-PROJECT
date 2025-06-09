@@ -2,10 +2,13 @@ package gyullectric.gyullectric.controller;
 
 import gyullectric.gyullectric.service.PredictionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,27 +25,39 @@ public class IndicatorController {
         return "productionIndex/defectLog";
     }
 
-    // 초기 진입 시 예측하지 않음
+    /** 📌 발주 예측 페이지 (초기 진입 시 예측 안함) */
     @GetMapping("/order-predict")
     public String getOrderPredict(Model model) {
-        // 페이지 진입 시 예측 호출하지 않음
-        model.addAttribute("predictedData", null); // 템플릿에서 안내 메시지 출력용
+        model.addAttribute("predictedData", null);
         return "productionIndex/orderPrediction";
     }
 
-    // 버튼 누르면 POST 요청으로 예측 실행
+    /** ✅ 예측 실행: Flask API 호출 후 결과 바인딩 */
     @PostMapping("/order-predict")
-    public String postOrderPredict(
-            @RequestParam String startDate,
-            @RequestParam String endDate,
-            Model model) {
+    public String postOrderPredict(@RequestParam String startDate,
+                                   @RequestParam String endDate,
+                                   Model model) {
 
-        List<Map<String, Object>> result = predictionService.getPrediction(startDate, endDate);
+        // 1. Flask API 호출
+        String flaskUrl = "http://127.0.0.1:5000/predict";
 
-        model.addAttribute("startDate", startDate);
-        model.addAttribute("endDate", endDate);
-        model.addAttribute("predictedData", result);
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("startDate", startDate);
+        requestBody.put("endDate", endDate);
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
+
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Map> response = restTemplate.postForEntity(flaskUrl, entity, Map.class);
+
+        // 2. 응답 데이터 파싱
+        Map<String, Object> responseBody = response.getBody();
+        List<Map<String, Object>> predictedData = (List<Map<String, Object>>) responseBody.get("data");
+
+        // 3. 모델에 바인딩
+        populateModelForOrderPrediction(model, predictedData, startDate, endDate);
         return "productionIndex/orderPrediction";
     }
 
@@ -58,9 +73,11 @@ public class IndicatorController {
         return "productionIndex/productionStats";
     }
 
-    /** ✅ 발주 예측 뷰에 공통 데이터 바인딩 */
-    private void populateModelForOrderPrediction(Model model, List<Map<String, Object>> result,
-                                                 String startDate, String endDate) {
+    /** ✅ 공통 모델 바인딩 메서드 */
+    private void populateModelForOrderPrediction(Model model,
+                                                 List<Map<String, Object>> result,
+                                                 String startDate,
+                                                 String endDate) {
         model.addAttribute("predictedData", result);
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);

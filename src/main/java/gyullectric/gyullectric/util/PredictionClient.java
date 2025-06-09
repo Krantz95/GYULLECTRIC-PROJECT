@@ -1,4 +1,3 @@
-// PredictionClient.java
 package gyullectric.gyullectric.util;
 
 import lombok.extern.slf4j.Slf4j;
@@ -8,8 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.*;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -35,17 +33,35 @@ public class PredictionClient {
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
         try {
-            ResponseEntity<Map<String, Object>> response = restTemplate.postForEntity(API_URL, entity, (Class<Map<String, Object>>) (Class<?>) Map.class);
+            ResponseEntity<Map<String, Object>> response =
+                    restTemplate.postForEntity(API_URL, entity, (Class<Map<String, Object>>) (Class<?>) Map.class);
+
             if (response.getStatusCode().is2xxSuccessful()) {
                 Map<String, Object> body = response.getBody();
+
+                log.info("📨 예측 API 응답 바디: {}", body);
+
                 if (body == null) {
                     log.warn("⚠️ 예측 API 응답은 200이지만 body가 null입니다.");
                     return Map.of("status", "error", "message", "예측 응답 내용이 없습니다.");
                 }
+
+                if (!"success".equals(body.get("status"))) {
+                    log.warn("⚠️ 예측 API status가 success가 아님 → {}", body.get("status"));
+                    return Map.of("status", "error", "message", "예측 실패: status != success");
+                }
+
+                Object dataObj = body.get("data");
+                if (!(dataObj instanceof List)) {
+                    log.error("❌ 예측 API 응답 형식 오류: 'data'는 List가 아닙니다 → {}", dataObj);
+                    return Map.of("status", "error", "message", "예측 데이터 형식 오류");
+                }
+
                 return body;
             } else {
                 log.warn("⚠️ 예측 API 응답 실패 - 상태코드: {}", response.getStatusCode());
             }
+
         } catch (HttpStatusCodeException e) {
             log.error("❌ HTTP 오류 응답 - 상태: {}, 응답 내용: {}", e.getStatusCode(), e.getResponseBodyAsString());
         } catch (ResourceAccessException e) {
