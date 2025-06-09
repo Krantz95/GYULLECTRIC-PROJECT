@@ -88,6 +88,11 @@ public class MonitoringController {
                         .thenComparingInt(ProcessLog::getProcessStep))
                 .collect(Collectors.toList());
 
+        for(ProcessLog processLog : sortedProcesses) {
+            String errorDesc = getErrorDescription(processLog.getErrorCode(), processLog.getErrorValue());
+            processLog.setErrorDescription(errorDesc);
+        }
+
         model.addAttribute("processes", sortedProcesses);
 
         model.addAttribute("orderId", orderId);
@@ -107,6 +112,29 @@ public class MonitoringController {
 
         return "process/processWebSocket";
 
+    }
+
+    private String getErrorDescription(String errorCode, Double value) {
+        switch (errorCode) {
+            case "ERROR_101":
+                return value != null ? String.format("용접 출력 과다 (%.1fV)", value) : "용접 출력 과다";
+            case "ERROR_102":
+                return value != null ? String.format("용접 출력 부족 (%.1fV)", value) : "용접 출력 부족";
+            case "ERROR_201":
+                return value != null ? String.format("온도 이상 (%.1f℃)", value) : "온도 이상";
+            case "ERROR_202":
+                return value != null ? String.format("온도 이하 (%.1f℃)", value) : "온도 이하";
+            case "ERROR_103":
+                return "데이터 누락";
+            case "ERROR_110":
+                return "출력 저하";
+            case "ERROR_111":
+                return "출력 초과";
+            case "EXCEPTION_ERROR":
+                return "EXCEPTION_ERROR";
+            default:
+                return "";
+        }
     }
 
     @GetMapping("/monitoring/product/list")

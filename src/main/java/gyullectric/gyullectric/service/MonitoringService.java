@@ -148,6 +148,12 @@ public class MonitoringService {
 
         return ngCount;
     }
+
+    public Optional<ProcessLog> getLatestProcessLog() {
+        return monitoringRepository.findTopByOrderByCreateAtDesc(); // JPA 예시
+    }
+
+
 }
 
 

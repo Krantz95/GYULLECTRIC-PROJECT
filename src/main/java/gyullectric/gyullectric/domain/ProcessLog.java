@@ -43,10 +43,21 @@ public class ProcessLog {
     @Column(name = "error_code", length = 20)
     private String errorCode;
 
+    private Double errorValue;
+
+    private String errorDescription;
+
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "order_id")
     private OrderList orderList;
     @Builder.Default
     @OneToMany(mappedBy = "processLog", cascade = CascadeType.ALL)
     private List<ErrorReport> errorReportList = new ArrayList<>();
+
+
+
+    public String getErrorDescription() {
+        return errorDescription;
+    }
 }

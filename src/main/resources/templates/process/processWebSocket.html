@@ -10,7 +10,7 @@
             <button type="button" class="refreshTime_css" th:onclick="|location.href='@{/monitoring/list}'|">
                 새로고침
             </button>
-
+            <div id="alert-bar" style="display:none; background-color: red; color: white; padding: 10px; font-weight: bold; text-align: center;"></div>
         </div>
 
         <!-- 공정별 OK/NG율 (sm일때는 차트1개씩 보이게)-->
@@ -19,7 +19,7 @@
         <div class="row p-3 justify-content-around">
             <div class="col-lg-3 col-12 d-flex justify-content-center">
                 <div class="d-flex flex-column align-items-center" style="width: 100%; max-width: 500px;"> <!-- sm에서 차트 크기 설정 -->
-                    <p class="align-self-start">1공정</p>
+                    <p class="align-self-start">1공정 : 프레임</p>
                     <canvas id="myChart1" style="width: 100%; height: auto;"></canvas>
                     <div id="text1" class="pt-2"></div>
                 </div>
@@ -27,7 +27,7 @@
 
         <div class="col-lg-3 col-12 d-flex justify-content-center">
             <div class="d-flex flex-column align-items-center" style="width: 100%; max-width: 500px;">
-                <p class="align-self-start">2공정</p>
+                <p class="align-self-start">2공정 : 도장</p>
                 <canvas id="myChart2" style="width: 100%; height: auto;"></canvas>
                 <div id="text2" class="pt-2"></div>
             </div>
@@ -35,7 +35,7 @@
 
         <div class="col-lg-3 col-12 d-flex justify-content-center">
             <div class="d-flex flex-column align-items-center" style="width: 100%; max-width: 500px;">
-                <p class="align-self-start">3공정</p>
+                <p class="align-self-start">3공정 : 검수</p>
                 <canvas id="myChart3" style="width: 100%; height: auto;"></canvas>
                 <div id="text3" class="pt-2"></div>
             </div>
@@ -68,14 +68,14 @@
                     <td th:text="${processForm.processStep}"></td>
                     <td th:text="${processForm.processResultStatus}"></td>
                     <td th:text="${#temporals.format(processForm.createAt,'yyyy-MM-dd HH:mm')}"></td>
-                    <td th:if="${processForm.errorCode == 'EXCEPTION_ERROR'}" style="color: darkred;">
-                        <a th:href="@{/errors/report/form/{id}(id=${processForm.id})}"
-                           style="cursor: pointer; color: darkred; text-decoration: underline;">
-                            [[${processForm.errorCode}]]
-                        </a>
-                    </td>
-                    <td th:unless="${processForm.errorCode == 'EXCEPTION_ERROR'}"
-                        th:text="${processForm.errorCode}">
+                    <td style="color: darkred;">
+                        <a th:if="${processForm.errorCode == 'EXCEPTION_ERROR'}" class="fw-bold"
+                           th:href="@{/errors/report/form/{id}(id=${processForm.id})}"
+                           style="cursor:pointer; color: darkred; text-decoration: underline;"
+                           th:text="${processForm.errorCode}"></a>
+
+                        <span th:unless="${processForm.errorCode == 'EXCEPTION_ERROR'}" th:text="${processForm.errorCode}"></span>
+                        <span th:unless="${processForm.errorCode == 'EXCEPTION_ERROR'}" th:text="${processForm.errorDescription}"></span>
                     </td>
                 </tr>
                 </tbody>
@@ -136,7 +136,7 @@
     Chart.register(centerTextPlugin);
 
     // 차트 그리기 함수 (처음에 차트 생성용)
-    function drawChart(ctx, ok, ng, textElementId) {
+    function drawChart(ctx, ok, ng, textElementId,  okLabel, ngLabel) {
         const total = ok + ng;
         const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
         const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
@@ -167,16 +167,16 @@
         if (textDiv) {
             textDiv.innerHTML =
                 `<span style="display: inline-block; width: 20px; height: 10px; background-color: #009913; margin-right: 5px;"></span>` +
-                `<span style="font-weight:bold;  font-size: 15px">OK </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +
+                `<span style="font-weight:bold;  font-size: 15px">${okLabel} </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +
                 `<span style="display: inline-block; width: 20px; height: 10px; background-color: #ea2402; margin-right: 5px;"></span>` +
-                `<span style="font-weight:bold; font-size: 15px">NG </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;
+                `<span style="font-weight:bold; font-size: 15px">${ngLabel} </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;
         }
 
         return chart;
     }
 
     // 실시간 차트 데이터 업데이트 함수 (차트 객체, ok/ng 수, 텍스트 ID 받아서 갱신)
-    function updateChart(chart, ok, ng, textElementId) {
+    function updateChart(chart, ok, ng, textElementId, chartLabelText, okLabel, ngLabel) {
         const total = ok + ng;
         const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
         const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
@@ -187,16 +187,16 @@
         const textDiv = document.getElementById(textElementId);
         if (textDiv) {
             textDiv.innerHTML =
-                `<span style="display: inline-block; width: 20px; height: 10px; background-color: #4CAF50; margin-right: 5px;"></span>` +
-                `<span style="font-weight:bold;  font-size: 15px">OK </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +
-                `<span style="display: inline-block; width: 20px; height: 10px; background-color: #F44336; margin-right: 5px;"></span>` +
-                `<span style="font-weight:bold; font-size: 15px">NG </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;
+                `<span style="display: inline-block; width: 20px; height: 10px; background-color: #009913; margin-right: 5px;"></span>` +
+                `<span style="font-weight:bold;  font-size: 15px">${okLabel} </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +
+                `<span style="display: inline-block; width: 20px; height: 10px; background-color: #ea2402; margin-right: 5px;"></span>` +
+                `<span style="font-weight:bold; font-size: 15px">${ngLabel} </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;
         }
     }
 
-    window.chart1 = drawChart(document.getElementById('myChart1'), ok1, ng1, 'text1');
-    window.chart2 = drawChart(document.getElementById('myChart2'), ok2, ng2, 'text2');
-    window.chart3 = drawChart(document.getElementById('myChart3'), ok3, ng3, 'text3');
+    window.chart1 = drawChart(document.getElementById('myChart1'), ok1, ng1, 'text1',  '용접 출력 통과', '용접 출력 이상');
+    window.chart2 = drawChart(document.getElementById('myChart2'), ok2, ng2, 'text2', '도장 온도 정상', '도장 온도 이상');
+    window.chart3 = drawChart(document.getElementById('myChart3'), ok3, ng3, 'text3',  '검수 통과', '검수 불량');
 
 
     // lotNumber별 step 상태 누적 저장
@@ -239,26 +239,58 @@
             // 차트 업데이트 호출
             switch (Number(step)) {
                 case 1:
-                    updateChart(window.chart1, window.okCounts[1], window.ngCounts[1], 'text1');
+                    updateChart(window.chart1, window.okCounts[1], window.ngCounts[1], 'text1', '용접 출력 통과', '용접 출력 이상');
                     break;
                 case 2:
-                    updateChart(window.chart2, window.okCounts[2], window.ngCounts[2], 'text2');
+                    updateChart(window.chart2, window.okCounts[2], window.ngCounts[2], 'text2', '도장 온도 정상', '도장 온도 이상');
                     break;
                 case 3:
-                    updateChart(window.chart3, window.okCounts[3], window.ngCounts[3], 'text3');
+                    updateChart(window.chart3, window.okCounts[3], window.ngCounts[3], 'text3', '검수 통과', '검수 불량');
                     break;
             }
-
+            function getErrorDescription(errorCode, value) {
+                switch(errorCode) {
+                    case "ERROR_101":
+                        return `용접 출력 과다 (${value.toFixed(1)}V)`;
+                    case "ERROR_102":
+                        return `용접 출력 부족 (${value.toFixed(1)}V)`;
+                    case "ERROR_201":
+                        return `온도 이상 (${value.toFixed(1)}℃)`;
+                    case "ERROR_202":
+                        return `온도 이하 (${value.toFixed(1)}℃)`;
+                    case "ERROR_103":
+                        return "데이터 누락";
+                    case "ERROR_110":
+                        return "출력 저하";
+                    case "ERROR_111":
+                        return "출력 초과";
+                    default:
+                        return "EXCEPTION_ERROR";
+                }
+            }
             // 실시간 테이블 행 추가
             const tbody = document.querySelector("table tbody");
             const tr = document.createElement("tr");
+
+            const errorColor = '#8B0000';
+
+            const errorCode = p.errorCode || '-';
+            const errorValue = p.errorValue != null ? p.errorValue : null;
+
+            let errorDisplay = errorCode === '_' ? '-' : errorCode;
+
+            if (errorValue !== null && errorCode !== '_') {
+                errorDisplay += ` ${getErrorDescription(errorCode, errorValue)}`;
+            }
+
+
             tr.innerHTML = `
                 <td>${p.productName}</td>
                 <td>${p.lotNumber}</td>
                 <td>${p.processStep}</td>
                 <td>${p.processResultStatus}</td>
                 <td>${p.createAt || '-'}</td>
-                <td>${p.errorCode || '-'}</td>
+                <td style="color: ${errorColor};">${errorDisplay}</td>
             `;
             if (tbody) {
                 tbody.prepend(tr);

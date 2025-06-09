@@ -34,4 +34,14 @@ public interface MonitoringRepository extends JpaRepository<ProcessLog, Long> {
 
     long countByOrderList_IdAndProcessStep(Long orderId, int processStep);
 
+
+    Optional<ProcessLog> findTopByOrderByCreateAtDesc();
+
+    @Query("SELECT p FROM ProcessLog p WHERE p.createAt >= :since")
+    List<ProcessLog> findLastHour(@Param("since") LocalDateTime since);
+
+    default List<ProcessLog> findLastHour() {
+        return findLastHour(LocalDateTime.now().minusHours(1));
+    }
+
 }
