@@ -1,6 +1,5 @@
 <html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <th:block layout:fragment="content">
-
     <div class="py-4">
         <!-- 서브타이틀 -->
         <div class="subtitle_css"><i class="bi bi-activity"></i> 생산지표관리_불량예측</div>
@@ -10,14 +9,30 @@
         <div class="row justify-content-center">
             <div class="col-lg-6 col-12 text-center">
                 <!-- 경고 메시지 위치 (높이 고정) -->
-                <div id="castingWarning" class="warning-placeholder"></div> <!--warning-placeholder : 경고문구가 없어도 해당 행칸 유지 -->
-
+                <div id="castingWarning" class="warning-placeholder">
+                    <div th:if="${castingWarningMsg != ''}" class="alert alert-warning" style="font-weight: bold;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span th:text="${castingWarningMsg}"></span>
+                    </div>
+                </div>
                 <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
-                    <canvas id="castingChart" style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
+                    <canvas id="castingChart"
+                            role="img"
+                            aria-label="주조 공정 안정성 차트"
+                            style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
                     <div id="castingStatus" class="d-flex justify-content-between align-items-center" style="margin-top: 0; padding-top: 0;">
-                        <div class="defect-box"> <!-- 차트아래 위치 정렬 -->
-                            <span class="defect-label">압력/온도 감지 (80%)</span>
-                            <button type="button" class="defect-btn" style="background-color: #FF0004;" disabled>점검요청</button>
+                        <div class="defect-box">
+                            <span class="defect-label defect-tooltip"
+                                  data-bs-toggle="tooltip"
+                                  data-bs-placement="top"
+                                  data-bs-html="true"
+                                  title="<b>2공정 (도장) 최적화 기준</b><br>
+                                        - 압착 압력 299 이상
+                                        - 상단 금형 온도 94℃ 이상
+                                        - 하향 금형 온도 193℃ 이상">
+                                          압력/온도 감지
+                                        </span>
+                            <button type="button" class="defect-btn" style="background-color: #A0A0A0;" disabled>점검요청</button>
                         </div>
                     </div>
                 </div>
@@ -25,15 +40,16 @@
 
             <!-- 용접 공정 -->
             <div class="col-lg-6 col-12 text-center">
-                <!-- 경고 메시지 (높이 고정) -->
                 <div id="weldingWarning" class="warning-placeholder"></div>
-
                 <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
-                    <canvas id="weldingChart" style="display: block; width: 100%;  max-height: 300px; margin-bottom: 0;"></canvas>
+                    <canvas id="weldingChart"
+                            role="img"
+                            aria-label="용접 공정 안정성 차트"
+                            style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
                     <div id="weldingStatus" class="d-flex justify-content-between align-items-center" style="margin-top: 0; padding-top: 0;">
-                        <div class="defect-box"> <!-- 차트아래 위치 정렬 -->
+                        <div class="defect-box">
                             <span class="defect-label">용접 출력 감지 (0%)</span>
-                            <button type="button" class="defect-btn" style="background-color: #FF0004;" disabled>점검요청</button>
+                            <button type="button" class="defect-btn" style="background-color: #A0A0A0;" disabled>점검요청</button>
                         </div>
                     </div>
                 </div>
@@ -42,138 +58,327 @@
 
         <!-- 경고 로그 테이블-->
         <div class="py-3 fw-bold">경고 로그</div>
-        <table class="table-responsive">
+        <div class="table-responsive">
             <table class="table table-bordered text-center align-middle table1_css">
                 <thead>
                 <tr>
                     <th class="col-small">발생일시</th>
                     <th class="col-small">발생공정</th>
-                    <th class="col-large">감지 현상</th>
+                    <th class="col-large">감지현상</th>
                     <th>확인</th>
                 </tr>
                 </thead>
-                </thead>
                 <tbody>
-                <tr>
-                    <td>2025.05.13 10:02</td>
-                    <td>1공정</td>
-                    <td>압력 온도 초과 </td>
-                    <td><button class="status-btn status-unchecked" style="background-color: #FF5900; color: black">점검요청</button></td>
-                </tr>
-                <tr>
-                    <td>2025.05.14 18:25</td>
-                    <td>2공정</td>
-                    <td>배터리팩 용접 출력 이상 - 점검 필요</td>
-                    <td><button class="status-btn status-unchecked" style="background-color: #FF5900; color: black">점검요청</button></td>
+                <tr th:each="log : ${defectLogs}">
+                    <td th:text="${#temporals.format(log.detectedAt, 'yyyy.MM.dd HH:mm')}">날짜시간</td>
+                    <td th:text="${log.processStep}">공정명</td>
+                    <td th:text="${log.symptom}">
+                        <span th:if="${log.symptom == '압착 압력 기준 미달'}">압착 압력 기준 미달</span>
+                        <span th:if="${log.symptom == '상단 금형 온도 기준 미달'}">상단 금형 온도 기준 미달</span>
+                        <span th:if="${log.symptom == '하향 금형 온도 기준 미달'}">하향 금형 온도 기준 미달</span>
+                        <span th:if="${log.symptom == '용접 출력 이상'}">용접 출력 이상</span>
+                    </td>
+                    <td>
+                        <form th:action="@{/indicators/defect-predict/inspect}" method="post">
+                            <input type="hidden" name="detectedAt" th:value="${log.detectedAt}" />
+                            <button type="submit"
+                                    th:text="${log.inspectionRequested ? '확인완료' : '점검요청'}"
+                                    th:disabled="${log.inspectionRequested}"
+                                    th:attr="style=${log.inspectionRequested} ? 'background-color:#878787 !important; color:white !important;' : 'background-color:#FF5900 !important; color:black !important;'"
+                                    class="status-btn status-unchecked">
+                            </button>
+                        </form>
+                    </td>
                 </tr>
                 </tbody>
             </table>
-        </table>
+        </div>
     </div>
 
     <!-- 차트 2개 스크립트 -->
     <script th:inline="javascript" layout:fragment="script">
+
+        const castingScore = /*[[${castingScore}]]*/ 0;
+        const weldingScore = /*[[${weldingScore}]]*/ 0;
+
+        // 타임리프에서 받은 경고 메시지 바인딩
+        const warningMessages = {
+            casting: '[[${castingWarningMsg}]]',
+            welding: '[[${weldingWarningMsg}]]'
+        };
+
         document.addEventListener('DOMContentLoaded', function () {
-            const datasets = [
-                { id: 'castingChart', statusId: 'castingStatus', warningId: 'castingWarning', label: '압력/온도 감지', value: 80 }, // 주조 %값 임시지정
-                { id: 'weldingChart', statusId: 'weldingStatus', warningId: 'weldingWarning', label: '용접 출력 감지', value: 20 }   // 용접 %값 임시지정
-            ];
 
-            datasets.forEach(data => {
-                const canvas = document.getElementById(data.id);
-                const ctx = canvas.getContext('2d');
+            // 🕒 WebSocket 수신 추가
+            const socket = new SockJS('/ws');
+            const stompClient = Stomp.over(socket);
 
-                canvas.width = canvas.parentNode.offsetWidth;
+            let castingChartInstance = null;
+            let weldingChartInstance = null;
 
-                let bgColor;
-                if (data.value <= 60) {
-                    bgColor = 'green';
-                } else if (data.value <= 79) {
-                    bgColor = '#FFD700';
-                } else {
-                    bgColor = 'red';
+            stompClient.connect({}, () => {
+                stompClient.subscribe('/topic/defect', function (message) {
+                    const data = JSON.parse(message.body);
+                    console.log("📢 실시간 예측 도착:", data);
+                    console.log("Casting Score:", data.castingScore);  // 0~100 인지 확인
+                    console.log("Casting Data 배열:", [data.castingScore, 100 - data.castingScore]);
+
+                    // 데이터가 유효한지 체크 후 업데이트
+                    if (!data.castingScore || isNaN(data.castingScore)) {
+                        data.castingScore = 0;  // 기본값 설정
+                    }
+                    if (!data.weldingScore || isNaN(data.weldingScore)) {
+                        data.weldingScore = 0;  // 기본값 설정
+                    }
+
+                    setTimeout(() => {
+                        updateRealtimeCharts(data);
+                        updateRealtimeWarnings(data);
+                    }, 0);  // setTimeout 끝
+                });  // stompClient.subscribe 끝
+            });  // stompClient.connect 끝
+
+            // 실시간 차트 반영 함수
+            function updateRealtimeCharts(data) {
+                // 기존 차트가 있으면 삭제
+                if (castingChartInstance) {
+                    castingChartInstance.destroy();
+                    castingChartInstance = null;  // 차트 인스턴스를 null로 초기화
                 }
 
-                new Chart(ctx, {
+                const castingCanvas = document.getElementById('castingChart');
+                const weldingCanvas = document.getElementById('weldingChart');
+                if (!castingCanvas || !weldingCanvas) return;
+
+                const castingCtx = castingCanvas.getContext('2d');
+                const weldingCtx = weldingCanvas.getContext('2d');
+
+                // 데이터 값이 유효한지 확인하고, 값이 없으면 기본값 설정
+                const castingScore = data.castingScore || 0;
+                const weldingScore = data.weldingScore || 0;
+
+                // 색상 구간: green(안정) / yellow(주의) / red(위험)
+                let bgColorCasting = castingScore <= 60 ? '#4CAF50' : castingScore <= 79 ? '#FFD700' : '#F44336';
+                let bgColorWelding = weldingScore <= 60 ? '#4CAF50' : weldingScore <= 79 ? '#FFD700' : '#F44336';;
+
+                // 차트 그리기
+                castingChartInstance = new Chart(castingCtx, {
                     type: 'doughnut',
                     data: {
                         datasets: [{
-                            data: [data.value, 100 - data.value],
-                            backgroundColor: [bgColor, '#878787'],
+                            data: [castingScore, 100 - castingScore],
+                            backgroundColor: [bgColorCasting, '#878787'],
                             borderWidth: 0
                         }]
                     },
                     options: {
-                        maintainAspectRatio: false,  // 강제 비율 끄기
-                        responsive: true,            // 부모 div 크기에 맞게
+                        responsive: true,
+                        maintainAspectRatio: false,
                         circumference: 180,
                         rotation: 270,
                         cutout: '50%',
                         plugins: {
                             legend: { display: false },
-                            tooltip: { enabled: false } // 툴팁 완전 비활성화 (겹치는 문제)
+                            tooltip: { enabled: false }
                         }
                     },
-                    plugins: [{ // 차크 중간 % 직접 그리기
+                    plugins: [{
                         afterDraw: chart => {
-                            const { ctx, chartArea: { width, height } } = chart;  // 캔버스 컨텍스트와 차트 영역 크기 가져오기
-                            const centerX = width / 2;                            // 차트 중심 X 좌표 계산
-                            const centerY = height / 1.3;                     // 차트 중심 Y 좌표 계산 (약간 아래로 조정)
-                            const smallRadius = 50;                               // 안쪽 동그라미 반지름 설정
+                            const { ctx, chartArea: { width, height } } = chart;
+                            const centerX = width / 2;
+                            const centerY = height / 1.3;
+                            const smallRadius = 50;
 
-                            ctx.save();                                           // 현재 캔버스 상태 저장
-                            ctx.beginPath();                                      // 새로운 경로 시작
-                            ctx.arc(centerX, centerY, smallRadius, 0, 2 * Math.PI); // 중심에 작은 원 그리기
-                            ctx.fillStyle = '#ffffff';                            // 안쪽 원 색상 흰색
-                            ctx.fill();                                           // 원 내부 채우기
-                            ctx.strokeStyle = '#F37221';                          // 원 테두리 색상 설정 (주황색)
-                            ctx.lineWidth = 1;                                    // 테두리 두께 설정
-                            ctx.stroke();                                         // 원 테두리 그리기
-                            ctx.closePath();                                      // 경로 닫기
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.arc(centerX, centerY, smallRadius, 0, 2 * Math.PI);
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fill();
+                            ctx.strokeStyle = '#F37221';
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                            ctx.closePath();
 
-                            ctx.font = '15px sans-serif';                        // 텍스트 폰트 설정
-                            ctx.fillStyle = 'black';                             // 텍스트 색상 설정
-                            ctx.textAlign = 'center';                            // 텍스트 수평 정렬 중앙
-                            ctx.textBaseline = 'middle';                         // 텍스트 수직 정렬 중앙
-                            ctx.fillText(`${data.value}%`, centerX, centerY);    // 중심에 퍼센트 값 텍스트 그리기
-
-                            ctx.restore();                                       // 저장해둔 캔버스 상태 복원
+                            ctx.font = '20px sans-serif';
+                            ctx.fillStyle = 'black';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(`${Math.round(castingScore)}%`, centerX, centerY);  // 퍼센트 표시
+                            ctx.restore();
                         }
                     }]
                 });
 
-                const statusDiv = document.getElementById(data.statusId);
-                const statusLabel = statusDiv.querySelector('.defect-label');
-                const statusButton = statusDiv.querySelector('.defect-btn');
+                // 용접 차트 그리기
+                weldingChartInstance = new Chart(weldingCtx, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [weldingScore, 100 - weldingScore],
+                            backgroundColor: [bgColorWelding, '#878787'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        circumference: 180,
+                        rotation: 270,
+                        cutout: '50%',
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        }
+                    }
+                });
+            }
 
-                if (data.value >= 80) {
-                    statusButton.disabled = false;   // 기준 넘으면 활성화
-                } else {
-                    statusButton.disabled = true;    // 기준 미만이면 비활성화
-                }
-
-                // 상태 텍스트
-                statusLabel.textContent = `${data.label} (${data.value}%)`;
-
-                // 버튼 활성/비활성
-                if (data.value >= 80) {
-                    statusButton.disabled = false;
-                } else {
-                    statusButton.disabled = true;
-                }
-
-                // 경고 메시지 처리
-                const warningDiv = document.getElementById(data.warningId);
-                if (data.value >= 80) {
-                    warningDiv.className = 'warning-box blinking warning-placeholder';
-                    warningDiv.innerHTML = `⚠ 주의! ${data.label} 초과 경고`;
-                } else {
-                    warningDiv.className = 'warning-placeholder';
-                    warningDiv.innerHTML = '';
+            // 기존 welding 차트가 있으면 삭제
+            if (weldingChartInstance) {
+                weldingChartInstance.destroy();
+                weldingChartInstance = null;     // 인스턴스를 null로 초기화
+            }
+            const weldingCtx = document.getElementById('weldingChart').getContext('2d');
+            weldingChartInstance = new Chart(weldingCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['OK', 'NG'],
+                    datasets: [{
+                        data: [data.weldingScore, 100 - data.weldingScore],
+                        backgroundColor: ['#4CAF50', '#F44336'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    circumference: 180,
+                    rotation: 270,
+                    cutout: '50%',
+                    plugins: {
+                        legend: {display: false},
+                        tooltip: {enabled: false}
+                    }
                 }
             });
-        });
 
+            // 실시간 경고창 반영 함수
+            function updateRealtimeWarnings(data) {
+                const castingWarningDiv = document.getElementById('castingWarning');
+                const weldingWarningDiv = document.getElementById('weldingWarning');
+
+                // castingWarning이 존재하면
+                if (data.castingWarning) {
+                    // 기존 경고 메시지에 새로운 경고 메시지를 추가 (누적)
+                    castingWarningDiv.innerHTML += `<p>⚠ ${data.castingWarning}</p>`;
+                    castingWarningDiv.classList.add('warning-box'); // 경고 스타일을 추가
+                }
+
+                // weldingWarning이 존재하면
+                if (data.weldingWarning) {
+                    // 기존 경고 메시지에 새로운 경고 메시지를 추가 (누적)
+                    weldingWarningDiv.innerHTML += `<p>⚠ ${data.weldingWarning}</p>`;
+                    weldingWarningDiv.classList.add('warning-box'); // 경고 스타일을 추가
+                }
+            }
+
+            // 공정 최적화 기준 툴팁 추가
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            const datasets = [
+                {
+                    id: 'castingChart',
+                    statusId: 'castingStatus',
+                    warningId: 'castingWarning',
+                    msgKey: 'casting',
+                    label: '압력/온도 감지',
+                    value: castingScore
+                },
+                {
+                    id: 'weldingChart',
+                    statusId: 'weldingStatus',
+                    warningId: 'weldingWarning',
+                    msgKey: 'welding',
+                    label: '용접 출력 감지',
+                    value: weldingScore
+                }
+            ];
+
+            // datasets.forEach는 처음 한 번만 실행되도록 처리
+            datasets.forEach(data => {
+                if (document.getElementById(data.id)) {
+                    const ctx = document.getElementById(data.id).getContext('2d');
+                    // 초기 차트 생성
+                    new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            datasets: [{
+                                data: [data.value, 100 - data.value],
+                                backgroundColor: [data.value <= 60 ? 'green' : data.value <= 79 ? '#FFD700' : 'red', '#878787'],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            responsive: true,
+                            circumference: 180,
+                            rotation: 270,
+                            cutout: '50%',
+                            plugins: {
+                                legend: {display: false},
+                                tooltip: {enabled: false}
+                            }
+                        },
+                        plugins: [{
+                            afterDraw: chart => {
+                                const {ctx, chartArea: {width, height}} = chart;
+                                const centerX = width / 2;
+                                const centerY = height / 1.3;
+                                const smallRadius = 50;
+
+                                ctx.save();
+                                ctx.beginPath();
+                                ctx.arc(centerX, centerY, smallRadius, 0, 2 * Math.PI);
+                                ctx.fillStyle = '#ffffff';
+                                ctx.fill();
+                                ctx.strokeStyle = '#F37221';
+                                ctx.lineWidth = 1;
+                                ctx.stroke();
+                                ctx.closePath();
+
+                                ctx.font = '20px sans-serif';
+                                ctx.fillStyle = 'black';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(`${Math.round(data.value)}%`, centerX, centerY);
+                                ctx.restore();
+                            }
+                        }]
+                    });
+                }
+            });
+
+            // 상태 텍스트 및 버튼 활성화 처리
+            const statusDiv = document.getElementById(data.statusId);
+            const statusLabel = statusDiv.querySelector('.defect-label');
+            const statusButton = statusDiv.querySelector('.defect-btn');
+
+            statusLabel.textContent = `${data.label} (${Number(data.value).toFixed(0)}%)`;
+            statusButton.disabled = data.value < 80;
+
+            // 경고 메시지 처리
+            const warningDiv = document.getElementById(data.warningId);
+            if (data.value >= 80) {
+                warningDiv.className = 'warning-box blinking warning-placeholder';
+                warningDiv.innerHTML = `⚠ ${warningMessages[data.msgKey]}`;
+            } else {
+                warningDiv.className = 'warning-placeholder';
+                warningDiv.innerHTML = '';
+            }
+        });
     </script>
 </th:block>
 </html>
