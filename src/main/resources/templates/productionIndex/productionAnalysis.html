@@ -3,32 +3,46 @@
 
     <div class="py-4">
 
-<!-- 서브타이틀 -->
+        <!-- 서브타이틀 -->
         <div class="subtitle_css"><i class="bi bi-graph-up-arrow"></i> 생산지표관리_생산분석</div>
 
-<!-- 인사이트 요약 -->
-        <p class="py-3 fw-bold gap-3">인사이트 요약</p>
+        <!-- 인사이트 요약 -->
+        <p class="fw-bold mt-3 mb-1" style="margin-bottom: 4px;">인사이트 요약</p>
         <div class="row justify-content-center text-center">
-            <div class="col-lg-4 col-12">
-                <div class="form_insight">
-                    <p class="fw-bold">총 생산량</p>
-                    <p>450대</p>
-                    <p>전월 대비 5% 증가</p>
+            <div class="row g-3 mt-1 text-center d-flex justify-content-center">
+                <!-- 1. 누적 생산량 -->
+                <div class="col-lg-4 col-12">
+                    <div class="kpi-card">
+                        <p class="kpi-title"><i class="bi bi-bar-chart-fill"></i> 금일 목표 달성 현황</p>
+                        <div class="kpi-value">300대 중 175대 완료</div>
+                        <div class="kpi-sub text-muted">달성률: <strong class="text-primary">58%</strong></div>
+                    </div>
                 </div>
-            </div>
-            <div class="col-lg-4 col-12">
-                <div class="form_insight">
-                내용
+
+                <!-- 2. 현재 속도 -->
+                <div class="col-lg-4 col-12">
+                    <div class="kpi-card">
+                        <p class="kpi-title"><i class="bi bi-clock-fill"></i> 현재 속도</p>
+                        <div class="kpi-value">1.2대/분</div>
+                        <div class="kpi-sub text-muted">납기 내 달성 예상</div>
+                    </div>
                 </div>
-            </div>
-            <div class="col-lg-4 col-12">
-                <div class="form_insight">
-                내용
+
+                <!-- 3. 납기 예측 -->
+                <div class="col-lg-4 col-12">
+                    <div class="kpi-card">
+                        <p class="kpi-title"><i class="bi bi-calendar-check-fill"></i> 납기 예측</p>
+                        <div class="kpi-value text-success">83%</div>
+                        <div class="kpi-sub text-muted">
+                            납기 내 완료 가능<br>
+                            남은 예상시간: <strong>1시간 28분</strong>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-<!-- 공정별 분석 그래프 2개 -->
+        <!-- 공정별 분석 그래프 2개 -->
         <div class="row">
             <!-- 첫 번째 -->
             <div class="col-lg-6 col-12">
@@ -59,7 +73,7 @@
             </div>
         </div>
 
-<!-- 전력량에 따른 상관관계분석 -->
+        <!-- 전력량에 따른 상관관계분석 -->
         <div class="col-12">
             <p class="fw-bold py-3 text-start">전력량에 따른 불량률 상관관계 분석</p>
             <div class="d-flex justify-content-center">
@@ -70,54 +84,54 @@
 
     </div>
 
-<!-- 차트 3개 스크립트 -->
+    <!-- 차트 3개 스크립트 -->
     <script th:inline="javascript" layout:fragment="script">
 
-    // 첫번째 차트
+        // 첫번째 차트
         document.addEventListener('DOMContentLoaded', function () {
-        new Chart(document.getElementById('analysisChart1'), {
-            type: 'line',
-            data: {
-                labels: ['1공정', '2공정', '3공정'],
-                datasets: [
-                    {
-                        label: '평균처리시간(분)',
-                        data: [190, 10, 350],  // 예시 데이터
-                        borderColor: '#FFA500',
-                        borderWidth: 3,
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            usePointStyle: true,
-                            pointStyle: 'line',
-                            padding: 20,
-                            color: 'black',
-                            font: {
-                                size: 15
+            new Chart(document.getElementById('analysisChart1'), {
+                type: 'line',
+                data: {
+                    labels: ['1공정', '2공정', '3공정'],
+                    datasets: [
+                        {
+                            label: '평균처리시간(분)',
+                            data: [190, 10, 350],  // 예시 데이터
+                            borderColor: '#FFA500',
+                            borderWidth: 3,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'line',
+                                padding: 20,
+                                color: 'black',
+                                font: {
+                                    size: 15
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 360,
+                            ticks: {
+                                stepSize: 90
                             }
                         }
                     }
-                },
-                scales: {
-                    y: {
-                        min: 0,
-                        max: 360,
-                        ticks: {
-                            stepSize: 90
-                        }
-                    }
                 }
-            }
-        });
-    // 두 번째 차트: 공정 가동률 분석 (도넛 차트)
+            });
+            // 두 번째 차트: 공정 가동률 분석 (도넛 차트)
             new Chart(document.getElementById('analysisChart2'), {
                 type: 'doughnut',
                 data: {
@@ -152,7 +166,7 @@
             });
 
 
-    // 세번째 차트 (전력량에 따른 불량률 상관관계 분석)
+            // 세번째 차트 (전력량에 따른 불량률 상관관계 분석)
             const defectData = [20, 75, 25];  // 불량률 데이터 (datasets[1].data)
             const defectThreshold = 50;       // 임계치 (예: 50%)
 

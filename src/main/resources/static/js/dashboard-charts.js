@@ -1,9 +1,15 @@
-// 대시보드 추가할 차트들 모아놓고
-// <th:block layout:fragment="script">
-//     <script src="/js/dashboard-charts.js"></script>
-// </th:block> 를 이용하여 집어넣기
 
-// 1. 제품별 생산현황 (by. ProcessList.html)
+// ================== 상단 1 : 현재 시간 목표량 ==================
+const targets = [100, 100, 100];
+const actualCounts = [15, 60, 100];
+const actualRates = actualCounts.map((count, i) => (count / targets[i]) * 100);
+
+const datasets = [
+    { id: 'castingChart', statusId: 'castingStatus', warningId: 'castingWarning', label: '압력/온도 감지', value: 80 },
+    { id: 'weldingChart', statusId: 'weldingStatus', warningId: 'weldingWarning', label: '용접 출력 감지', value: 20 }
+];
+
+// ================== 상단 2 : 공정별ok/ng ==================
 function drawChart(ctx, ok, ng, textElementId) {
     const total = ok + ng;
     const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
@@ -24,11 +30,12 @@ function drawChart(ctx, ok, ng, textElementId) {
             maintainAspectRatio: true,
             cutout: '40%',
             plugins: {
-                legend: {display: false}
+                legend: { display: false }
             }
         }
     });
 
+    // 퍼센트 텍스트 표시
     const textDiv = document.getElementById(textElementId);
     textDiv.innerHTML =
         `<span style="display: inline-block; width: 20px; height: 10px; background-color: #4CAF50; margin-right: 5px;"></span>` +
@@ -37,119 +44,118 @@ function drawChart(ctx, ok, ng, textElementId) {
         `<span style="font-weight:bold; font-size: 15px">NG </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;
 }
 
+
+// 제품 달성률 바 차트의 막대 색상 결정
+function getBarColor(rate) {
+    if (rate < 40) return '#F44336';
+    if (rate < 70) return '#F39C12';
+    if (rate < 100) return '#F1C40F';
+    return '#4CAF50';
+}
+
+// ================== 메인 실행 ==================
 document.addEventListener('DOMContentLoaded', function () {
-    // 각 공정 차트 그리기
-    drawChart(document.getElementById('myChart1'), 90, 10, 'chartText1');
-    drawChart(document.getElementById('myChart2'), 90, 10, 'chartText2');
-    drawChart(document.getElementById('myChart3'), 90, 10, 'chartText3');
 
-    // NG율 평균 계산
+    // ▶ 1. 공정별 도넛 차트
+    drawChart(document.getElementById('myChart1'), ok1, ng1, 'chartText1');
+    drawChart(document.getElementById('myChart2'), ok2, ng2, 'chartText2');
+    drawChart(document.getElementById('myChart3'), ok3, ng3, 'chartText3');
+
+    // ▶ 1-1. 평균 NG율에 따른 경고 메시지 표시
     const ngRates = [
-        (30 / (70 + 30)) * 100,  // 공정1
-        (70 / (30 + 70)) * 100,  // 공정2
-        (55 / (45 + 55)) * 100   // 공정3
+        (ng1 / (ok1 + ng1)) * 100,
+        (ng2 / (ok2 + ng2)) * 100,
+        (ng3 / (ok3 + ng3)) * 100
     ];
-    const avgNg = ngRates.reduce((sum, val) => sum + val, 0) / ngRates.length;
-
-    // 경고 메시지 요소 가져오기
+    const avgNg = ngRates.reduce((a, b) => a + b, 0) / ngRates.length;
     const warningDiv = document.getElementById('ngWarningMessage');
 
-    // 메시지 & 스타일 설정
-    let message = '';
-    let style = '';
-    let icon = '';
-
+    let message = '', style = '', icon = '';
     if (avgNg < 10) {
         icon = '✅';
-        message = `${icon} 전체 공정 NG율 ${avgNg.toFixed(1)}% 미만 (양호)`;  // ← 반드시 메시지 채워줌
-        style = 'background-color: #e0f5e9; color: #28a745; padding: 5px 10px; border-radius: 10px; font-weight: bold;';
-        warningDiv.className = 'warning-placeholder';
-        warningDiv.setAttribute('style', style);
-        warningDiv.textContent = message;
-    } else if (avgNg >= 10 && avgNg < 20) {
+        message = `${icon} 전체 공정 NG율 ${avgNg.toFixed(1)}% 미만 (양호)`;
+        style = 'background-color: #e0f5e9; color: #28a745;';
+    } else if (avgNg < 20) {
         icon = '🔔';
-        message = `${icon} 전체 공정 NG율 ${avgNg.toFixed(1)}% (주의 필요)`;
-        style = 'background-color: #fff9e6; color: #ffc107; padding: 5px 10px; border-radius: 10px; font-weight: bold;';
-        warningDiv.className = 'warning-placeholder';
-        warningDiv.setAttribute('style', style);
-        warningDiv.textContent = message;
-    } else if (avgNg >= 20 && avgNg < 30) {
-        icon = '⚠';
-        message = `${icon} 심각! NG율 ${avgNg.toFixed(1)}% (라인 점검 필요!)`;
-        style = 'background-color: #ffe6f0; color: #ff4d4d; padding: 5px 10px; border-radius: 10px; font-weight: bold;';
-        warningDiv.className = 'warning-placeholder';
-        warningDiv.setAttribute('style', style);
-        warningDiv.textContent = message;
-    } else if (avgNg >= 30) {
-        icon = '🚨';
-        message = `${icon} 비상! 전체 공정 NG율 ${avgNg.toFixed(1)}% 초과 (공정 중단 필요!)`;
-        warningDiv.className = 'warning-box blinking';
-        warningDiv.textContent = message;
+        message = `${icon} NG율 ${avgNg.toFixed(1)}% (주의 필요)`;
+        style = 'background-color: #fff9e6; color: #ffc107;';
+        warningDiv.className = 'warning-box blinking'; // 깜박이는 효과
     } else {
-        message = `전체 공정 NG율 ${avgNg.toFixed(1)}%`;
-        warningDiv.className = 'warning-placeholder';
-        warningDiv.textContent = message;
+        icon = '🚨';
+        message = `${icon} 비상! NG율 ${avgNg.toFixed(1)}% 초과`;
+        warningDiv.className = 'warning-box blinking'; // 깜박이는 효과
     }
+    warningDiv.setAttribute('style', `${style} padding: 5px 10px; border-radius: 10px; font-weight: bold;`);
+    warningDiv.textContent = message;
 
+    // ▶ 2. 제품 달성률 바 차트
+    const now = new Date();
+    document.getElementById('timeRange').textContent = `${now.getHours()}시 ~ ${now.getHours()}시 59분`;
 
-    // 2. 제품별 생산 달성률(%) - 가로 막대 차트
-    const productCtx = document.getElementById('productAchievementChart').getContext('2d');
-    new Chart(productCtx, {
+    new Chart(document.getElementById('productAchievementChart').getContext('2d'), {
         type: 'bar',
         data: {
-            labels: ['A타입', 'B타입', 'C타입'],
+            labels: ['GyulRide', 'InteliBike', 'PedalAt4'],
             datasets: [{
-                label: '달성률 (%)',
-                data: [60, 100, 25],
-                backgroundColor: ['#FFD700', '#4CAF50', '#FF8C42']
+                label: '현재 달성률 (%)',
+                data: actualRates,
+                backgroundColor: actualRates.map(getBarColor)
             }]
         },
         options: {
             indexAxis: 'y',
             responsive: true,
+            layout: { padding: { right: 120 } },
             scales: {
                 x: {
+                    beginAtZero: true,
                     max: 100,
                     ticks: {
-                        stepSize: 20
+                        stepSize: 20,
+                        font: { size: 14 },
+                        callback: (val) => `${val}%`
                     }
                 },
+                y: {
+                    ticks: { font: { size: 16 } }
+                }
             },
             plugins: {
-                legend: {display: false},
+                legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: function (context) {
-                            return `${context.dataset.label}: ${context.parsed.x}%`;
+                        label: (ctx) => {
+                            const i = ctx.dataIndex;
+                            return `${actualCounts[i]}/${targets[i]}대 (${actualRates[i].toFixed(1)}%)`;
                         }
                     }
                 }
             }
-        }
+        },
+        plugins: [{
+            id: 'barLabelPlugin',
+            afterDatasetsDraw(chart) {
+                const { ctx, scales: { x, y } } = chart;
+                chart.data.datasets[0].data.forEach((percent, i) => {
+                    const label = `${actualCounts[i]}/${targets[i]}대`;
+                    ctx.save();
+                    ctx.font = 'bold 16px sans-serif';
+                    ctx.fillStyle = percent < 60 ? '#F44336' : '#333';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(label, x.getPixelForValue(100) + 10, y.getPixelForValue(i));
+                    ctx.restore();
+                });
+            }
+        }]
     });
 
-    // 4. 기계 이상 감지 (from. defectLog.html)
-    const datasets = [
-        {id: 'castingChart', statusId: 'castingStatus', warningId: 'castingWarning', label: '압력/온도 감지', value: 80}, // 주조
-        {id: 'weldingChart', statusId: 'weldingStatus', warningId: 'weldingWarning', label: '용접 출력 감지', value: 62}   // 용접
-    ];
-
+    // ▶ 3. 이상 감지 도넛 차트
     datasets.forEach(data => {
         const canvas = document.getElementById(data.id);
         const ctx = canvas.getContext('2d');
-
-        // canvas 크기 강제 지정
-        canvas.height = 200;
         canvas.width = canvas.parentNode.offsetWidth;
 
-        let bgColor;
-        if (data.value <= 60) {
-            bgColor = 'green';
-        } else if (data.value <= 79) {
-            bgColor = '#FFD700';
-        } else {
-            bgColor = 'red';
-        }
+        const bgColor = data.value <= 60 ? 'green' : (data.value <= 79 ? '#FFD700' : 'red');
 
         new Chart(ctx, {
             type: 'doughnut',
@@ -161,66 +167,48 @@ document.addEventListener('DOMContentLoaded', function () {
                 }]
             },
             options: {
-                maintainAspectRatio: true,
+                maintainAspectRatio: false,
+                responsive: true,
                 circumference: 180,
                 rotation: 270,
                 cutout: '50%',
                 plugins: {
-                    legend: {display: false},
-                    tooltip: {
-                        callbacks: {
-                            label: function () {
-                                return `${data.label}: ${data.value}% (기준 100%)`;
-                            }
-                        }
-                    }
+                    legend: { display: false },
+                    tooltip: { enabled: false }
                 }
             },
             plugins: [{
-                afterDraw: chart => {
-                    const {ctx, chartArea: {width, height}} = chart;
+                afterDraw: chart => { // 도넛 중앙에 수치 표시
+                    const { ctx, chartArea: { width, height } } = chart;
                     const centerX = width / 2;
-                    const centerY = height / 1.5;
-                    const smallRadius = 40;
-
+                    const centerY = height / 1.3;
                     ctx.save();
                     ctx.beginPath();
-                    ctx.arc(centerX, centerY, smallRadius, 0, 2 * Math.PI);
+                    ctx.arc(centerX, centerY, 50, 0, 2 * Math.PI);
                     ctx.fillStyle = '#ffffff';
                     ctx.fill();
                     ctx.strokeStyle = '#F37221';
-                    ctx.lineWidth = 1;
                     ctx.stroke();
-                    ctx.closePath();
-
                     ctx.font = '15px sans-serif';
                     ctx.fillStyle = 'black';
                     ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
                     ctx.fillText(`${data.value}%`, centerX, centerY);
-
                     ctx.restore();
                 }
             }]
         });
 
+        // 상태 표시
         const statusDiv = document.getElementById(data.statusId);
-        const statusLabel = statusDiv.querySelector('.status-label');
-        const statusButton = statusDiv.querySelector('.status-btn');
-
-        // 상태 텍스트
-        statusLabel.textContent = `${data.label} (${data.value}%)`;
-
-        // 버튼 활성/비활성
-        if (data.value >= 80) {
-            statusButton.disabled = false;
-        } else {
-            statusButton.disabled = true;
-        }
-
-        // 경고 메시지 처리
         const warningDiv = document.getElementById(data.warningId);
-        if (data.value >= 80) {
+        const isWarning = data.value >= 80;
+        statusDiv.querySelector('.defect-btn').disabled = !isWarning;
+        statusDiv.querySelector('.defect-btn').onclick = isWarning ? () => {
+            window.location.href = '/indicators/defect-predict';
+        } : null;
+        statusDiv.querySelector('.defect-label').textContent = `${data.label} (${data.value}%)`;
+
+        if (isWarning) {
             warningDiv.className = 'warning-box blinking warning-placeholder';
             warningDiv.innerHTML = `⚠ 주의! ${data.label} 초과 경고`;
         } else {

@@ -3,17 +3,17 @@
 
     <div class="py-4">
         <!-- 서브타이틀 -->
-        <div class="subtitle_css">제품리스트</div>
+        <div class="subtitle_css"><i class="bi bi-lightning-charge"></i> 제품리스트</div>
 
         <!-- 테이블 -->
         <div style="width: 800px;">
-            <p class="pt-3">제품별 생산 달성률(%)</p>
+            <p class="pt-3 fw-bold">제품별 생산 달성률(%)</p>
             <canvas id="achievementChart" style="max-width: 100%; height: 200px;"></canvas>
 
         </div>
 
         <!-- 임시 구현 그래프  -->
-        <p class="pt-5">제품 리스트</p>
+        <p class="pt-5 fw-bold">제품 리스트</p>
         <div class="table-responsive pt-2" style="overflow-x: auto;">
             <table class="table table-bordered text-center align-middle table2_css">
                 <thead>
@@ -43,65 +43,69 @@
             </table>
         </div>
     </div>
-</th:block>
+
+<!-- 열어서 안에 주석 참고 // 임시 구현 가로 막대 차트 -->
+<script th:inline="javascript" layout:fragment="script">
+    /*<![CDATA[*/
+    const chartData = /*[[${chartData}]]*/ '{}';
+
+    const parsedChartData = JSON.parse(chartData);
+    const labels = parsedChartData.labels;
+    const orderQty = parsedChartData.orderQuantity;
+    const completeQty = parsedChartData.productCount;
+
+    const achievementRates = completeQty.map((complete, idx) => {
+        const ordered = orderQty[idx] || 1;
+        return ((complete / ordered) * 100).toFixed(1);
+    });
 
 
-    <!-- 열어서 안에 주석 참고 // 임시 구현 가로 막대 차트 -->
-    <script th:inline="javascript" layout:fragment="script">
-        /*<![CDATA[*/
-        const chartData = /*[[${chartData}]]*/ '{}';
+    function getBarColor(rate) {
+        rate = parseFloat(rate);
+        if (rate < 40) return '#F44336';     // 빨강 (위기)
+        if (rate < 70) return '#F39C12';     // 주황 (경고)
+        if (rate < 100) return '#FFCC00';    // 노랑 (양호)
+        return '#4CAF50';                    // 초록 (완료)
+    }
 
-        const parsedChartData = JSON.parse(chartData);
-        const labels = parsedChartData.labels;
-        const orderQty = parsedChartData.orderQuantity;
-        const completeQty = parsedChartData.productCount;
+    const ctx = document.getElementById('achievementChart').getContext('2d');
 
-        const achievementRates = completeQty.map((complete, idx) => {
-            const ordered = orderQty[idx] || 1;
-            return ((complete / ordered) * 100).toFixed(1);
-        });
-
-        const ctx = document.getElementById('achievementChart').getContext('2d');
-
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: '달성률 (%)',
-                    data: achievementRates,
-                    backgroundColor: labels.map((_, i) => {
-                        const colors = ['#FFCC00', '#02AD16', '#FF5900', '#007bff', '#ff33cc'];
-                        return colors[i % colors.length];
-                    }),
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                scales: {
-                    x: {
-                        min: 0,
-                        max: 100,
-                        ticks: {
-                            stepSize: 25,
-                            callback: function (value) {
-                                return value + '%';
-                            }
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '달성률 (%)',
+                data: achievementRates,
+                backgroundColor: achievementRates.map(getBarColor), // ✔ 조건부 색상 적용
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            scales: {
+                x: {
+                    min: 0,
+                    max: 100,
+                    ticks: {
+                        stepSize: 25,
+                        callback: function (value) {
+                            return value + '%';
                         }
                     }
-                },
-                plugins: {
-                    legend: { display: false },
-                    title: {
-                        display: true,
-                        text: '제품별 수율 (%)',
-                        font: { size: 16 }
-                    }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: '제품별 수율 (%)',
+                    font: { size: 16 }
                 }
             }
-        });
-        /*]]>*/
-    </script>
-
+        }
+    });
+    /*]]>*/
+</script>
+</th:block>
 </html>

@@ -3,112 +3,284 @@
     <div class="dashboard_error">
         <p style="margin: 0;">제 2공정 : 101 ERROR</p>
     </div>
-    <div style="background-color: #FFC373; padding: 8px 0; text-align: start; vertical-align: middle;">
-        <a href="/errors/report" class="btn_black ms-3" style="display: inline-flex; width: 120px; height: 40px; border-radius: 10px; background-color: #E2E2E2; color: #000000">REPORT</a>
-        <a href="/dashboard/notice" class="btn_black ms-2" style="display: inline-flex; width: 120px; height: 40px; border-radius: 10px; background-color: #E2E2E2; color: #000000">공지사항</a>
+
+    <div style="background-color: #FFC373; padding: 8px 0;">
+        <div class="d-flex align-items-center px-3 gap-3">
+            <a href="/errors/report" class="btn_black" style="width: 120px; height: 40px; border-radius: 10px; background-color: #E2E2E2; color: #000000; display: inline-flex; justify-content: center; align-items: center;">REPORT</a>
+            <a href="/dashboard/notice" class="btn_black" style="width: 120px; height: 40px; border-radius: 10px; background-color: #E2E2E2; color: #000000; display: inline-flex; justify-content: center; align-items: center;">공지사항</a>
+            <!--  공지 미리보기 표시 -->
+            <a href="/dashboard/notice" id="noticePreview"
+               class="text-dark fw-bold text-decoration-none">
+            </a>
+        </div>
     </div>
 </th:block>
 
-    <th:block layout:fragment="content">
-        <div class="py-4">
+<th:block layout:fragment="content">
+    <div class="py-4">
 
-            <!-- 1. 제품별 생산 현황 -->
-            <div class="row g-4">
-                <div class="col-lg-6 col-12">
-                    <!-- 제목 + NG율 메시지 한 줄로 -->
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <!-- 왼쪽: 제목 -->
-                        <div class="d-flex align-items-center fw-bold">
-                            <p class="fw-bold mb-2"><i class="bi bi-gear"></i></i> 공정별 생산 현황</p>
-                        </div>
-                        <!-- 오른쪽: NG 경고 메시지 -->
-                        <div id="ngWarningMessage"></div> <!-- #ngWarningMessage css로 고정높이 설정-->
+        <!-- 상단 왼쪽 : 시간대별 제품 생산 현황 + 현재 시간 -->
+        <div class="row g-4">
+            <div class="col-lg-6 col-12">
+                <div class="chart-card">
+                    <div class="chart-header d-flex justify-content-between align-items-center">
+                        <p class="chart-title mt-3">
+                            <i class="bi bi-clipboard-data"></i>
+                            현재 시간 목표량
+                        </p>
                     </div>
-
-                    <!-- 공정별 차트 -->
-                    <div class="d-flex flex-wrap gap-3 text-center">
-                        <div style="flex: 1; min-width: 100px;">
-                            <p class="text-center">1공정</p>
-                            <canvas id="myChart1"></canvas>
-                            <div id="chartText1" class="pt-2"></div>
-                        </div>
-                        <div style="flex: 1; min-width: 100px;">
-                            <p class="text-center">2공정</p>
-                            <canvas id="myChart2"></canvas>
-                            <div id="chartText2" class="pt-2"></div>
-                        </div>
-                        <div style="flex: 1; min-width: 100px;">
-                            <p class="text-center">3공정</p>
-                            <canvas id="myChart3"></canvas>
-                            <div id="chartText3" class="pt-2"></div>
-                        </div>
+                    <div class="chart-body" style="margin-top: 20px;">
+                        <p class="chart-baseline text-center text-muted fw-semibold" style="font-size: 16px; margin-bottom: 12px;">
+                            기준: <span id="timeRange"></span>
+                        </p>
+                        <canvas id="productAchievementChart" width="650" height="280"></canvas>
                     </div>
-                </div>
-
-
-            <!-- 구역 2: 생산 달성률 -->
-                    <div class="col-lg-6 col-12 pt-3">
-                        <p class="fw-bold mb-2"><i class="bi bi-bar-chart-steps"></i> 제품별 생산 달성률(%)</p>
-                        <canvas id="productAchievementChart"></canvas>
-                    </div>
-
-            <!-- 3. 실시간 KPI요약 -->
-                <p class="py-3 fw-bold gap-3"><i class="bi bi-graph-up"></i> 인사이트 요약</p>
-                <div class="row justify-content-center text-center">
-                    <div class="col-lg-4 col-12">
-                        <div class="form_insight" style="height: 150px;">
-                            <p class="fw-bold">오늘의 생산량</p>
-                            <p>450대</p>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-12">
-                        <div class="form_insight" style="height: 150px;">
-                            내용
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-12">
-                        <div class="form_insight" style="height: 150px;">
-                            내용
-                        </div>
-                    </div>
-                </div>
-
-            <!-- 4. 기계 이상 감지 -->
-                    <!-- 주조 공정 -->
-                    <div class="row justify-content-center">
-                        <div class="col-lg-6 col-12 text-center">
-                            <!-- 경고 메시지 위치 (높이 고정) -->
-                            <div id="castingWarning" class="warning-placeholder"></div> <!--warning-placeholder : 경고문구가 없어도 해당 행칸 유지 -->
-
-                            <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
-                                <canvas id="castingChart" style="display: block; width: 100%; height: 200px; margin-bottom: 0;"></canvas>
-                                <div id="castingStatus" class="d-flex justify-content-between align-items-center" style="margin-top: 0; padding-top: 0;">
-                                    <span class="status-label">압력/온도 감지 (0%)</span>
-                                    <button type="button" class="status-btn" style="background-color: #FF0004;">점검요청</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 용접 공정 -->
-                        <div class="col-lg-6 col-12 text-center">
-                            <!-- 경고 메시지 (높이 고정) -->
-                            <div id="weldingWarning" class="warning-placeholder"></div>
-
-                            <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
-                                <canvas id="weldingChart" style="display: block; width: 100%; height: 200px; margin-bottom: 0;"></canvas>
-                                <div id="weldingStatus" class="d-flex justify-content-between align-items-center" style="margin-top: 0; padding-top: 0;">
-                                    <span class="status-label">용접 출력 감지 (0%)</span>
-                                    <button type="button" class="status-btn" style="background-color: #FF0004;">점검요청</button>
-                                </div>
-                            </div>
-                        </div>
-                     </div>
                 </div>
             </div>
-    </th:block>
-    <th:block layout:fragment="script">
-        <script src="/js/dashboard-charts.js"></script>
-    </th:block>
-    </html>
+
+            <!-- 상단 오른쪽 : 공정별 상태 -->
+            <div class="col-lg-6 col-12"><!-- [수정] chart-card 위치 수정 -->
+                <div class="chart-card h-100"><!-- [수정] 기존에 col에 있었던 chart-card를 안쪽으로 이동 -->
+                <div class="d-flex justify-content-between align-items-center mb-2" style="min-height: 24px;">
+                    <div class="d-flex align-items-center">
+                        <p class="fw-bold">
+                            <i class="bi bi-gear" style="color: #fd7e14;"></i> 공정별 현재 상태
+                        </p>
+                    </div>
+                    <div id="ngWarningMessage" style="height: 100%; display: flex; align-items: center;"></div>
+                </div>
+                    <!-- 테두리 라인 맞추기 용 wrapper -->
+                    <div class="chart-body" style="padding: 20px 10px;">
+                <div class="row text-center"><!-- sm 사이즈에서는 차트 1개씩-->
+                    <!-- 프레임 -->
+                    <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
+                        <div style="width: 100%; max-width: 320px;">
+                            <p class="text-center">프레임</p>
+                            <canvas id="myChart1" class="w-100" style="height: 240px;" height="240"></canvas>
+                            <div id="chartText1" class="pt-2 text-center"></div>
+                        </div>
+                    </div>
+                    <!-- 도장 -->
+                    <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
+                        <div style="width: 100%; max-width: 320px;">
+                            <p class="text-center">도장</p>
+                            <canvas id="myChart2" class="w-100" style="height: 240px;" height="240"></canvas>
+                            <div id="chartText2" class="pt-2 text-center"></div>
+                        </div>
+                    </div>
+                    <!-- 검수 -->
+                    <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
+                        <div style="width: 100%; max-width: 320px;">
+                            <p class="text-center">검수</p>
+                            <canvas id="myChart3" class="w-100" style="height: 240px;" height="240"></canvas>
+                            <div id="chartText3" class="pt-2 text-center"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- 중간 KPI 요약 카드 (오직 첫 줄만 .kpi-card 사용) -->
+        <div class="row g-3 m-4 text-center d-flex justify-content-center">
+            <!-- 1. 금일 목표 달성 현황 -->
+            <div class="col-lg-4 col-12">
+                <div class="kpi-card">
+                    <p class="kpi-title"><i class="bi bi-bar-chart-fill"></i> 금일 목표 달성 현황</p>
+                    <div class="kpi-value">300대 중 175대 완료</div>
+                    <div class="kpi-sub text-muted">달성률: <strong class="text-primary">58%</strong></div>
+                </div>
+            </div>
+            <!-- 2. 현재 속도 -->
+            <div class="col-lg-4 col-12">
+                <div class="kpi-card">
+                    <p class="kpi-title"><i class="bi bi-clock-fill"></i> 현재 속도</p>
+                    <div class="kpi-value">1.2대/분</div>
+                    <div class="kpi-sub text-muted">남기 내 달성 예상</div>
+                </div>
+            </div>
+
+            <!-- 3. 납기 예측 -->
+            <div class="col-lg-4 col-12">
+                <div class="kpi-card">
+                    <p class="kpi-title"><i class="bi bi-calendar-check-fill"></i> 납기 예측</p>
+                    <div class="kpi-value text-success">83%</div>
+                    <div class="kpi-sub">
+                        납기 내 완료 가능<br>
+                        남은 예상시간: <strong>1시간 28분</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
 
 
+        <!-- 하단 : 기계 이상 감지 -->
+        <div class="row g-4 mt-4">
+            <div class="col-lg-12">
+                <div class="chart-card w-100">
+
+                    <div class="chart-header d-flex align-items-center mb-2">
+                        <p class="chart-title fw-bold">
+                            <i class="bi bi-exclamation-diamond-fill"></i> 기계 이상 감지
+                        </p>
+                    </div>
+
+                    <div class="chart-body" style="padding: 20px 10px;">
+                        <div class="row g-4 justify-content-center mx-0">
+                            <!-- 왼쪽 -->
+                            <div class="col-lg-6 col-12 text-center">
+                                <div id="castingWarning" class="warning-placeholder"></div>
+                                <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
+                                    <canvas id="castingChart" style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
+                                    <div id="castingStatus" class="d-flex justify-content-between align-items-center" style="margin-top: 0; padding-top: 0;">
+                                        <div class="defect-box">
+                                            <span class="defect-label">압력/온도 감지 (80%)</span>
+                                            <button type="button" class="defect-btn" style="background-color: #FF0004;" disabled>점검요청</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 오른쪽 -->
+                            <div class="col-lg-6 col-12 text-center">
+                                <div id="weldingWarning" class="warning-placeholder"></div>
+                                <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
+                                    <canvas id="weldingChart" style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
+                                    <div id="weldingStatus" class="d-flex justify-content-between align-items-center" style="margin-top: 0; padding-top: 0;">
+                                        <div class="defect-box">
+                                            <span class="defect-label">용접 출력 감지 (0%)</span>
+                                            <button type="button" class="defect-btn" style="background-color: #FF0004;" disabled>점검요청</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                    </div> <!-- 내부 row 끝 -->
+                </div> <!-- chart-card 끝 -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+</th:block>
+
+
+<!-- ============ 데이터연동(타임리프)는 html 내부에서 직접 스크립트 구성 =============-->
+<th:block layout:fragment="script">
+
+    <!-- 제품리스트에서 데이터가져오기 (타임리프는 내부에서 써야함) -->
+    <script th:inline="javascript">
+        window.chartDataHourly = /*[[${chartDataHourly}]]*/ '{}';
+    </script>
+
+    <script src="/js/dashboard-charts.js"></script>
+
+    <!-- ============ 공지사항 배너 스크립트 =============-->
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', () => {
+            const notice = localStorage.getItem("noticePost");
+            const noticeSpan = document.getElementById("noticePreview");
+
+            if (notice && notice.trim() !== "") {
+                noticeSpan.textContent = `📢 ${notice}`;
+                noticeSpan.href = `/dashboard/notice?id=${encodeURIComponent(notice)}`;
+            } else {
+                noticeSpan.innerHTML = '<span class="text-muted">새로운 공지가 없습니다</span>';
+            }
+        });
+    </script>
+
+    <!-- ============ 공정별 OK/NG 차트 =============-->
+    <script th:inline="javascript">
+        // 예시: 공정 모니터링용 변수 (서버에서 Thymeleaf로 전달 필요)
+        let okCountByStep = /*[[${okCountByStep}]]*/ {};
+        let ngCountByStep = /*[[${ngCountByStep}]]*/ {};
+
+        let ok1 = okCountByStep['1'] || 0;
+        let ng1 = ngCountByStep['1'] || 0;
+        let ok2 = okCountByStep['2'] || 0;
+        let ng2 = ngCountByStep['2'] || 0;
+        let ok3 = okCountByStep['3'] || 0;
+        let ng3 = ngCountByStep['3'] || 0;
+    </script>
+    <script>
+        // 퍼센트 표시 플러그인
+        const centerTextPlugin = {
+            id: 'centerTextPlugin',
+            beforeDraw: (chart) => {
+                if (chart.canvas.id !== 'myChart1' && chart.canvas.id !== 'myChart2' && chart.canvas.id !== 'myChart3') {
+                    return;
+                }
+                const {width, height, ctx} = chart;
+                const dataset = chart.data.datasets[0];
+                const total = dataset.data.reduce((a, b) => a + b, 0);
+                const ok = dataset.data[0];
+                const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
+                const centerX = width / 2;
+                const centerY = height / 2;
+
+                const innerRadius = chart._metasets[0].data[0].innerRadius;
+                ctx.save();
+                ctx.beginPath();
+                ctx.strokeStyle = 'orange';
+                ctx.lineWidth = 4;
+                ctx.arc(centerX, centerY, innerRadius - 5, 0, 2 * Math.PI);
+                ctx.stroke();
+                ctx.closePath();
+                ctx.restore();
+
+                ctx.save();
+                ctx.font = 'bold 20px sans-serif';
+                ctx.fillStyle = '#000';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`${okPercent}%`, centerX, centerY);
+                ctx.restore();
+            }
+        };
+        Chart.register(centerTextPlugin);
+        // 도넛 차트 그리기 함수
+        function drawChart(ctx, ok, ng, textElementId) {
+            const total = ok + ng;
+            const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
+            const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['OK', 'NG'],
+                    datasets: [{
+                        data: [ok, ng],
+                        backgroundColor: ['#009913', '#ea2402'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    cutout: '40%',
+                    plugins: {
+                        legend: { display: false }
+                    }
+                },
+                plugins: [centerTextPlugin]
+            });
+
+            const textDiv = document.getElementById(textElementId);
+            if (textDiv) {
+                textDiv.innerHTML =
+                    `<span style="display: inline-block; width: 20px; height: 10px; background-color: #009913; margin-right: 5px;"></span>` +
+                    `<span style="font-weight:bold; font-size: 15px">OK </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +
+                    `<span style="display: inline-block; width: 20px; height: 10px; background-color: #ea2402; margin-right: 5px;"></span>` +
+                    `<span style="font-weight:bold; font-size: 15px">NG </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            drawChart(document.getElementById('myChart1'), ok1, ng1, 'chartText1');
+            drawChart(document.getElementById('myChart2'), ok2, ng2, 'chartText2');
+            drawChart(document.getElementById('myChart3'), ok3, ng3, 'chartText3');
+        });
+    </script>
+
+</th:block>
+</html>

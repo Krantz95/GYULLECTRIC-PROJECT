@@ -5,7 +5,7 @@
     </div>
     <div style="background-color: #FFC373; padding: 8px 0; text-align: start; vertical-align: middle;">
         <a href="/errors/report" class="btn_black ms-3" style="display: inline-flex; width: 120px; height: 40px; border-radius: 10px; background-color: #E2E2E2; color: #000000">REPORT</a>
-        <a href="/dashboard/notice" class="btn_black ms-2" style="display: inline-flex; width: 120px; height: 40px; border-radius: 10px; background-color: #E2E2E2; color: #000000">공지사항</a>
+        <a href="/dashboard/notice" class="btn_black" style="margin-left: 9.5px; display: inline-flex; width: 120px; height: 40px; border-radius: 10px; background-color: #E2E2E2; color: #000000">공지사항</a>
     </div>
 </th:block>
 
@@ -13,16 +13,14 @@
 <th:block layout:fragment="content">
 
     <div class="py-4">
-        <div class="subtitle_css">공지게시판</div>
+        <div class="subtitle_css"><i class="bi bi-megaphone"></i> 공지게시판</div>
 
         <!-- 테이블 -->
         <div class="table-responsive pt-3">
             <table class="table table-bordered text-center align-middle table1_css">
                 <thead>
                 <tr>
-                    <th style="text-align: center;">
-                        <input type="checkbox" onchange="toggleAllCheckboxes(this)" />
-                    </th>
+                    <th>공지여부</th>
                     <th>제목</th>
                     <th>작성일</th>
                     <th>작성자</th>
@@ -32,31 +30,107 @@
                 <tbody>
                 <tr>
                     <td style="text-align: center;">
-                        <input type="checkbox" class="row-checkbox" onchange="markAsNotice(this)" /></td>
-                    <td>5월 휴무 안내</td>
-                    <td>2025-05-12</td>
+                        <input type="checkbox" class="row-checkbox" onchange="markAsNotice(this)" onclick="event.stopPropagation();" />
+                    </td>
+                    <td onclick="showNotice('301')" style="cursor: pointer;">6월 휴무 안내</td>
+                    <td>2025-06-01</td>
                     <td>윤팀장</td>
-                    <td>52</td>
+                    <td>85</td>
                 </tr>
                 <tr>
                     <td style="text-align: center;">
-                        <input type="checkbox" class="row-checkbox" onchange="markAsNotice(this)" /></td>
-                    <td>1공정 요즘 NG가 많습니다....</td>
-                    <td>2025-05-10</td>
+                        <input type="checkbox" class="row-checkbox" onchange="markAsNotice(this)" onclick="event.stopPropagation();" />
+                    </td>
+                    <td onclick="showNotice('302')" style="cursor: pointer;">1공정 요즘 NG가 많습니다....</td>
+                    <td>2025-06-03</td>
                     <td>최대표</td>
-                    <td>1</td>
+                    <td>42</td>
+                </tr>
+                <tr>
+                    <td style="text-align: center;">
+                        <input type="checkbox" class="row-checkbox" onchange="markAsNotice(this)" onclick="event.stopPropagation();" />
+                    </td>
+                    <td onclick="showNotice('303')" style="cursor: pointer;">창고 이전 안내 (6/10)</td>
+                    <td>2025-06-05</td>
+                    <td>윤팀장</td>
+                    <td>17</td>
                 </tr>
                 </tbody>
             </table>
         </div>
 
-        <div class="d-flex justify-content-end mt-3">
-            <button class="btn_orange" style="background-color: #FFC373; border-radius: 0px; width: 100px; height: 40px; padding: 15px 30px;">글쓰기</button>
+        <!-- 상세내용 영역 -->
+        <div id="noticeDetail" class="py-4" style="display: none;">
+            <div class="subtitle_css fw-bold mt-5 pt-4" id="noticeTitle" style="font-size: clamp(18px, 3vw, 24px); border-bottom: none !important;"></div>
+
+            <div class="py-3">
+                <div class="form_sm_css" id="noticeContent" style="max-width: 1300px; margin: 0 auto; font-size: clamp(14px, 2.5vw, 18px);"></div>
+                <div class="d-flex justify-content-end mt-3">
+                    <a href="#top" class="write_css text-end" style="font-size: clamp(14px, 2.5vw, 18px);">목록</a>
+                </div>
+            </div>
         </div>
     </div>
+</th:block>
 
-    <!-- 공지기능 추가 : 체크 선택하면 공지행으로 변경됌 (굵은글씨+상단) -->
+
     <script th:inline="javascript" layout:fragment="script">
+        const notices = {
+            '301': {
+                title: '제목 : 6월 휴무 안내',
+                content: [
+                    '<span style="color: red;"><b>⚠ 유의사항:</b> 공정 라인은 전일 마감 필수</span>',
+                    '6월 6일(목)은 현충일로 공장 전체 휴무입니다.',
+                    '6월 21일(금)은 전사 창립기념일로 특별 휴무일입니다.',
+                    '전일 야간작업 금지, 공정 마감 후 관리자 승인 필수입니다.'
+                ]
+            },
+            '302': {
+                title: '제목 : 1공정 요즘 NG가 많습니다....',
+                content: [
+                    '최근 1공정에서 NG 비율이 18%로 증가하여 품질 이슈 우려가 있습니다.',
+                    '클램프 정렬, 용접 기계 상태 점검 필수이며 담당자는 일일점검 시트 작성 바랍니다.',
+                    '6월 8일(토) 10:00에 1공정 점검회의가 예정되어 있습니다.',
+                    '<b>관련자 전원 참석 필수입니다.</b>'
+                ]
+            },
+            '303': {
+                title: '제목 : 창고 이전 안내 (6/10)',
+                content: [
+                    '이전 일정: 6월 10일(화) 오전 9시 ~ 오후 3시',
+                    '이전 장소: A동 지하1층 → B동 3층 물류센터',
+                    '이전 중 창고 접근 제한됩니다. 미리 자재 확보 바랍니다.',
+                    '<b>발주 및 수령 업무는 6/11부터 정상화됩니다.</b>'
+                ]
+            }
+        };
+
+        // ✔ 상세 내용 표시 함수
+        function showNotice(id) {
+            const notice = notices[id];
+            if (!notice) return;
+
+            document.getElementById('noticeTitle').innerHTML = notice.title;
+
+            const contentDiv = document.getElementById('noticeContent');
+            contentDiv.innerHTML = '';
+            notice.content.forEach((line, index) => {
+                const div = document.createElement('div');
+                div.className = 'mb-3';
+                if (index === 0 && line.includes('color: red;')) {
+                    div.innerHTML = line;
+                } else {
+                    div.innerHTML = `<i class="bi bi-check2-square"></i> ${line}`;
+                }
+                contentDiv.appendChild(div);
+            });
+
+            document.getElementById('noticeDetail').style.display = 'block';
+            document.getElementById('noticeDetail').scrollIntoView({ behavior: 'smooth' });
+        }
+
+
+        <!-- 공지기능 추가 : 체크 선택하나만 + 새로고침 시 유지 -->
         function toggleAllCheckboxes(master) {
             const checkboxes = document.querySelectorAll('.row-checkbox');
             checkboxes.forEach(cb => {
@@ -66,22 +140,57 @@
                 cb.dispatchEvent(new Event('change'));
             });
         }
-
         function markAsNotice(checkbox) {
-            const row = checkbox.closest("tr");
             const tbody = document.querySelector("tbody");
+            const allCheckboxes = tbody.querySelectorAll(".row-checkbox");
+
+            allCheckboxes.forEach(cb => {
+                if (cb !== checkbox) {
+                    cb.checked = false;
+                    cb.closest("tr").classList.remove("notice-row");
+                }
+            });
+            const row = checkbox.closest("tr");
+            const noticeTitle = row.querySelector("td:nth-child(2)").textContent.trim();
 
             if (checkbox.checked) {
                 row.classList.add("notice-row");
                 tbody.prepend(row);
+                localStorage.setItem("noticePost", noticeTitle);
             } else {
                 row.classList.remove("notice-row");
                 tbody.append(row);
+                localStorage.removeItem("noticePost");
             }
         }
+        window.addEventListener('load', () => {
+            const savedTitle = localStorage.getItem("noticePost");
+            if (savedTitle) {
+                const tbody = document.querySelector("tbody");
+                const rows = Array.from(tbody.querySelectorAll("tr"));
+
+                rows.forEach(row => {
+                    const rowTitle = row.querySelector("td:nth-child(2)").textContent.trim();
+                    const checkbox = row.querySelector(".row-checkbox");
+
+                    if (rowTitle === savedTitle) {
+                        row.classList.add("notice-row");
+                        checkbox.checked = true;
+                        tbody.prepend(row);
+                    } else {
+                        checkbox.checked = false;
+                        row.classList.remove("notice-row");
+                    }
+                });
+                // [추가] 제목으로부터 공지 ID 찾아서 showNotice 실행
+                const matchedKey = Object.keys(notices).find(key =>
+                    notices[key].title.replace('제목 : ', '').trim() === savedTitle
+                );
+
+                if (matchedKey) {
+                    showNotice(matchedKey);
+                }
+            }
+        });
     </script>
-
-</th:block>
 </html>
-
-
