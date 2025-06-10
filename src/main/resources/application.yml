@@ -2,6 +2,9 @@ spring:
   application:
     name: gyullectric
 
+  main:
+    allow-bean-definition-overriding: true   # 이 설정이 없으면 충돌로 서버가 안 켜질 수도 있음
+
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
@@ -19,7 +22,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update   # 개발 단계에서는 update, 운영 시에는 validate 또는 none 권장
+      ddl-auto: create   # 개발 단계에서는 update, 운영 시에는 validate 또는 none 권장
     properties:
       hibernate:
         format_sql: true
@@ -40,4 +43,5 @@ logging:
 
 custom:
   prediction-api:
-    url: http://localhost:5000/predict
+    base-url: http://localhost:5000/predict
+    defect-url: http://localhost:5000/predict/defect  # 불량예측 경로
