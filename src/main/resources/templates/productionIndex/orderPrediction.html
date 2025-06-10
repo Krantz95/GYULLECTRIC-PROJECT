@@ -1,47 +1,73 @@
-<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" xmlns:th="http://www.thymeleaf.org">
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
 <th:block layout:fragment="content">
     <div class="py-4">
         <!-- 서브타이틀 -->
         <div class="subtitle_css">📦 생산지표관리 <span class="en-font">_ 발주예측</span></div>
 
-        <!-- KPI 요약 -->
+        <!-- KPI 요약 카드 -->
         <div class="py-3" th:if="${predictedData != null}">
-            <div class="form_sm_css shadow-sm border rounded" style="max-width: 1600px; padding: 20px 15px; background-color: #f9f9f9;">
+            <div class="form_sm_css shadow-sm border rounded"
+                 style="max-width: 1600px; padding: 20px 15px; background-color: #f9f9f9;">
                 <div class="mb-2 fw-bold fs-5">📊 KPI 요약</div>
-                <div class="ms-2">🧮 예상 총 발주량 :
-                    <span class="fw-bold" th:text="${#aggregates.sum(predictedData, 'recommended')} + '개'">0개</span>
+                <div class="ms-2">🧮 예측 총 수요량 :
+                    <span class="fw-bold" th:text="${predictedTotal} + '개'">0개</span>
                 </div>
                 <div class="ms-2">🕒 적정 발주 시점 :
-                    <span class="fw-semibold text-primary" th:text="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}">2025-06-01</span>
+                    <span class="fw-semibold text-primary"
+                          th:text="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}">2025-06-09</span>
                 </div>
                 <div class="ms-2">🚨 과잉 재고 리스크 :
-                    <span th:style="${#aggregates.sum(predictedData, 'recommended') > 500} ? 'color: red;' : 'color: green;'" class="fw-bold">
-                        <span th:text="${#aggregates.sum(predictedData, 'recommended') > 500} ? '높음' : '낮음'">낮음</span>
+                    <span th:style="${predictedTotal > 2200} ? 'color: red;' : 'color: green;'" class="fw-bold"
+                          th:text="${predictedTotal > 2200} ? '높음' : '낮음'">낮음</span>
+                </div>
+                <div class="ms-2">📈 발주 필요 품목 :
+                    <span th:if="${shortageParts != null and !#lists.isEmpty(shortageParts)}">
+                        <ul class="mb-0">
+                            <li th:each="p : ${shortageParts}" th:text="${p}">자재</li>
+                        </ul>
+                    </span>
+                    <span th:if="${shortageParts == null or #lists.isEmpty(shortageParts)}" class="text-muted">
+                        없음
                     </span>
                 </div>
-                <div class="ms-2">📈 최근 수요 증가 품목 : <span class="text-danger">배터리팩, 모터</span></div>
             </div>
         </div>
 
         <!-- 예측 입력 폼 -->
         <div class="m-3">
-            <p class="pt-2 fw-bold">🔍 발주 예측</p>
+            <p class="pt-2 fw-bold">🔍 수요량 기반 발주 예측</p>
             <form th:action="@{/indicators/order-predict}" method="post"
-                  class="d-flex justify-content-start align-items-center mb-3 gap-2">
-                <input type="date" name="startDate" class="form-control" th:value="${startDate}" required>
-                <input type="date" name="endDate" class="form-control" th:value="${endDate}" required>
-                <button type="submit" class="btn_search text-white">예측 실행</button>
+                  class="row g-2 mb-4 align-items-end" style="max-width: 800px;">
+                <div class="col-md-4">
+                    <label class="form-label">날짜 1</label>
+                    <input type="date" class="form-control" name="date1" required>
+                    <input type="number" class="form-control mt-1" name="demand1" placeholder="수요량 입력" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">날짜 2</label>
+                    <input type="date" class="form-control" name="date2" required>
+                    <input type="number" class="form-control mt-1" name="demand2" placeholder="수요량 입력" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">날짜 3</label>
+                    <input type="date" class="form-control" name="date3" required>
+                    <input type="number" class="form-control mt-1" name="demand3" placeholder="수요량 입력" required>
+                </div>
+                <div class="col-md-12">
+                    <button type="submit" class="btn_search text-white mt-2">예측 실행</button>
+                </div>
             </form>
         </div>
 
-        <!-- 예측 결과 테이블 -->
+        <!-- 부품별 예측 결과 테이블 -->
         <div class="table-responsive pt-2" style="overflow-x: auto;">
             <table class="table table-bordered text-center align-middle table2_css" style="color: black;">
                 <thead class="table-light">
                 <tr>
                     <th>부품명</th>
-                    <th>현재 재고</th>
                     <th>예측 수요량</th>
+                    <th>현재 재고</th>
                     <th>권장 발주량</th>
                     <th>발주 필요</th>
                 </tr>
@@ -49,18 +75,21 @@
                 <tbody>
                 <tr th:each="row : ${predictedData}">
                     <td th:text="${row.part}">부품명</td>
+                    <td th:text="${row.predicted != null ? row.predicted : '-'}">-</td>
                     <td th:text="${row.currentStock}">0</td>
-                    <td th:text="${row.predicted}">0</td>
-                    <td th:text="${row.recommended}">0</td>
+                    <td th:text="${row.recommended != null ? row.recommended : '-'}">-</td>
                     <td>
-                        <span class="badge"
+                        <span th:if="${row.recommended != null}"
+                              class="badge"
                               th:classappend="${row.recommended > 0} ? 'bg-danger' : 'bg-success'"
-                              th:text="${row.recommended > 0} ? '필요' : '불필요'">필요</span>
+                              th:text="${row.recommended > 0} ? '재고부족' : '재고충분'">재고충분</span>
+                        <span th:unless="${row.recommended != null}">-</span>
                     </td>
                 </tr>
+
                 <tr th:if="${#lists.isEmpty(predictedData)}">
                     <td colspan="5" class="text-center text-muted py-3">
-                        🔎 예측 결과가 없습니다. 날짜를 선택한 뒤 예측을 실행해주세요.
+                        🔎 예측 결과가 없습니다. 날짜와 수요량을 입력한 뒤 예측을 실행해주세요.
                     </td>
                 </tr>
                 </tbody>

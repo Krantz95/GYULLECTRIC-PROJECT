@@ -1,16 +1,15 @@
 package gyullectric.gyullectric.controller;
 
 import gyullectric.gyullectric.service.PredictionService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/indicators")
@@ -25,39 +24,58 @@ public class IndicatorController {
         return "productionIndex/defectLog";
     }
 
-    /** 📌 발주 예측 페이지 (초기 진입 시 예측 안함) */
+    /** 📌 발주 예측 페이지 (초기 진입 시 재고만 표시) */
     @GetMapping("/order-predict")
-    public String getOrderPredict(Model model) {
-        model.addAttribute("predictedData", null);
+    public String getManualPredictionForm(Model model, HttpSession session) {
+        if (session.getAttribute("loginMember") == null) {
+            return "redirect:/login";
+        }
+
+        model.addAttribute("inputValues", List.of("", "", ""));
+        model.addAttribute("predictedData", predictionService.getInventoryStatusOnly());
+        model.addAttribute("predictedTotal", null);
+        model.addAttribute("shortageParts", null); // KPI 초기화
         return "productionIndex/orderPrediction";
     }
 
-    /** ✅ 예측 실행: Flask API 호출 후 결과 바인딩 */
+    /** ✅ 발주 예측 실행: 수요량 3개 → 예측 결과 + 재고 기반 권장 발주량 표시 */
     @PostMapping("/order-predict")
-    public String postOrderPredict(@RequestParam String startDate,
-                                   @RequestParam String endDate,
-                                   Model model) {
+    public String postManualPrediction(@RequestParam int demand1,
+                                       @RequestParam int demand2,
+                                       @RequestParam int demand3,
+                                       Model model,
+                                       HttpSession session) {
+        if (session.getAttribute("loginMember") == null) {
+            return "redirect:/login";
+        }
 
-        // 1. Flask API 호출
-        String flaskUrl = "http://127.0.0.1:5000/predict";
+        List<Integer> inputValues = List.of(demand1, demand2, demand3);
 
-        Map<String, String> requestBody = new HashMap<>();
-        requestBody.put("startDate", startDate);
-        requestBody.put("endDate", endDate);
+        // 예측 결과 + 권장 발주량 계산
+        List<Map<String, Object>> predictedData = predictionService.getForecastAndRecommendations(inputValues);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
+        model.addAttribute("inputValues", inputValues);
+        model.addAttribute("predictedData", predictedData);
 
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Map> response = restTemplate.postForEntity(flaskUrl, entity, Map.class);
+        // KPI 출력용 데이터 바인딩
+        if (!predictedData.isEmpty()) {
+            model.addAttribute("predictedTotal", predictedData.get(0).get("predicted"));
 
-        // 2. 응답 데이터 파싱
-        Map<String, Object> responseBody = response.getBody();
-        List<Map<String, Object>> predictedData = (List<Map<String, Object>>) responseBody.get("data");
+            List<String> shortageParts = predictedData.stream()
+                    .filter(row -> {
+                        Object recommended = row.get("recommended");
+                        return recommended instanceof Integer && ((Integer) recommended) > 0;
+                    })
+                    .map(row -> (String) row.get("part"))
+                    .collect(Collectors.toList());
 
-        // 3. 모델에 바인딩
-        populateModelForOrderPrediction(model, predictedData, startDate, endDate);
+            model.addAttribute("shortageParts", shortageParts);
+        } else {
+            model.addAttribute("predictedTotal", 0);
+            model.addAttribute("shortageParts", null);
+            model.addAttribute("error", "예측 결과가 없습니다. 다시 시도해주세요.");
+        }
+
         return "productionIndex/orderPrediction";
     }
 
@@ -71,15 +89,5 @@ public class IndicatorController {
     @GetMapping("/statistics")
     public String getStatistics() {
         return "productionIndex/productionStats";
-    }
-
-    /** ✅ 공통 모델 바인딩 메서드 */
-    private void populateModelForOrderPrediction(Model model,
-                                                 List<Map<String, Object>> result,
-                                                 String startDate,
-                                                 String endDate) {
-        model.addAttribute("predictedData", result);
-        model.addAttribute("startDate", startDate);
-        model.addAttribute("endDate", endDate);
     }
 }
