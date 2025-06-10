@@ -176,7 +176,7 @@
     }
 
     // 실시간 차트 데이터 업데이트 함수 (차트 객체, ok/ng 수, 텍스트 ID 받아서 갱신)
-    function updateChart(chart, ok, ng, textElementId, chartLabelText, okLabel, ngLabel) {
+    function updateChart(chart, ok, ng, textElementId,  okLabel, ngLabel) {
         const total = ok + ng;
         const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
         const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
@@ -251,19 +251,19 @@
             function getErrorDescription(errorCode, value) {
                 switch(errorCode) {
                     case "ERROR_101":
-                        return `용접 출력 과다 (${value.toFixed(1)}V)`;
+                        return `ERROR_101_용접 출력 과다 (${value.toFixed(1)}V)`;
                     case "ERROR_102":
-                        return `용접 출력 부족 (${value.toFixed(1)}V)`;
+                        return `ERROR_102_용접 출력 부족 (${value.toFixed(1)}V)`;
                     case "ERROR_201":
-                        return `온도 이상 (${value.toFixed(1)}℃)`;
+                        return `ERROR_201_온도 이상 (${value.toFixed(1)}℃)`;
                     case "ERROR_202":
-                        return `온도 이하 (${value.toFixed(1)}℃)`;
+                        return `ERROR_202_온도 이하 (${value.toFixed(1)}℃)`;
                     case "ERROR_103":
-                        return "데이터 누락";
+                        return "ERROR_103_스크래치 불량";
                     case "ERROR_110":
-                        return "출력 저하";
+                        return "ERROR_110_조립 불량";
                     case "ERROR_111":
-                        return "출력 초과";
+                        return "ERROR_111_기능 불량";
                     default:
                         return "EXCEPTION_ERROR";
                 }
@@ -277,10 +277,15 @@
             const errorCode = p.errorCode || '-';
             const errorValue = p.errorValue != null ? p.errorValue : null;
 
-            let errorDisplay = errorCode === '_' ? '-' : errorCode;
+            let errorDisplay  = '_';
 
-            if (errorValue !== null && errorCode !== '_') {
-                errorDisplay += ` ${getErrorDescription(errorCode, errorValue)}`;
+            if (errorCode && errorCode !== '_') {
+                if (errorValue !== null && errorValue !== undefined) {
+                    errorDisplay = getErrorDescription(errorCode, errorValue);
+                } else {
+                    // 값이 없을 경우에도 description 반환하도록 처리
+                    errorDisplay = getErrorDescription(errorCode, 0); // or null
+                }
             }
 
 

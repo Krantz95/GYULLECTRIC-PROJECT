@@ -79,11 +79,6 @@ public class MonitoringDataService {
         return lotNumber;
     }
 
-    // lotNumber에서 제품명 추출 (예: "A_123_01_1_20230528" -> "A")
-    public String extractProductNameFromLot(String lotNumber) {
-        String[] parts = lotNumber.split("_");
-        return parts.length > 0 ? parts[0] : "UNKNOWN";
-    }
 
     private Map<Long, Map<String, Set<ProcessResultStatus>>> groupStatusesByOrderAndLot(List<ProcessLog> processes) {
         // 주문번호(Long) -> 로트번호(String) -> 공정상태 Set<ProcessResultStatus>

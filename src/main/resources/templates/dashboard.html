@@ -1,7 +1,8 @@
 <html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <th:block layout:fragment="alert">
-    <div class="dashboard_error">
-        <p style="margin: 0;">제 2공정 : 101 ERROR</p>
+    <div class="dashboard_error" >
+        <span id = "errorText"></span>
+        <p style="margin: 0;"></p>
     </div>
 
     <div style="background-color: #FFC373; padding: 8px 0;">
@@ -56,25 +57,25 @@
                     <!-- 프레임 -->
                     <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
                         <div style="width: 100%; max-width: 320px;">
-                            <p class="text-center">프레임</p>
+                            <p class="text-center">1공정 - 프레임</p>
                             <canvas id="myChart1" class="w-100" style="height: 240px;" height="240"></canvas>
-                            <div id="chartText1" class="pt-2 text-center"></div>
+                            <div id="text1" class="pt-2 text-center"></div>
                         </div>
                     </div>
                     <!-- 도장 -->
                     <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
                         <div style="width: 100%; max-width: 320px;">
-                            <p class="text-center">도장</p>
+                            <p class="text-center">2공정 - 도장</p>
                             <canvas id="myChart2" class="w-100" style="height: 240px;" height="240"></canvas>
-                            <div id="chartText2" class="pt-2 text-center"></div>
+                            <div id="text2" class="pt-2 text-center"></div>
                         </div>
                     </div>
                     <!-- 검수 -->
                     <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
                         <div style="width: 100%; max-width: 320px;">
-                            <p class="text-center">검수</p>
+                            <p class="text-center">3공정 - 검수</p>
                             <canvas id="myChart3" class="w-100" style="height: 240px;" height="240"></canvas>
-                            <div id="chartText3" class="pt-2 text-center"></div>
+                            <div id="text3" class="pt-2 text-center"></div>
                         </div>
                     </div>
                 </div>
@@ -161,7 +162,7 @@
                 </div>
             </div>
         </div>
-
+        </div>
     </div>
 </th:block>
 
@@ -193,43 +194,72 @@
 
     <!-- ============ 공정별 OK/NG 차트 =============-->
     <script th:inline="javascript">
-        // 예시: 공정 모니터링용 변수 (서버에서 Thymeleaf로 전달 필요)
-        let okCountByStep = /*[[${okCountByStep}]]*/ {};
-        let ngCountByStep = /*[[${ngCountByStep}]]*/ {};
+        var ng1 = /*[[${ngCountByStep[1]?:0}]]*/0;
+        var ok1 = /*[[${okCountByStep[1]?:0}]]*/0;
+        var ng2 = /*[[${ngCountByStep[2]?:0}]]*/0;
+        var ok2 = /*[[${okCountByStep[2]?:0}]]*/0;
+        var ng3 = /*[[${ngCountByStep[3]?:0}]]*/0;
+        var ok3 = /*[[${okCountByStep[3]?:0}]]*/0;
 
-        let ok1 = okCountByStep['1'] || 0;
-        let ng1 = ngCountByStep['1'] || 0;
-        let ok2 = okCountByStep['2'] || 0;
-        let ng2 = ngCountByStep['2'] || 0;
-        let ok3 = okCountByStep['3'] || 0;
-        let ng3 = ngCountByStep['3'] || 0;
+        window.okCounts = {1: ok1, 2: ok2, 3: ok3};
+        window.ngCounts = {1: ng1, 2: ng2, 3: ng3};
     </script>
     <script>
-        // 퍼센트 표시 플러그인
+        function updateNgWarning() {
+            const ngRates = [
+                (ng1 / (ok1 + ng1)) * 100,
+                (ng2 / (ok2 + ng2)) * 100,
+                (ng3 / (ok3 + ng3)) * 100
+            ];
+            const avgNg = ngRates.reduce((a, b) => a + b, 0) / ngRates.length;
+            const warningDiv = document.getElementById('ngWarningMessage');
+
+            let message = '', style = '', icon = '';
+            if (avgNg < 10) {
+                icon = '✅';
+                message = `${icon} 전체 공정 NG율 ${avgNg.toFixed(1)}% 미만 (양호)`;
+                style = 'background-color: #e0f5e9; color: #28a745;';
+                warningDiv.className = 'warning-box';  // 깜박임 제거
+            } else if (avgNg < 15) {
+                icon = '🔔';
+                message = `${icon} NG율 ${avgNg.toFixed(1)}% (주의 필요)`;
+                style = 'background-color: #fff9e6; color: #ffc107;';
+                warningDiv.className = 'warning-box blinking'; // 깜박임 효과 추가
+            } else {
+                icon = '🚨';
+                message = `${icon} 비상! NG율 ${avgNg.toFixed(1)}% 초과`;
+                style = 'background-color: #ffe6e6; color: #dc3545;';
+                warningDiv.className = 'warning-box blinking'; // 깜박임 효과 추가
+            }
+            warningDiv.setAttribute('style', `${style} padding: 5px 10px; border-radius: 10px; font-weight: bold;`);
+            warningDiv.textContent = message;
+        }
+
+        updateNgWarning();
         const centerTextPlugin = {
             id: 'centerTextPlugin',
             beforeDraw: (chart) => {
-                if (chart.canvas.id !== 'myChart1' && chart.canvas.id !== 'myChart2' && chart.canvas.id !== 'myChart3') {
-                    return;
-                }
                 const {width, height, ctx} = chart;
                 const dataset = chart.data.datasets[0];
                 const total = dataset.data.reduce((a, b) => a + b, 0);
                 const ok = dataset.data[0];
                 const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
+
                 const centerX = width / 2;
                 const centerY = height / 2;
 
+                // ⭕ Draw orange circle
                 const innerRadius = chart._metasets[0].data[0].innerRadius;
                 ctx.save();
                 ctx.beginPath();
                 ctx.strokeStyle = 'orange';
                 ctx.lineWidth = 4;
-                ctx.arc(centerX, centerY, innerRadius - 5, 0, 2 * Math.PI);
+                ctx.arc(centerX, centerY, innerRadius - 5, 0, 2 * Math.PI); // -5 to fit inside nicely
                 ctx.stroke();
                 ctx.closePath();
                 ctx.restore();
 
+                // 🔢 Draw center percentage text
                 ctx.save();
                 ctx.font = 'bold 20px sans-serif';
                 ctx.fillStyle = '#000';
@@ -239,21 +269,32 @@
                 ctx.restore();
             }
         };
-        Chart.register(centerTextPlugin);
+
         // 도넛 차트 그리기 함수
-        function drawChart(ctx, ok, ng, textElementId) {
+        // drawChart 함수 정의
+        function drawChart(canvas, ok, ng, textElementId, okLabel, ngLabel) {
+            if (!canvas) {
+                console.error(`Canvas element not found for chart.`);
+                return null;
+            }
+
+            // 기존 차트가 있으면 destroy
+            if (canvas.chart) {
+                canvas.chart.destroy();
+            }
+
+            const ctx = canvas.getContext('2d');
             const total = ok + ng;
             const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
             const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
 
-            new Chart(ctx, {
+            const chart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['OK', 'NG'],
                     datasets: [{
                         data: [ok, ng],
                         backgroundColor: ['#009913', '#ea2402'],
-                        borderWidth: 0
                     }]
                 },
                 options: {
@@ -261,27 +302,199 @@
                     maintainAspectRatio: true,
                     cutout: '40%',
                     plugins: {
+
                         legend: { display: false }
+
                     }
                 },
                 plugins: [centerTextPlugin]
             });
 
+            // 차트 인스턴스 저장 (canvas 요소에 저장)
+            canvas.chart = chart;
+
+            // 텍스트 표시 업데이트
             const textDiv = document.getElementById(textElementId);
             if (textDiv) {
                 textDiv.innerHTML =
-                    `<span style="display: inline-block; width: 20px; height: 10px; background-color: #009913; margin-right: 5px;"></span>` +
-                    `<span style="font-weight:bold; font-size: 15px">OK </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +
-                    `<span style="display: inline-block; width: 20px; height: 10px; background-color: #ea2402; margin-right: 5px;"></span>` +
-                    `<span style="font-weight:bold; font-size: 15px">NG </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;
+                    `<span style="display: inline-block; width: 20px; height: 10px; background-color: #4caf50; margin-right: 5px;"></span>` +
+                    `<span style="font-weight:bold;  font-size: 15px">${okLabel} </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +
+                    `<span style="display: inline-block; width: 20px; height: 10px; background-color: #f44336; margin-right: 5px;"></span>` +
+                    `<span style="font-weight:bold; font-size: 15px">${ngLabel} </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;
+            }
+
+            return chart;
+        }
+
+        const lotStepStatusMap = {};
+
+        // 차트 업데이트 함수 (기존 차트 데이터만 바꾸고 update 호출)
+        function updateChart(chart, ok, ng, textElementId, okLabel, ngLabel) {
+            if (!chart) return;
+
+            const total = ok + ng;
+            const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
+            const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
+
+            chart.data.datasets[0].data = [ok, ng];
+            chart.update();
+
+            const textDiv = document.getElementById(textElementId);
+            if (textDiv) {
+                textDiv.innerHTML =
+                    `<span style="display: inline-block; width: 20px; height: 10px; background-color: #4caf50; margin-right: 5px;"></span>` +
+                    `<span style="font-weight:bold;  font-size: 15px">${okLabel} </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +
+                    `<span style="display: inline-block; width: 20px; height: 10px; background-color: #f44336; margin-right: 5px;"></span>` +
+                    `<span style="font-weight:bold; font-size: 15px">${ngLabel} </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;
             }
         }
 
+        // 페이지 로드 후 차트 초기화
         document.addEventListener('DOMContentLoaded', () => {
-            drawChart(document.getElementById('myChart1'), ok1, ng1, 'chartText1');
-            drawChart(document.getElementById('myChart2'), ok2, ng2, 'chartText2');
-            drawChart(document.getElementById('myChart3'), ok3, ng3, 'chartText3');
+            window.chart1 = drawChart(document.getElementById('myChart1'), ok1, ng1, 'text1', '용접 출력 통과', '용접 출력 이상');
+            window.chart2 = drawChart(document.getElementById('myChart2'), ok2, ng2, 'text2', '도장 온도 정상', '도장 온도 이상');
+            window.chart3 = drawChart(document.getElementById('myChart3'), ok3, ng3, 'text3', '검수 통과', '검수 불량');
         });
+
+        // 시간대별 목표달성량 가로바 차트
+        const ctx = document.getElementById('orderChart').getContext('2d');
+
+        const chartConfig = {
+            type: 'bar',
+            data: {
+                labels: [], // 제품명 리스트
+                datasets: [{
+                    label: '주문 달성량',
+                    data: [], // 수량 리스트
+                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                }]
+            },
+            options: {
+                indexAxis: 'y',  // 가로 바 차트 설정
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                    }
+                }
+            }
+        };
+
+        const orderChart = new Chart(ctx, chartConfig);
+
+        // WebSocket 처리 부분은 그대로 유지하되, updateChart 호출 시 위 함수 사용
+        const socket = new SockJS("/ws");
+        const stomp = Stomp.over(socket);
+
+        stomp.connect({}, () => {
+
+            stomp.subscribe('/topic/progress', function (message) {
+                const orderData = JSON.parse(message.body);
+                updateOrderChart(orderData);
+            });
+            function updateChart(data) {
+                // data 예: { products: ['제품1', '제품2', '제품3'], quantities: [10, 20, 15] }
+
+                orderChart.data.labels = data.products;
+                orderChart.data.datasets[0].data = data.quantities;
+                orderChart.update();
+            }
+
+            stomp.subscribe("/topic/process", (msg) => {
+                const p = JSON.parse(msg.body);
+
+                const step = p.processStep;
+                const status = p.processResultStatus;
+                const lotNumber = p.lotNumber;
+                const errorMessage = p.errorMessage;
+
+                const base = lotNumber.split("_").slice(0, 3).join("_");
+                if (!lotStepStatusMap[base]) lotStepStatusMap[base] = {};
+                lotStepStatusMap[base][step] = status;
+
+                // 실시간 OK/NG 카운트 초기화
+                if (!window.okCounts[step]) window.okCounts[step] = 0;
+                if (!window.ngCounts[step]) window.ngCounts[step] = 0;
+
+                if (status === 'OK') {
+                    window.okCounts[step]++;
+                } else if (status === 'NG') {
+                    window.ngCounts[step]++;
+                    showNgAlert(step, errorMessage);        // NG 메시지 알림
+                    updateNgWarningRealtime(step);          // NG 비율 경고 업데이트
+                }
+
+                // 실시간 NG 비율 업데이트 함수
+                function updateNgWarningRealtime(step) {
+                    if (window.ngCounts && window.okCounts) {
+                        window.ngCounts[step] = (window.ngCounts[step] || 0) + 1;
+                        updateNgWarning();
+                        updateChart(
+                            step === 1 ? window.chart1 : step === 2 ? window.chart2 : window.chart3,
+                            window.okCounts[step] || 0,
+                            window.ngCounts[step] || 0,
+                            'text' + step,
+                            step === 1 ? '용접 출력 통과' : step === 2 ? '도장 통과' : '완제품 출하 통과',
+                            step === 1 ? '용접 출력 이상' : step === 2 ? '도장 이상' : '완제품 출하 이상'
+                        );
+                    }
+                }
+
+
+                if (!window.okCounts[step]) window.okCounts[step] = 0;
+                if (!window.ngCounts[step]) window.ngCounts[step] = 0;
+
+                if (status === 'OK') window.okCounts[step]++;
+                if (status === 'NG') window.ngCounts[step]++;
+
+                switch (Number(step)) {
+                    case 1:
+                        updateChart(window.chart1, window.okCounts[1], window.ngCounts[1], 'text1', '용접 출력 통과', '용접 출력 이상');
+                        break;
+                    case 2:
+                        updateChart(window.chart2, window.okCounts[2], window.ngCounts[2], 'text2', '도장 온도 정상', '도장 온도 이상');
+                        break;
+                    case 3:
+                        updateChart(window.chart3, window.okCounts[3], window.ngCounts[3], 'text3', '검수 통과', '검수 불량');
+                        break;
+                }
+            });
+            function getErrorDescription(errorCode, value) {
+                switch(errorCode) {
+                    case "ERROR_101":
+                        return `ERROR_101_용접 출력 과다 (${value.toFixed(1)}V)`;
+                    case "ERROR_102":
+                        return `ERROR_102_용접 출력 부족 (${value.toFixed(1)}V)`;
+                    case "ERROR_201":
+                        return `ERROR_201_온도 이상 (${value.toFixed(1)}℃)`;
+                    case "ERROR_202":
+                        return `ERROR_202_온도 이하 (${value.toFixed(1)}℃)`;
+                    case "ERROR_103":
+                        return "ERROR_103_스크래치 불량";
+                    case "ERROR_110":
+                        return "ERROR_110_조립 불량";
+                    case "ERROR_111":
+                        return "ERROR_111_기능 불량";
+                    default:
+                        return "EXCEPTION_ERROR";
+                }
+            }
+            function showErrorBanner(errorCode, value) {
+                const message = getErrorDescription(errorCode, value);
+                const banner = document.getElementById("errorBanner");
+                const text = document.getElementById("errorText");
+
+                if (banner && text) {
+                    text.textContent = message;
+                    banner.style.display = "block";
+
+                    // 일정 시간 후 자동 숨김 (예: 5초)
+                    setTimeout(() => {
+                        banner.style.display = "none";
+                    }, 5000);
+                }
+            }
+        });
+
     </script>
 
 </th:block>

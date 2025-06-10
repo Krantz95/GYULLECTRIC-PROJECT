@@ -15,8 +15,10 @@ import org.springframework.stereotype.Component;
 
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 @RequiredArgsConstructor
@@ -203,14 +205,17 @@ public class ProcessScheduler {
             case "ERROR_202":
                 return value != null ? String.format("온도 이하 (%.1f℃)", value) : "온도 이하";
             case "ERROR_103":
-                return "데이터 누락";
+                return "스크래치 불량";
             case "ERROR_110":
-                return "출력 저하";
+                return "조립 불량";
             case "ERROR_111":
-                return "출력 초과";
+                return "기능 불량";
             default:
                 return "EXCEPTION_ERROR";
 
         }
     }
+
+
+
 }

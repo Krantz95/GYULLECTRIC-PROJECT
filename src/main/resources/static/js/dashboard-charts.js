@@ -71,11 +71,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const warningDiv = document.getElementById('ngWarningMessage');
 
     let message = '', style = '', icon = '';
-    if (avgNg < 10) {
+    if (avgNg < 5) {
         icon = '✅';
         message = `${icon} 전체 공정 NG율 ${avgNg.toFixed(1)}% 미만 (양호)`;
         style = 'background-color: #e0f5e9; color: #28a745;';
-    } else if (avgNg < 20) {
+    } else if (avgNg < 10) {
         icon = '🔔';
         message = `${icon} NG율 ${avgNg.toFixed(1)}% (주의 필요)`;
         style = 'background-color: #fff9e6; color: #ffc107;';

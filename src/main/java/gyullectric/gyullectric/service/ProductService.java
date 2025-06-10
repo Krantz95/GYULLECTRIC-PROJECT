@@ -1,13 +1,18 @@
 package gyullectric.gyullectric.service;
 
 import gyullectric.gyullectric.domain.*;
+import gyullectric.gyullectric.repository.BikeProductionRepository;
 import gyullectric.gyullectric.repository.OrderListRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -16,6 +21,7 @@ public class ProductService {
 
     private final OrderListRepository orderListRepository;
     private final OrderService orderService;
+    private final BikeProductionRepository bikeProductionRepository;
 
     // ======== OrderList 관련 기능 ========
 
@@ -106,9 +112,50 @@ public class ProductService {
         return orderListRepository.findTopByIdOrderByOrderDateDesc(orderId);
     }
 
+    public List<BikeProduction> getTodayProductionTargets() {
+        LocalDate today = LocalDate.now();
+        return bikeProductionRepository.findByProductionDate(today);
+    }
 
 
+    // 남은 주문 수량 계산 (목표 - 주문량)
+    public int getRemainingOrderQuantity(ProductName productName) {
+        LocalDate today = LocalDate.now();
+        BikeProduction production = bikeProductionRepository.findByProductionDateAndProductName(today, productName)
+                .orElseThrow(() -> new IllegalArgumentException("오늘의 생산 목표가 없습니다"));
 
+        int targetCount = production.getTargetCount();
+
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime startOfNextDay = today.plusDays(1).atStartOfDay();
+
+        Integer orderedCount = orderListRepository.sumQuantityByProductNameAndDateBetween(productName, startOfDay, startOfNextDay);
+
+        if (orderedCount == null) orderedCount = 0;
+
+        return targetCount - orderedCount;
+    }
+
+    public Map<ProductName, Integer> getTodayTargetMap() {
+        LocalDate today = LocalDate.now();
+
+        List<BikeProduction> productions = bikeProductionRepository.findByProductionDate(today);
+
+        Map<ProductName, Integer> targetMap = productions.stream()
+                .collect(Collectors.toMap(
+                        BikeProduction::getProductName,
+                        BikeProduction::getTargetCount
+                ));
+
+        return targetMap;
+    }
+
+    // 오늘 목표, 실제 생산량 리스트 조회
+    public List<BikeProduction> getTodayProductions() {
+        return bikeProductionRepository.findByProductionDate(LocalDate.now());
+    }
 }
+
+
 
 

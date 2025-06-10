@@ -51,7 +51,12 @@
                     <td th:text="${processForm.processStep}"></td>
                     <td th:text="${processForm.processResultStatus}"></td>
                     <td th:text="${#temporals.format(processForm.createAt,'yyyy-MM-dd HH:mm')}"></td>
-                    <td th:text="${processForm.errorCode}"></td>
+<!--                    <td th:text="${processForm.errorCode}"></td>-->
+                    <td style="color: darkred;" th:id="'errorDesc-' + ${processFormStat.index}"
+                        th:data-code="${processForm.errorCode}"
+                        th:data-value="${processForm.errorValue}"
+                        th:classappend="${processForm.errorCode == 'EXCEPTION_ERROR'} ? 'fw-bold' : ''">
+                    </td>
                 </tr>
                 </tbody>
             </table>
@@ -133,5 +138,50 @@
     }
 
     [1, 2, 3].forEach(drawChart);
+
+    function getErrorDescription(errorCode, value) {
+        if (!errorCode || errorCode === "OK") return "_";
+
+        switch (errorCode) {
+            case "ERROR_101":
+                return `ERROR_101_용접 출력 과다 (${value.toFixed(1)}V)`;
+            case "ERROR_102":
+                return `ERROR_102_용접 출력 부족 (${value.toFixed(1)}V)`;
+            case "ERROR_201":
+                return `ERROR_201_온도 이상 (${value.toFixed(1)}℃)`;
+            case "ERROR_202":
+                return `ERROR_202_온도 이하 (${value.toFixed(1)}℃)`;
+            case "ERROR_103":
+                return "ERROR_103_스크래치 불량";
+            case "ERROR_110":
+                return "ERROR_110_조립 불량";
+            case "ERROR_111":
+                return "ERROR_111_기능 불량";
+            case "EXCEPTION_ERROR":
+                return "EXCEPTION_ERROR"
+            default:
+                return "-";
+
+        }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+        const rows = document.querySelectorAll("[id^=errorDesc-]");
+        rows.forEach(el => {
+            const code = el.getAttribute("data-code");
+            const valueStr = el.getAttribute("data-value");
+
+            // value가 NaN이면 기본값 0 사용
+            const value = parseFloat(valueStr);
+            const safeValue = isNaN(value) ? 0 : value;
+
+            // code가 null, undefined, 빈 문자열, "OK"인 경우 "-"
+            if (!code || code.trim() === "" || code === "OK") {
+                el.textContent = "_";
+            } else {
+                el.textContent = getErrorDescription(code, safeValue);
+            }
+        });
+    });
 </script>
 </html>
