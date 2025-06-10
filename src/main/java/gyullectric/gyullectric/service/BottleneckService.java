@@ -21,7 +21,7 @@ public class BottleneckService {
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime endOfDay = LocalDate.now().atTime(23, 59, 59);
 
-        // ✅ 1. 공정별 평균 처리시간 조회 (초 단위)
+        // 1. 공정별 평균 처리시간 조회
         List<Object[]> timeResults = monitoringRepository.findAvgProcessTimeByStepTodayNative(startOfDay, endOfDay);
         Map<Integer, Double> processTimeMap = new HashMap<>();
         for (Object[] row : timeResults) {
@@ -30,7 +30,7 @@ public class BottleneckService {
             processTimeMap.put(step, avgSeconds);
         }
 
-        // ✅ 2. 공정별 에러 수 조회
+        // 2. 공정별 에러 수 조회
         List<Object[]> errorResults = monitoringRepository.countErrorsByProcessStepToday(startOfDay, endOfDay);
         Map<Integer, Long> errorMap = new HashMap<>();
         for (Object[] row : errorResults) {
@@ -39,21 +39,28 @@ public class BottleneckService {
             errorMap.put(step, errorCount);
         }
 
-        // ✅ 3. 가장 오래 걸린 공정을 병목으로 간주
+        // 3. 병목 공정 결정
         int bottleneck = processTimeMap.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .orElse(-1);
 
-        // ✅ 4. 병목 공정에 따른 메시지
-        String reason = switch (bottleneck) {
-            case 1 -> "프레임 공정의 용접 지연 발생 (온도 조절 필요)";
-            case 2 -> "도장 공정의 온도가 평균보다 높음";
-            case 3 -> "검수 공정에서 불량 기준 강화됨";
+        // 4. 공정명 및 원인 설명 매핑
+        String processName = switch (bottleneck) {
+            case 1 -> "프레임공정";
+            case 2 -> "도장공정";
+            case 3 -> "조립공정";
             default -> "분석 불가";
         };
 
-        // ✅ 5. 결과 DTO 생성
-        return new BottleneckDto(processTimeMap, errorMap, bottleneck, reason);
+        String reason = switch (bottleneck) {
+            case 1 -> "용접 지연 / 온도 편차 발생";
+            case 2 -> "도장온도 평균 3.5℃ 초과";
+            case 3 -> "검수 공정 기준 강화로 인한 지연";
+            default -> "분석 불가";
+        };
+
+        // 5. 결과 DTO 생성
+        return new BottleneckDto(processTimeMap, errorMap, bottleneck, processName, reason);
     }
 }

@@ -78,4 +78,12 @@ public interface MonitoringRepository extends JpaRepository<ProcessLog, Long> {
             "GROUP BY p.processStep")
     List<Object[]> countErrorsByProcessStepToday(@Param("start") LocalDateTime start,
                                                  @Param("end") LocalDateTime end);
+
+    @Query("SELECT p.processStep, COUNT(p) " +
+            "FROM ProcessLog p " +
+            "WHERE p.createAt BETWEEN :start AND :end " +
+            "GROUP BY p.processStep")
+    List<Object[]> countTotalLogsByProcessStepToday(@Param("start") LocalDateTime start,
+                                                    @Param("end") LocalDateTime end);
+
 }

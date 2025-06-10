@@ -47,7 +47,7 @@
                 <div class="kpi-card mt-4">
                     <p class="kpi-title text-danger"><i class="bi bi-exclamation-triangle-fill"></i> 병목 원인 분석</p>
                     <div class="kpi-value"
-                         th:text="${bottleneck != null ? '공정 ' + bottleneck.bottleneck + '번' : '분석 불가'}">
+                         th:text="${bottleneck != null ? bottleneck.processName : '분석 불가'}">
                     </div>
                     <div class="kpi-sub text-muted"
                          th:text="${bottleneck != null ? bottleneck.mainCause : '원인 정보를 불러올 수 없습니다'}">
@@ -75,7 +75,7 @@
             </div>
         </div>
 
-        <!-- 전력량에 따른 상관관계분석 -->
+        <!-- 전력량에 따른 불량률 상관관계 분석 -->
         <div class="col-12">
             <p class="fw-bold py-3 text-start">전력량에 따른 불량률 상관관계 분석</p>
             <div class="d-flex justify-content-center">
@@ -93,7 +93,7 @@
                     labels: ['프레임공정', '도장공정', '조립공정'],
                     datasets: [{
                         label: '평균처리시간(분)',
-                        data: [190, 250, 350], // 예시값
+                        data: [0, 0, 0], // 초기값
                         borderColor: '#FFA500',
                         borderWidth: 3,
                         fill: false
@@ -109,20 +109,30 @@
                     },
                     scales: {
                         y: {
-                            min: 0,
-                            max: 400,
-                            ticks: { stepSize: 100 }
+                            beginAtZero: true,
+                            ticks: { stepSize: 10 }
+                            // ✅ max 제거 → 자동으로 최대값 계산됨
                         }
                     }
                 }
             });
 
+// ✅ 실시간 평균 처리시간 fetch 후 Chart1 업데이트
+            fetch('/indicators/api/avg-processing-time')
+                .then(res => res.json())
+                .then(data => {
+                    const updatedData = [data[1] || 0, data[2] || 0, data[3] || 0]; // 공정 1~3
+                    chart1.data.datasets[0].data = updatedData.map(s => (s / 60).toFixed(1)); // 초 → 분
+                    chart1.update();
+                });
+
+            // ✅ Chart2: 에러 발생 건수 기준 병목 분석
             const chart2 = new Chart(document.getElementById('analysisChart2'), {
                 type: 'doughnut',
                 data: {
                     labels: ['프레임공정', '도장공정', '조립공정'],
                     datasets: [{
-                        data: [12, 36, 18], // 예시값
+                        data: [0, 0, 0], // 초기값 0으로 설정
                         backgroundColor: ['#FFA500', '#FF4C4C', '#36A2EB'],
                         borderWidth: 1
                     }]
@@ -143,6 +153,16 @@
                 }
             });
 
+            // ✅ 실시간 에러 카운트 fetch 후 Chart2 업데이트
+            fetch('/indicators/api/error-count')
+                .then(res => res.json())
+                .then(data => {
+                    const updatedData = [data[1] || 0, data[2] || 0, data[3] || 0];
+                    chart2.data.datasets[0].data = updatedData;
+                    chart2.update();
+                });
+
+            // ✅ Chart3: 전력량 vs 불량률
             const chart3 = new Chart(document.getElementById('analysisChart3'), {
                 type: 'bar',
                 data: {
@@ -150,13 +170,13 @@
                     datasets: [
                         {
                             label: '전력량(kWh)',
-                            data: [9, 18, 8], // 예시값
+                            data: [0, 0, 0],
                             backgroundColor: '#FFA500',
                             yAxisID: 'y'
                         },
                         {
                             label: '불량률(%)',
-                            data: [20, 75, 25], // 예시값
+                            data: [0, 0, 0],
                             backgroundColor: '#808080',
                             yAxisID: 'y1'
                         }
@@ -173,20 +193,40 @@
                     scales: {
                         y: {
                             position: 'left',
-                            min: 0,
-                            max: 20,
-                            ticks: { stepSize: 5 }
+                            beginAtZero: true,
+                            suggestedMax: 15,  // 전력량(kWh) 축의 예상 최대값
+                            ticks: { stepSize: 5 },
+                            title: {
+                                display: true,
+                                text: '전력량(kWh)'
+                            }
                         },
                         y1: {
                             position: 'right',
-                            min: 0,
-                            max: 100,
+                            beginAtZero: true,
+                            suggestedMax: 100,  // 불량률(%) 축의 예상 최대값
                             ticks: { stepSize: 25 },
-                            grid: { drawOnChartArea: false }
+                            grid: { drawOnChartArea: false },
+                            title: {
+                                display: true,
+                                text: '불량률(%)'
+                            }
                         }
                     }
                 }
             });
+
+// ✅ 실시간 데이터 fetch
+            fetch('/indicators/api/power-defect')
+                .then(res => res.json())
+                .then(data => {
+                    const powerData = [data[1]?.power || 0, data[2]?.power || 0, data[3]?.power || 0];
+                    const defectData = [data[1]?.defect || 0, data[2]?.defect || 0, data[3]?.defect || 0];
+
+                    chart3.data.datasets[0].data = powerData;
+                    chart3.data.datasets[1].data = defectData;
+                    chart3.update();
+                });
         });
     </script>
 </th:block>

@@ -13,5 +13,6 @@ public class BottleneckDto {
     private Map<Integer, Double> processTimeMap; // 공정번호 → 평균 처리 시간 (초)
     private Map<Integer, Long> errorMap;         // 공정번호 → 에러 수
     private int bottleneck;                      // 병목 공정번호
+    private String processName;                  // 병목 공정명 (프레임/도장/조립)
     private String mainCause;                    // 병목 원인 설명
 }
