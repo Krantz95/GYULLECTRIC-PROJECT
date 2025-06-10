@@ -1,5 +1,6 @@
 package gyullectric.gyullectric.service;
 
+import gyullectric.gyullectric.domain.OrderList;
 import gyullectric.gyullectric.domain.ProcessLog;
 import gyullectric.gyullectric.domain.ProcessResultStatus;
 import gyullectric.gyullectric.dto.OrderSummaryDto;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 public class MonitoringDataService {
 
     private final MonitoringService monitoringService;
+
 
     //오더기준
     public ProcessDataDto getProcessData(Long orderId) {
@@ -114,6 +116,52 @@ public class MonitoringDataService {
 
             result.put(orderId, new OrderSummaryDto(totalLots, finishedLots, ngLots));
         }
+
+        return result;
+    }
+
+    // 제품명 기준 달성률 계산
+    public Map<String, Object> calculateProductAchievementAndCounts(List<OrderList> productOrderList, List<ProcessLog> processLogs) {
+        Map<Long, OrderSummaryDto> orderSummaryMap = getOrderSummaryByOrderId(processLogs);
+
+        Map<String, Long> totalOrderQtyByProduct = new HashMap<>();
+        Map<String, Long> totalCompleteByProduct = new HashMap<>();
+        Map<String, Long> totalNgByProduct = new HashMap<>();
+        List<String> labels = new ArrayList<>();
+        List<Double> achievementRates = new ArrayList<>();
+
+        for (OrderList order : productOrderList) {
+            Long orderId = order.getId();
+            int orderQty = order.getQuantity();
+            String productName = order.getProductName().name();
+
+            OrderSummaryDto summary = orderSummaryMap.getOrDefault(orderId, new OrderSummaryDto(0, 0, 0));
+            int completeCount = summary.getFinishedLots();
+            int ngCount = summary.getNgLots();
+
+            totalOrderQtyByProduct.put(productName,
+                    totalOrderQtyByProduct.getOrDefault(productName, 0L) + orderQty);
+            totalCompleteByProduct.put(productName,
+                    totalCompleteByProduct.getOrDefault(productName, 0L) + completeCount);
+            totalNgByProduct.put(productName,
+                    totalNgByProduct.getOrDefault(productName, 0L) + ngCount);
+        }
+
+        for (String productName : totalOrderQtyByProduct.keySet()) {
+            long totalOrder = totalOrderQtyByProduct.get(productName);
+            long totalComplete = totalCompleteByProduct.getOrDefault(productName, 0L);
+            double rate = (totalOrder == 0) ? 0.0 : Math.round((totalComplete * 1000.0 / totalOrder)) / 10.0;
+
+            labels.add(productName);
+            achievementRates.add(rate);
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("labels", labels);
+        result.put("totalOrderQtyByProduct", totalOrderQtyByProduct);
+        result.put("totalCompleteByProduct", totalCompleteByProduct);
+        result.put("totalNgByProduct", totalNgByProduct);
+        result.put("achievementRates", achievementRates);
 
         return result;
     }

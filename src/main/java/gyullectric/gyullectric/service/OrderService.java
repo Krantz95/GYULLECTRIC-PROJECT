@@ -155,4 +155,24 @@ public class OrderService {
         Map<PartName, Long> inventoryMap = getInventoryQuantity();
         return inventoryMap.getOrDefault(partName, 0L).intValue();
     }
+
+    // 부족한 부품 리스트 반환
+    public List<PartName> getInsufficientParts(ProductName productName, int orderQuantity) {
+        Map<PartName, Long> requiredParts = getRequiredInventoryStock(productName);
+        Map<PartName, Long> currentInventory = getInventoryQuantity();
+
+        List<PartName> insufficientParts = new ArrayList<>();
+
+        for (Map.Entry<PartName, Long> entry : requiredParts.entrySet()) {
+            PartName part = entry.getKey();
+            long requiredTotal = entry.getValue() * orderQuantity;
+            long available = currentInventory.getOrDefault(part, 0L);
+
+            if (available < 0) {
+                insufficientParts.add(part);
+            }
+        }
+
+        return insufficientParts;
+    }
 }

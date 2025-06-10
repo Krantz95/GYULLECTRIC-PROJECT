@@ -18,12 +18,6 @@ public class IndicatorController {
 
     private final PredictionService predictionService;
 
-    /** 📌 불량 예측 페이지 */
-    @GetMapping("/defect-predict")
-    public String getDefectPredict() {
-        return "productionIndex/defectLog";
-    }
-
     /** 📌 발주 예측 페이지 (초기 진입 시 재고만 표시) */
     @GetMapping("/order-predict")
     public String getManualPredictionForm(Model model, HttpSession session) {

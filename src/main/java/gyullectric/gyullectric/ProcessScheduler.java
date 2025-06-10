@@ -1,11 +1,10 @@
 package gyullectric.gyullectric;
 
-import gyullectric.gyullectric.domain.ErrorCode;
-import gyullectric.gyullectric.domain.ProcessLog;
-import gyullectric.gyullectric.domain.ProcessResultStatus;
-import gyullectric.gyullectric.domain.ProcessStatus;
+import gyullectric.gyullectric.domain.*;
 import gyullectric.gyullectric.dto.MonitoringDto;
 import gyullectric.gyullectric.repository.MonitoringRepository;
+import gyullectric.gyullectric.service.MonitoringDataService;
+import gyullectric.gyullectric.service.MonitoringService;
 import gyullectric.gyullectric.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -25,12 +25,14 @@ import java.util.concurrent.ThreadLocalRandom;
 @Slf4j
 public class ProcessScheduler {
     private final MonitoringRepository monitoringRepository;
+    private final MonitoringDataService monitoringDataService;
+    private final MonitoringService monitoringService;
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final ProductService productService;
 
     @Scheduled(fixedRate = 5000)
     public void processOneByOne() {
-        log.info("스케쥴러가 호출되나?");
+        log.info("공정 모니터링 스케쥴러 호출");
 
         Optional<ProcessLog> processOpt = monitoringRepository
                 .findFirstByProcessResultStatusOrderByOrderList_IdAsc(ProcessResultStatus.WAITING);
@@ -48,9 +50,10 @@ public class ProcessScheduler {
 
         // ===== Step 1: 프레임 용접 (출력 체크) =====
         double frameOutput = 198 + (24 * random.nextDouble()); // 198~222V
-        boolean isOk1 = frameOutput >= 200 && frameOutput <= 220 ;
+        boolean isOk1 = frameOutput >= 200 && frameOutput <= 220;
         String errorCode1 = "_";
-        String errorMessage1 = "정상";
+        String errorMessage1 = "OK";
+
 
         if (!isOk1) {
             double errorProb = 0.5; // 50%
@@ -65,18 +68,17 @@ public class ProcessScheduler {
                 // 90% 확률로 정상 처리
                 isOk1 = true;
                 errorCode1 = "_";
-                errorMessage1 = "정상";
+                errorMessage1 = "OK";
             }
         }
 
-
+        log.info("공정상태 : {},  공정단계 : {}", errorMessage1,  baseStep);
         step1.setProcessResultStatus(isOk1 ? ProcessResultStatus.OK : ProcessResultStatus.NG);
         step1.setCreateAt(LocalDateTime.now());
         step1.setErrorCode(errorCode1);
         step1.setErrorValue(!isOk1 ? frameOutput : null);
         monitoringRepository.save(step1);
         sendProcessLog(step1, errorMessage1);
-
 
 
         // Step 2: 도장 온도 체크
@@ -90,10 +92,12 @@ public class ProcessScheduler {
         double upperMoldTemp = 85 + random.nextDouble() * 20; // 85~105
         double lowerMoldTemp = 180 + random.nextDouble() * 20; // 180~200
 
+
         boolean isOk2 = castPressure < 299 && upperMoldTemp < 94 && lowerMoldTemp < 193 &&
                 castPressure >= 280 && upperMoldTemp >= 85 && lowerMoldTemp >= 180;
         String errorCode2 = "_";
-        String errorMessage2 = "정상";
+        String errorMessage2 = "OK";
+
 
         if (!isOk2) {
             double errorProb = 0.2;  // 20%
@@ -109,10 +113,10 @@ public class ProcessScheduler {
                 // 80% 확률로 정상 처리
                 isOk2 = true;
                 errorCode2 = "_";
-                errorMessage2 = "정상";
+                errorMessage2 = "OK";
             }
         }
-
+        log.info("공정상태 : {},  공정단계 : {}", errorMessage2,  step2Num);
         ProcessLog step2 = ProcessLog.builder()
                 .lotNumber(lotStep2)
                 .processStep(step2Num)
@@ -140,7 +144,9 @@ public class ProcessScheduler {
 
         boolean isOk3 = random.nextDouble() >= 0.2;
         String errorCode3 = "_";
-        String errorMessage3 = "정상";
+        String errorMessage3 = "OK";
+
+        log.info("공정상태 : {},  공정단계 : {}", errorMessage3,  step3Num);
         if (!isOk3) {
             // 에러 발생 시 4% 확률로 예외 에러, 나머지는 다른 에러 중 랜덤 선택
             double exceptionErrorProb = 0.4;  // 4% 확률
@@ -176,7 +182,8 @@ public class ProcessScheduler {
             productService.updateOrderState(orderId, ProcessStatus.COMPLETED);
         }
     }
-    private void sendProcessLog (ProcessLog process, String errorMessage) {
+
+    private void sendProcessLog(ProcessLog process, String errorMessage) {
 
 
         MonitoringDto dto = new MonitoringDto(
@@ -216,6 +223,43 @@ public class ProcessScheduler {
         }
     }
 
+    // 가상의 현재 시간 (초기값: 현재 실제 시간의 자정)
+    private LocalDateTime fakeTime = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+    private long lastFakeTimeUpdate = System.currentTimeMillis();
 
+    @Scheduled(fixedRate = 5000)
+    public void sendUpdatedDashboardData() {
+        // 150초(2.5분)에 한 번 fakeTime += 1시간
+        long now = System.currentTimeMillis();
+        if (now - lastFakeTimeUpdate >= 10_000) {
+            fakeTime = fakeTime.plusHours(1);
+            lastFakeTimeUpdate = now;
+
+            if (fakeTime.getHour() >= 24) {
+                fakeTime = fakeTime.withHour(0).plusDays(1);
+            }
+        }
+        log.info("now={}, lastUpdate={}, diff={}", now, lastFakeTimeUpdate, now - lastFakeTimeUpdate);
+
+        try {
+            // 주문 및 공정 데이터 조회
+            List<OrderList> productOrderList = productService.allFindOrderList();
+            List<ProcessLog> processLogs = monitoringService.allFindProcesses();
+
+            // 가상의 시간 적용 (필요시 별도 매개변수로 전달해서 가공 가능)
+            Map<String, Object> chartData = monitoringDataService.calculateProductAchievementAndCounts(productOrderList, processLogs);
+
+            // 가상 시간 포함해서 보내기 (클라이언트에서 시계 표시용)
+            chartData.put("fakeHour", fakeTime.getHour());
+
+            simpMessagingTemplate.convertAndSend("/topic/product-achievement", chartData);
+            log.info("Dashboard data pushed (fakeHour={}): {}", fakeTime.getHour(), chartData);
+        } catch (Exception e) {
+            log.error("Dashboard 데이터 전송 실패", e);
+        }
+    }
 
 }
+
+
+

@@ -1,7 +1,9 @@
 package gyullectric.gyullectric.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import gyullectric.gyullectric.domain.*;
 import gyullectric.gyullectric.dto.MonitoringDto;
+import gyullectric.gyullectric.dto.OrderSummaryDto;
 import gyullectric.gyullectric.repository.MonitoringRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +23,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class MonitoringService {
     private final MonitoringRepository monitoringRepository;
-    private final ProductService productService;
+
 
     public void processSave(OrderList orderList) {
 
@@ -155,5 +157,6 @@ public class MonitoringService {
 
 
 }
+
 
 
