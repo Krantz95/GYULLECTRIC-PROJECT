@@ -70,11 +70,11 @@ public class ProductController {
     @PostMapping("/create")
     public String productOrderPost(@ModelAttribute("loginMember")Members loginMember, Model model,
                                    @Valid @ModelAttribute("productOrderForm")ProductOrderForm productOrderForm, BindingResult bindingResult){
-       if(bindingResult.hasErrors()){
+        if(bindingResult.hasErrors()){
 
-           log.info("{}", productOrderForm.getProductName());
-           return "product/orderNew";
-       }
+            log.info("{}", productOrderForm.getProductName());
+            return "product/orderNew";
+        }
 
         int remainingQty = productService.getRemainingOrderQuantity(productOrderForm.getProductName());
 
@@ -106,17 +106,17 @@ public class ProductController {
         log.info("productName에 따른 수량 : {}", requiredInventoryStock);
 
 
-       OrderList orderList = OrderList.builder()
-               .productName(productOrderForm.getProductName())
-               .quantity(productOrderForm.getQuantity())
-               .orderDate(LocalDateTime.now())
-               .dueDate(LocalDateTime.now().plusDays(7))
-               .members(loginMember)
-               .processStatus(ProcessStatus.PENDING)
-               .build();
+        OrderList orderList = OrderList.builder()
+                .productName(productOrderForm.getProductName())
+                .quantity(productOrderForm.getQuantity())
+                .orderDate(LocalDateTime.now())
+                .dueDate(LocalDateTime.now().plusDays(7))
+                .members(loginMember)
+                .processStatus(ProcessStatus.PENDING)
+                .build();
         productService.saveOrderList(orderList);
         return "redirect:/product/list";
-}
+    }
 
     private String getCreatePageModel(Model model, ProductOrderForm productOrderForm) {
         List<BikeProduction> productions = productService.getTodayProductions();
@@ -133,7 +133,7 @@ public class ProductController {
 
         return "product/orderNew";
     }
-//    //    주문리스트
+    //    //    주문리스트
     @GetMapping("/list")
     public String orderList(Model model, HttpSession session){
         Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);

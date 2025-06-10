@@ -1,5 +1,9 @@
 package gyullectric.gyullectric.controller;
 
+import gyullectric.gyullectric.dto.BottleneckDto;
+import gyullectric.gyullectric.dto.ProductionKpiDto;
+import gyullectric.gyullectric.service.BottleneckService;
+import gyullectric.gyullectric.service.KpiService;
 import gyullectric.gyullectric.service.PredictionService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -17,12 +21,8 @@ import java.util.stream.Collectors;
 public class IndicatorController {
 
     private final PredictionService predictionService;
-
-    /** 📌 불량 예측 페이지 */
-    @GetMapping("/defect-predict")
-    public String getDefectPredict() {
-        return "productionIndex/defectLog";
-    }
+    private final KpiService kpiService;
+    private final BottleneckService bottleneckService;
 
     /** 📌 발주 예측 페이지 (초기 진입 시 재고만 표시) */
     @GetMapping("/order-predict")
@@ -79,15 +79,25 @@ public class IndicatorController {
         return "productionIndex/orderPrediction";
     }
 
-    /** 📌 생산 분석 페이지 */
+    /** 📌 생산 분석 페이지 (KPI 출력 포함) */
     @GetMapping("/analysis")
-    public String getAnalysis() {
-        return "productionIndex/productionAnalysis";
-    }
+    public String getAnalysis(Model model, HttpSession session) {
+        if (session.getAttribute("loginMember") == null) {
+            return "redirect:/login";
+        }
 
-    /** 📌 생산 통계 페이지 */
-    @GetMapping("/statistics")
-    public String getStatistics() {
-        return "productionIndex/productionStats";
+        ProductionKpiDto kpi = kpiService.getTodayProductionKpi();
+        model.addAttribute("kpi", kpi);
+        model.addAttribute("currentSpeed", kpi.getCurrentSpeed());
+        model.addAttribute("expectedRate", kpi.getExpectedRate());
+        model.addAttribute("onTime", kpi.isOnTime());
+        model.addAttribute("estimatedTime", kpi.getEstimatedTime());
+
+        // ✅ 병목 분석 결과 추가
+        BottleneckDto bottleneckDto = bottleneckService.analyzeTodayBottleneck();
+        model.addAttribute("bottleneck", bottleneckDto);
+
+
+        return "productionIndex/productionAnalysis";
     }
 }
