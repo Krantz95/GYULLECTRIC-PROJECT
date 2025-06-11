@@ -7,39 +7,98 @@ import gyullectric.gyullectric.service.OrderService;
 import gyullectric.gyullectric.service.ProductService;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
+import net.datafaker.Faker;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 //@Component
 @AllArgsConstructor
 public class DummyDataLoader implements CommandLineRunner {
+
     private final BikeProductionRepository bikeProductionRepository;
     private final Random random = new Random();
     private final ProductService productService;
     private final MemberService memberService;
     private final OrderService orderService;
 
-    @Override
-    public void run(String... args) throws Exception {
-//        // 더미 멤버 생성 및 저장
-        Members members = Members.builder()
+    @PostConstruct
+    public void init() {
+        Faker faker = new Faker(new Locale("ko"));
+        Set<String> usedLoginIds = new HashSet<>();
+
+        // ✅ 고정 멤버 3명 생성
+        Members admin1 = Members.builder()
                 .loginId("1")
                 .password("1")
                 .name("장민정")
-                .phone("010-1234-5678")
+                .phone("010-8760-6541")
                 .createDate(LocalDateTime.now())
                 .positionName(PositionName.ADMIN)
                 .build();
-        memberService.save(members);
 
-//         부품 목록
+        Members admin2 = Members.builder()
+                .loginId("2")
+                .password("2")
+                .name("장아름")
+                .phone("010-2222-2222")
+                .createDate(LocalDateTime.now())
+                .positionName(PositionName.ADMIN)
+                .build();
+
+        Members admin3 = Members.builder()
+                .loginId("3")
+                .password("3")
+                .name("김민수")
+                .phone("010-3333-3333")
+                .createDate(LocalDateTime.now())
+                .positionName(PositionName.ADMIN)
+                .build();
+
+        memberService.save(admin1);
+        memberService.save(admin2);
+        memberService.save(admin3);
+
+        usedLoginIds.add("1");
+        usedLoginIds.add("2");
+        usedLoginIds.add("3");
+
+        // ✅ 더미 100명 생성 (ENGINEER)
+        for (int i = 0; i < 100; i++) {
+            String name = faker.name().fullName();
+            String phone = "010-" + faker.number().digits(4) + "-" + faker.number().digits(4);
+
+            String loginId;
+            do {
+                loginId = faker.bothify("eng??##");
+            } while (usedLoginIds.contains(loginId));
+            usedLoginIds.add(loginId);
+
+            String password = "pass" + (i + 1);
+
+            Members member = Members.builder()
+                    .loginId(loginId)
+                    .password(password)
+                    .name(name)
+                    .phone(phone)
+                    .createDate(LocalDateTime.now())
+                    .positionName(PositionName.ENGINEER)
+                    .build();
+
+            memberService.save(member);
+        }
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        // ✅ admin1을 DB에서 조회해서 사용
+        Members fixedAdmin = memberService.findByLoginId("1")
+                .orElseThrow(() -> new IllegalStateException("고정 관리자 계정(loginId=1)을 찾을 수 없습니다."));
+
+        // ✅ 부품 목록
         List<PartName> partNames = List.of(
                 PartName.FRAME,
                 PartName.MOTOR,
@@ -48,11 +107,11 @@ public class DummyDataLoader implements CommandLineRunner {
                 PartName.BATTERY_PACK
         );
 
-        // 공급업체 2종 반복
+        // ✅ 공급업체 2종 반복
         for (PartName partName : partNames) {
             for (Supplier supplier : List.of(Supplier.NEOCONTROL, Supplier.ECO_POWER_CELL)) {
                 Inventory inventory = Inventory.builder()
-                        .members(members)
+                        .members(fixedAdmin)
                         .orderAt(LocalDateTime.now())
                         .supplier(supplier)
                         .quantity(100)
@@ -62,33 +121,28 @@ public class DummyDataLoader implements CommandLineRunner {
             }
         }
 
-        // 생산 목표량 더미 데이터 생성
+        // ✅ 생산 목표량 더미 생성
         initDailyTargetProduction();
     }
 
-    // 생산 목표량 더미 데이터 생성 메서드 추가
-    @PostConstruct
+    // ✅ 생산 목표량 더미 데이터 생성
     private void initDailyTargetProduction() {
-
         LocalDate today = LocalDate.now();
-        // 이미 오늘 날짜의 데이터가 존재하는지 확인
         boolean exists = bikeProductionRepository.existsByProductionDate(today);
         if (exists) {
             System.out.println("⏭️ 오늘의 목표 생산량 데이터가 이미 존재합니다. 생성 생략.");
             return;
         }
 
-        int totalTarget = 300; // 총 목표 생산량
-
-
+        int totalTarget = 300;
         Map<ProductName, Integer> targetMap = distributeProduction(totalTarget);
 
         for (ProductName productName : ProductName.values()) {
             BikeProduction production = new BikeProduction();
             production.setProductionDate(today);
             production.setProductName(productName);
-            production.setTargetCount(targetMap.get(productName)); // 랜덤 목표 수량
-            production.setActualCount(0); // 주문 전이므로 0으로 초기화
+            production.setTargetCount(targetMap.get(productName));
+            production.setActualCount(0);
 
             bikeProductionRepository.save(production);
         }
@@ -110,34 +164,4 @@ public class DummyDataLoader implements CommandLineRunner {
 
         return map;
     }
-
-
-
-
-
-
-        // 제품 더미 (필요 시 주석 해제하여 사용)
-        /*
-        List<ProductName> productNames = List.of(
-                ProductName.PedalAt4,
-                ProductName.GyulRide,
-                ProductName.InteliBike
-        );
-
-        List<OrderList> dummyOrders = productNames.stream()
-                .map(productName -> OrderList.builder()
-                        .productName(productName)
-                        .processStatus(ProcessStatus.PENDING)
-                        .quantity(30)
-                        .members(members)
-                        .orderDate(LocalDateTime.now())
-                        .dueDate(LocalDateTime.now().plusDays(7))
-                        .build()
-                ).toList();
-
-        dummyOrders.forEach(productService::saveOrderList);
-        */
-    }
-
-
-
+}
