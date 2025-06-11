@@ -1,14 +1,14 @@
 package gyullectric.gyullectric.service;
 
+import gyullectric.gyullectric.domain.ProcessLog;
+import gyullectric.gyullectric.domain.ProcessResultStatus;
 import gyullectric.gyullectric.repository.MonitoringRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -50,25 +50,21 @@ public class ProductionAnalysisService {
         LocalDateTime start = LocalDate.now().atStartOfDay();
         LocalDateTime end = LocalDate.now().atTime(23, 59, 59);
 
-        // 처리시간 기반 전력량
         Map<Integer, Double> avgTimeSec = new HashMap<>();
         for (Object[] row : monitoringRepository.findAvgProcessTimeByStepTodayNative(start, end)) {
             avgTimeSec.put((Integer) row[0], ((Number) row[1]).doubleValue());
         }
 
-        // 에러율 계산용: 전체 로그
         Map<Integer, Long> totalCountMap = new HashMap<>();
         for (Object[] row : monitoringRepository.countTotalLogsByProcessStepToday(start, end)) {
             totalCountMap.put((Integer) row[0], ((Number) row[1]).longValue());
         }
 
-        // NG 로그
         Map<Integer, Long> ngCountMap = new HashMap<>();
         for (Object[] row : monitoringRepository.countErrorsByProcessStepToday(start, end)) {
             ngCountMap.put((Integer) row[0], ((Number) row[1]).longValue());
         }
 
-        // 결합
         Map<Integer, Map<String, Double>> result = new HashMap<>();
         for (int step = 1; step <= 3; step++) {
             double power = avgTimeSec.getOrDefault(step, 0.0) / 3600 * 2.5;
@@ -82,5 +78,37 @@ public class ProductionAnalysisService {
             ));
         }
         return result;
+    }
+
+    public int getTodayCompletedCount() {
+        LocalDateTime start = LocalDate.now().atStartOfDay();
+        LocalDateTime end = LocalDate.now().atTime(23, 59, 59);
+        return monitoringRepository.countTodayPassProduct(start, end).intValue();
+    }
+
+    public double getCurrentSpeed() {
+        List<ProcessLog> recent = monitoringRepository.findLastHour();
+        long passCount = recent.stream()
+                .filter(p -> p.getProcessStep() == 3 && p.getProcessResultStatus() == ProcessResultStatus.OK)
+                .count();
+        return Math.round((passCount / 60.0) * 10.0) / 10.0;
+    }
+
+    public double getExpectedCompletionRate() {
+        int completed = getTodayCompletedCount();
+        int target = 300;
+        return Math.round((completed * 100.0 / target) * 10.0) / 10.0;
+    }
+
+    public String getEstimatedTimeString() {
+        double speed = getCurrentSpeed();
+        int remaining = 300 - getTodayCompletedCount();
+        if (speed == 0) return "속도 정보 부족";
+
+        double totalMinutes = remaining / speed;
+        int hours = (int) (totalMinutes / 60);
+        int minutes = (int) (totalMinutes % 60);
+
+        return hours + "시간 " + minutes + "분";
     }
 }

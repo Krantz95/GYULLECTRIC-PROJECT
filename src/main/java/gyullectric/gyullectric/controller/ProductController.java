@@ -66,19 +66,17 @@ public class ProductController {
     }
 
     @PostMapping("/create")
-public String productOrderPost(@ModelAttribute("loginMember") Members loginMember, Model model,
-                               @Valid @ModelAttribute("productOrderForm") ProductOrderForm productOrderForm, BindingResult bindingResult) {
+    public String productOrderPost(@ModelAttribute("loginMember") Members loginMember, Model model,
+                                   @Valid @ModelAttribute("productOrderForm") ProductOrderForm productOrderForm, BindingResult bindingResult) {
 
-    // 오늘의 생산 목표
-    Map<ProductName, Integer> dailyTargetMap = productService.getTodayTargetMap();
-    Map<ProductName, Integer> orderedCountMap = new HashMap<>();
-    Map<ProductName, Integer> remainingCountMap = new HashMap<>();
+        Map<ProductName, Integer> dailyTargetMap = productService.getTodayTargetMap();
+        Map<ProductName, Integer> orderedCountMap = new HashMap<>();
+        Map<ProductName, Integer> remainingCountMap = new HashMap<>();
 
-    LocalDate today = LocalDate.now();
-    LocalDateTime startOfDay = today.atStartOfDay();
-    LocalDateTime startOfNextDay = today.plusDays(1).atStartOfDay();
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime startOfNextDay = today.plusDays(1).atStartOfDay();
 
-        // 주문 수량 및 잔여 수량 계산
         for (ProductName productName : dailyTargetMap.keySet()) {
             Integer orderedCount = orderListRepository
                     .sumQuantityByProductNameAndDateBetween(productName, startOfDay, startOfNextDay);
@@ -91,7 +89,6 @@ public String productOrderPost(@ModelAttribute("loginMember") Members loginMembe
             remainingCountMap.put(productName, remainingCount);
         }
 
-        // 유효성 오류가 있으면 되돌아감
         if (bindingResult.hasErrors()) {
             model.addAttribute("productOrderForm", productOrderForm);
             model.addAttribute("dailyTargetMap", dailyTargetMap);
@@ -104,7 +101,6 @@ public String productOrderPost(@ModelAttribute("loginMember") Members loginMembe
         ProductName productName = productOrderForm.getProductName();
         int remainingQty = remainingCountMap.getOrDefault(productName, 0);
 
-        // 목표 수량 초과 체크
         if (productOrderForm.getQuantity() > remainingQty) {
             bindingResult.reject("exceedTarget", productName + "의 목표 생산량을 초과하는 주문입니다. 주문 가능 수량: " + remainingQty + "대");
 
@@ -115,8 +111,6 @@ public String productOrderPost(@ModelAttribute("loginMember") Members loginMembe
             return "product/orderNew";
         }
 
-
-        // 주문 저장 및 재료 수량 로그
         Map<PartName, Long> requiredInventoryStock = orderService.getRequiredInventoryStock(productOrderForm.getProductName());
         log.info("productName에 따른 수량 : {}", requiredInventoryStock);
 
@@ -140,21 +134,10 @@ public String productOrderPost(@ModelAttribute("loginMember") Members loginMembe
             model.addAttribute("remainingCountMap", remainingCountMap);
             return "product/orderNew";
         }
-            return "redirect:/product/list";
-        }
 
-
-        OrderList orderList = OrderList.builder()
-                .productName(productOrderForm.getProductName())
-                .quantity(productOrderForm.getQuantity())
-                .orderDate(LocalDateTime.now())
-                .dueDate(LocalDateTime.now().plusDays(7))
-                .members(loginMember)
-                .processStatus(ProcessStatus.PENDING)
-                .build();
-        productService.saveOrderList(orderList);
         return "redirect:/product/list";
     }
+
 
     private String getCreatePageModel(Model model, ProductOrderForm productOrderForm) {
         List<BikeProduction> productions = productService.getTodayProductions();
