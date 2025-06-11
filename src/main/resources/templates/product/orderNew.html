@@ -1,94 +1,105 @@
 <html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <th:block layout:fragment="content">
 
-    <div class="py-4">
-        <!-- 서브타이틀 -->
-        <div class="subtitle_css"><i class="bi-clipboard-check"></i> 생산지시서</div>
+    <div class="subtitle_css"><i class="bi-clipboard-check"></i> 생산지시서</div>
+    <div class="order-card">
+        <h2 style="color:#FF6A00; font-weight: bold;">🚲 생산지시서</h2>
 
-        <div class="d-flex justify-content-center">
-            <div class="row g-9 order-container">
-                <div class="col-lg-6 col-12 order-form-col">
-                    <form role="form" th:object="${productOrderForm}" method="post">
-                        <div class="mb-3">
-                            <label th:for="*{productName}" class="form-label">상품명</label>
-                            <select id="bikeSelect" class="pointer_orange_round form-select" th:field="*{productName}" onchange="changeImage()">
-                                <option value="">주문할 상품을 선택하세요</option>
-                                <option th:each="productName : ${T(gyullectric.gyullectric.domain.ProductName).values()}"
-                                        th:text="${productName}" th:value="${productName}"></option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label th:for="*{quantity}" class="form-label">수량</label>
-                            <input type="number" class="form-control line_css" th:field="*{quantity}" placeholder="수량을 입력하세요">
-                        </div>
+        <!-- 생산지시 폼 -->
+        <form th:action="@{/product/create}" th:object="${productOrderForm}" method="post">
+            <div class="mb-3">
+                <label for="bikeSelect">상품명</label>
+                <select id="bikeSelect" class="form-select custom-select" th:field="*{productName}" onchange="changeImage()" required>
+                    <option value="">선택하세요</option>
+                    <option th:each="productName : ${T(gyullectric.gyullectric.domain.ProductName).values()}"
+                            th:text="${productName}" th:value="${productName}"></option>
+                </select>
+            </div>
 
-                        <div class="mt-4 p-3 daily-output-box">
-                            <strong>일일 생산량 (목표수량 / 주문된 수량 / 주문 가능 수량)</strong><br>
-                            <th:block th:each="entry : ${dailyTargetMap}">
-                                <span>
-                                    <span th:text="${entry.key}">제품명</span> :
-                                    <span th:text="${entry.value} + '대'">목표수량</span> /
-                                    <span th:text="${orderedCountMap[entry.key] != null ? orderedCountMap[entry.key] : 0} + '대'">주문수량</span> /
-                                    <span th:text="${(orderedCountMap[entry.key] != null ? (entry.value - orderedCountMap[entry.key]) : 0)} + '대'">남은 수량</span>
-                                </span><br>
-                            </th:block>
-                        </div>
-                        <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn_orange my-3" style="background-color: #F37221" >
-                                생산지시</button>
-                        </div>
-                        <div class="alert alert-warning" role="alert" th:if="${#fields.hasAnyErrors()}">
-                            <div th:each="err : ${#fields.allErrors()}" th:text="${err}"></div>
-                        </div>
-                        <div class="alert alert-warning form-control line_css" role="alert" th:if="${errorMessage}">
-                            <div style="color: red; font-weight: bold; margin-top: 5px;">
-                                ⚠ <span th:text="${errorMessage}"></span>
-                            </div>
-                        </div>
+            <div class="mb-3">
+                <label for="quantityInput">수량</label>
+                <input type="number" id="quantityInput" class="form-control" th:field="*{quantity}" placeholder="수량을 입력하세요">
+            </div>
 
-                    </form>
-                </div>
-                    <!-- 오른쪽: 제품사진 + 일일생산량 -->
-                    <div class="col-lg-6 col-12 order-image-col">
-                        <div class="order-image-wrapper">
-                            <img id="bikeImage" src="/images/logo.png" class="img-fluid rounded-4">
+            <button type="submit" class="submit-btn mt-3">🚀 생산 시작</button>
+
+            <!-- 에러 모달 -->
+            <div th:if="${(#fields != null and #fields.hasErrors()) or (errorMessage != null)}"
+                 class="modal fade show d-block"
+                 tabindex="-1"
+                 style="background-color: rgba(0,0,0,0.5);"
+                 role="dialog"
+                 aria-modal="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border border-black">
+                        <div class="modal-header bg-secondary text-warning ">
+                            <h5 class="modal-title">⚠ 오류 발생</h5>
+                            <a th:href="@{/product/create}" class="btn-close" aria-label="Close"></a>
+                        </div>
+                        <div class="modal-body">
+                            <ul>
+                                <li th:each="err : ${#fields.allErrors()}" th:utext="${err}"></li>
+                                <li th:if="${errorMessage}" th:text="${errorMessage}"></li>
+                            </ul>
+                        </div>
+                        <div class="modal-footer">
+                            <a th:href="@{/product/create}" class="btn btn-dark btn-lg">확인</a>
                         </div>
                     </div>
                 </div>
             </div>
+        </form>
+
+        <!-- 오늘 날짜 & 사용자 -->
+        <div class="mt-4">
+            <p><strong>📅 오늘 날짜 :</strong> <span th:text="${T(java.time.LocalDate).now()}"></span></p>
+            <p><strong>👤 주문자 :</strong> <span th:text="${loginMember.name}">사용자명</span></p>
         </div>
 
-    <script th:inline="javascript" layout:fragment="script">
-        document.addEventListener("DOMContentLoaded", function() {
-            changeImage();  // 페이지 로드 시 기본 이미지 세팅
-        });
-        function changeImage() {
-            // 선택한 값 가져오기
-            var selectedProduct = document.getElementById("bikeSelect").value;
-            // 이미지 요소 찾기
-            var imageElement = document.getElementById("bikeImage");
+        <!-- 자전거 썸네일 3장 -->
+        <div class="d-flex justify-content-between mb-4 mt-3">
+            <img src="/images/bike1.jpg" alt="GyulRide" class="thumbnail-img" id="thumb-gyul">
+            <img src="/images/bike2.jpg" alt="InteliBike" class="thumbnail-img" id="thumb-inteli">
+            <img src="/images/bike3.jpg" alt="PedalAt4" class="thumbnail-img" id="thumb-pedal">
+        </div>
 
-            if (!selectedProduct) {
-                imageElement.src = "/images/logo.png";
-                imageElement.style.maxWidth = "60%";   // 기본이미지만 폭 줄임 (예: 60%)
-                imageElement.style.maxHeight = "60%";  // 높이도 같이 줄임
-            } else if (selectedProduct === "GyulRide") {
-                imageElement.src = "/images/bike1.jpg";
-                imageElement.style.maxWidth = "100%";  // 자전거 이미지들은 꽉 채움
-                imageElement.style.maxHeight = "100%";
-            } else if (selectedProduct === "InteliBike") {
-                imageElement.src = "/images/bike2.jpg";
-                imageElement.style.maxWidth = "100%";  // 자전거 이미지들은 꽉 채움
-                imageElement.style.maxHeight = "100%";
-            } else {
-                imageElement.src = "/images/bike3.jpg";
-                imageElement.style.maxWidth = "100%";  // 자전거 이미지들은 꽉 채움
-                imageElement.style.maxHeight = "100%";
+        <!-- 전체 제품 생산 현황 -->
+        <div class="stats-box mt-4">
+            <h5 style="color: #FF6A00;">📊 전체 제품 생산 현황</h5>
+            <div class="stats-grid">
+                <div th:each="entry : ${dailyTargetMap}" class="product-card">
+                    <strong style="color:#FF6A00;" th:text="'🚲 ' + ${entry.key}"></strong><hr>
+                    <span style="color:#FF9800;">📦 목표수량 :</span>
+                    <span th:text="${entry.value} + '대'"></span><br>
+                    <span style="color:#4CAF50;">✅ 생산완료:</span>
+                    <span th:text="${orderedCountMap[entry.key] != null ? orderedCountMap[entry.key] : 0} + '대'"></span><br>
+                    <span style="color:#2196F3;">🛒 가능수량:</span>
+                    <span th:text="${entry.value - (orderedCountMap[entry.key] != null ? orderedCountMap[entry.key] : 0)} + '대'"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        function changeImage() {
+            const selected = document.getElementById("bikeSelect").value;
+            const thumbs = document.querySelectorAll('.thumbnail-img');
+            thumbs.forEach(img => img.classList.remove('active'));
+
+            const activeId = {
+                "GyulRide": "thumb-gyul",
+                "InteliBike": "thumb-inteli",
+                "PedalAt4": "thumb-pedal"
+            }[selected];
+
+            if (activeId) {
+                const el = document.getElementById(activeId);
+                if (el) el.classList.add("active");
             }
         }
+
+        document.addEventListener("DOMContentLoaded", changeImage);
     </script>
+
 </th:block>
 </html>
-
-
-

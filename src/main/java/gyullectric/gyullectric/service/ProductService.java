@@ -32,9 +32,9 @@ public class ProductService {
       ProductName productName = orderList.getProductName();
 
 //       재고확인
-       if(!orderService.isEnoughInventory(productName, orderQuantity)){
-           throw new IllegalStateException("재료가 부족합니다");
-       }
+//       if(!orderService.isEnoughInventory(productName, orderQuantity)){
+//           throw new IllegalStateException("재료가 부족합니다");
+//       }
 
 //       해당 제품에 필요한 원재료 목록을 조회
        Map<PartName, Long> requiredInventoryStock = orderService.getRequiredInventoryStock(productName);
@@ -50,9 +50,9 @@ public class ProductService {
 
            List<Inventory> inventories = orderService.findInventoryName(partName);
 
-           if (inventories.isEmpty()) {
-               throw new IllegalStateException(partName + "재료가 존재하지 않습니다");
-           }
+//           if (inventories.isEmpty()) {
+//               throw new IllegalStateException(partName + "재료가 존재하지 않습니다");
+//           }
            for (Inventory inventory : inventories) {
                if (requiredOrderQuantity <= 0) break;
 
@@ -72,7 +72,7 @@ public class ProductService {
                requiredOrderQuantity -= minQuantity;
            }
            if (requiredOrderQuantity > 0) {
-               throw new IllegalStateException(partName + "가 부족하여 차감할 수 없습니다");
+               throw new IllegalStateException(partName + "의 재고가 부족합니다. (부족 수량: " + requiredOrderQuantity + ")");
            }
        }
            orderListRepository.save(orderList);
@@ -139,12 +139,24 @@ public class ProductService {
     public Map<ProductName, Integer> getTodayTargetMap() {
         LocalDate today = LocalDate.now();
 
+        // 오늘 날짜의 생산 목표 불러오기
         List<BikeProduction> productions = bikeProductionRepository.findByProductionDate(today);
 
+        // 원하는 정렬 순서 정의
+        List<ProductName> customOrder = List.of(
+                ProductName.GyulRide,
+                ProductName.InteliBike,
+                ProductName.PedalAt4
+        );
+
+        // 정렬 후 LinkedHashMap으로 수집 (순서 유지)
         Map<ProductName, Integer> targetMap = productions.stream()
+                .sorted(Comparator.comparing(bp -> customOrder.indexOf(bp.getProductName())))
                 .collect(Collectors.toMap(
                         BikeProduction::getProductName,
-                        BikeProduction::getTargetCount
+                        BikeProduction::getTargetCount,
+                        (e1, e2) -> e1,              // 키 충돌 처리
+                        LinkedHashMap::new           // 순서 보장
                 ));
 
         return targetMap;
