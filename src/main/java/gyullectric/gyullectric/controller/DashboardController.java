@@ -2,10 +2,7 @@ package gyullectric.gyullectric.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gyullectric.gyullectric.domain.BikeProduction;
-import gyullectric.gyullectric.domain.OrderList;
-import gyullectric.gyullectric.domain.ProcessLog;
-import gyullectric.gyullectric.domain.ProcessStatus;
+import gyullectric.gyullectric.domain.*;
 import gyullectric.gyullectric.dto.BikeProductionDto;
 import gyullectric.gyullectric.dto.OrderSummaryDto;
 import gyullectric.gyullectric.dto.ProcessDataDto;
@@ -14,6 +11,7 @@ import gyullectric.gyullectric.repository.OrderListRepository;
 import gyullectric.gyullectric.service.MonitoringDataService;
 import gyullectric.gyullectric.service.MonitoringService;
 import gyullectric.gyullectric.service.ProductService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -38,7 +36,11 @@ public class DashboardController {
     private final BikeProductionRepository bikeProductionRepository;
 
     @GetMapping("/main")
-    public String getDashboard(Model model)throws JsonProcessingException {
+    public String getDashboard(Model model, HttpSession session)throws JsonProcessingException {
+        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if(loginMember == null){
+            return "redirect:/login";
+        }
 // 공정모니터링
         List<OrderList> orderLists = orderListRepository.findByProcessStatus(ProcessStatus.IN_PROGRESS);
         Long orderId = !orderLists.isEmpty()

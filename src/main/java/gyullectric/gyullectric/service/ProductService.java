@@ -141,7 +141,7 @@ public class ProductService {
 
         // 오늘 날짜의 생산 목표 불러오기
         List<BikeProduction> productions = bikeProductionRepository.findByProductionDate(today);
-
+        System.out.println("오늘 기준 production 수: " + productions.size());
         // 원하는 정렬 순서 정의
         List<ProductName> customOrder = List.of(
                 ProductName.GyulRide,

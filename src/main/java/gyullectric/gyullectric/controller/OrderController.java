@@ -88,7 +88,12 @@ public class OrderController {
      */
     @GetMapping("/history")
     public String getOrderHistory(Model model,
-                                  @RequestParam(value = "page", defaultValue = "0") int page) {
+                                  @RequestParam(value = "page", defaultValue = "0") int page,
+                                  HttpSession session) {
+        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if(loginMember == null){
+            return "redirect:/login";
+        }
         Page<Inventory> paging = orderService.orderHistoryGetList(page);
         List<OrderHistory> historyList = orderService.lastPageCancelOrder(page);
 

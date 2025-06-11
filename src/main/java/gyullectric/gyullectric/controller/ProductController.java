@@ -63,7 +63,7 @@ public class ProductController {
             completedCountMap.put(product, completed);
         }
 
-
+        log.info("오늘의 목표량: {}, 생산량 : {}", dailyTargetMap, completedMapRaw);
         model.addAttribute("orderedCountMap", completedCountMap);
         model.addAttribute("dailyTargetMap", dailyTargetMap);
         model.addAttribute("productOrderForm", new ProductOrderForm());
