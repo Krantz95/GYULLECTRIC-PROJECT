@@ -66,17 +66,17 @@ public class ProductController {
     }
 
     @PostMapping("/create")
-    public String productOrderPost(@ModelAttribute("loginMember") Members loginMember, Model model,
-                                   @Valid @ModelAttribute("productOrderForm") ProductOrderForm productOrderForm, BindingResult bindingResult) {
+public String productOrderPost(@ModelAttribute("loginMember") Members loginMember, Model model,
+                               @Valid @ModelAttribute("productOrderForm") ProductOrderForm productOrderForm, BindingResult bindingResult) {
 
-        // 오늘의 생산 목표
-        Map<ProductName, Integer> dailyTargetMap = productService.getTodayTargetMap();
-        Map<ProductName, Integer> orderedCountMap = new HashMap<>();
-        Map<ProductName, Integer> remainingCountMap = new HashMap<>();
+    // 오늘의 생산 목표
+    Map<ProductName, Integer> dailyTargetMap = productService.getTodayTargetMap();
+    Map<ProductName, Integer> orderedCountMap = new HashMap<>();
+    Map<ProductName, Integer> remainingCountMap = new HashMap<>();
 
-        LocalDate today = LocalDate.now();
-        LocalDateTime startOfDay = today.atStartOfDay();
-        LocalDateTime startOfNextDay = today.plusDays(1).atStartOfDay();
+    LocalDate today = LocalDate.now();
+    LocalDateTime startOfDay = today.atStartOfDay();
+    LocalDateTime startOfNextDay = today.plusDays(1).atStartOfDay();
 
         // 주문 수량 및 잔여 수량 계산
         for (ProductName productName : dailyTargetMap.keySet()) {
@@ -144,9 +144,29 @@ public class ProductController {
         }
 
 
+        OrderList orderList = OrderList.builder()
+                .productName(productOrderForm.getProductName())
+                .quantity(productOrderForm.getQuantity())
+                .orderDate(LocalDateTime.now())
+                .dueDate(LocalDateTime.now().plusDays(7))
+                .members(loginMember)
+                .processStatus(ProcessStatus.PENDING)
+                .build();
+        productService.saveOrderList(orderList);
+        return "redirect:/product/list";
+    }
+
+    private String getCreatePageModel(Model model, ProductOrderForm productOrderForm) {
+        List<BikeProduction> productions = productService.getTodayProductions();
+
+        Map<String, Integer> dailyTargetMap = productions.stream()
+                .collect(Collectors.toMap(bp -> bp.getProductName().name(), BikeProduction::getTargetCount));
 
 
-//        주문리스트
+
+        return "product/orderNew";
+    }
+    //    //    주문리스트
     @GetMapping("/list")
     public String orderList(Model model, HttpSession session){
         Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
