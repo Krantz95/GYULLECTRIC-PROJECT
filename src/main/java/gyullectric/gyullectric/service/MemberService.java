@@ -67,6 +67,10 @@ public class MemberService {
         this.memberRepository.deleteById(id);
     }
 
+    public Optional<Members> findByLoginId(String loginId) {
+        return memberRepository.findByLoginId(loginId);
+    }
+
 
     public Page<Members> getList(int page, String kw, String type){
         List<Sort.Order> sorts = new ArrayList<>();

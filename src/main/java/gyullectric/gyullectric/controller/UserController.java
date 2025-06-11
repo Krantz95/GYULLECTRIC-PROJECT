@@ -75,7 +75,7 @@ public class UserController {
         }
 
         memberService.signup(members);
-        return "redirect:/login";
+        return "redirect:/";
     }
 
 }

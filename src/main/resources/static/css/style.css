@@ -451,12 +451,19 @@ nav.d-lg-none {
 }
 /* 대시보드 상단 에러알림 표시 */
 .dashboard_error {
-    animation: blink-red-clear 0.7s infinite; /* 1초 간격으로 애니메이션 무한 반복 */
-    padding: 10px 0;                         /* 위아래 여백 */
-    text-align: center;                      /* 텍스트 가운데 정렬 */
-    color: white;                            /* 글자색 흰색 */
-    font-weight: bold;                       /* 굵은 글씨 */
-    font-size: 18px;                         /* 글자 크기 */
+    animation: blink-red-clear 0.7s infinite; /* 애니메이션 */
+    text-align: center;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+
+    height: 50px;               /* 고정 높이 */
+    line-height: 50px;          /* 글자가 박스 중앙에 오도록 */
+    overflow: hidden;           /* 넘치는 텍스트 숨김 */
+    white-space: nowrap;        /* 줄바꿈 방지 */
+    text-overflow: ellipsis;    /* 넘치면 ... 처리 */
+    padding: 0 16px;            /* 좌우 여백만 */
+    box-sizing: border-box;     /* 패딩 포함 너비 계산 */
 }
 /* 대시보드 본문 에러 표시 위치 고정 */
 #ngWarningMessage {
@@ -629,8 +636,8 @@ nav.d-lg-none {
     font-size: clamp(12px, 2.5vw, 16px); /* 반응형 글씨 크기 */
     box-sizing: border-box;              /* 테두리, 패딩 포함 크기 계산 */
     margin-bottom: 20px;                 /* 아래쪽 여백 */
-    flex-shrink: 0;                      /* 크기 줄어들지 않게 */
-    white-space: normal;                 /* 줄바꿈 허용 */
+    /*flex-shrink: 0;                      !* 크기 줄어들지 않게 *!*/
+    white-space: nowrap;                 /* 줄바꿈 안됨 */
 }
 
 /* ────────────────────────────  페이지별 (ORDER LIST)  ──────────────────────────── */

@@ -1,6 +1,6 @@
 <html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <th:block layout:fragment="content">
-    <div>
+    <div class="align-content-center py-5">
     <form method="post"  th:object="${answerForm}">
         <div class="alert alert-warning" role="alert" th:if="${#fields.hasAnyErrors()}">
             <div th:each="err : ${#fields.allErrors()}" th:text="${err}"></div>
@@ -10,7 +10,7 @@
             <button type="submit"
                     class="btn_orange btn-sm px-4 position-absolute"
                     style="color: white; bottom: 10px; right: 10px; width: 100px; height: 40px">
-                답글작성
+                답글수정
             </button>
         </div>
     </form>

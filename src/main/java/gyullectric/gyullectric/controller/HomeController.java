@@ -97,7 +97,7 @@ public class HomeController {
                 .name(membersForm.getName())
                 .password(membersForm.getPassword())
                 .phone(membersForm.getPhone())
-                .positionName(PositionName.ADMIN)
+                .positionName(PositionName.ENGINEER)
                 .createDate(LocalDateTime.now())
                 .build();
         memberService.signup(members);
