@@ -67,7 +67,7 @@ public class ProductionAnalysisService {
 
         Map<Integer, Map<String, Double>> result = new HashMap<>();
         for (int step = 1; step <= 3; step++) {
-            double power = avgTimeSec.getOrDefault(step, 0.0) / 3600 * 2.5;
+            double power = avgTimeSec.getOrDefault(step, 0.0) / 3600 * 25.0;
             long total = totalCountMap.getOrDefault(step, 0L);
             long ng = ngCountMap.getOrDefault(step, 0L);
             double defectRate = (total > 0) ? (ng * 100.0 / total) : 0.0;
