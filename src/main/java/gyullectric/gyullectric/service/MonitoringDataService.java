@@ -162,7 +162,10 @@ public class MonitoringDataService {
         result.put("totalCompleteByProduct", totalCompleteByProduct);
         result.put("totalNgByProduct", totalNgByProduct);
         result.put("achievementRates", achievementRates);
-
+        for (OrderList order : productOrderList) {
+            System.out.println("OrderList ID=" + order.getId()
+                    + ", productName=" + order.getProductName().name());
+        }
         return result;
     }
 

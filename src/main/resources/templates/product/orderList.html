@@ -26,7 +26,14 @@
                     <td th:text="${order.members.loginId}">담당직원</td>
                     <td th:text="${#temporals.format(order.orderDate, 'yyyy-MM-dd HH:mm')}">주문날짜</td>
                     <td th:text="${#temporals.format(order.dueDate,'yyyy-MM-dd HH:mm' )}">납기일</td>
-                    <td th:text="${order.processStatus}">공정상태</td>
+                    <td th:class="${order.processStatus.name() == 'PENDING' ? 'status-pending'
+                      : (order.processStatus.name() == 'IN_PROGRESS' ? 'status-in-progress'
+                      : (order.processStatus.name() == 'COMPLETED' ? 'status-completed' : ''))}">
+                        <i th:class="${order.processStatus.name() == 'PENDING' ? 'bi bi-hourglass-split'
+                            : (order.processStatus.name() == 'IN_PROGRESS' ? 'bi bi-arrow-repeat'
+                            : (order.processStatus.name() == 'COMPLETED' ? 'bi bi-check-circle-fill' : ''))}" class="me-1"></i>
+                        <span th:text="${order.processStatus}">공정상태</span>
+                    </td>
                     <td>
                         <div class="d-flex justify-content-center">
                         <form th:action="@{/monitoring/new/{id}(id=${order.id})}" method="post">

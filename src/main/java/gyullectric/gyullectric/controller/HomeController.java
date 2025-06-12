@@ -38,9 +38,15 @@ public class HomeController {
     }
 
     @GetMapping("/login")
-    public String loginForm(Model model) {
-        model.addAttribute("loginForm", new LoginForm());
-        return "user/loginForm";
+    public String loginForm(Model model, HttpSession session) {
+        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if(loginMember != null){
+            return "home";
+        } else {
+            model.addAttribute("loginForm", new LoginForm());
+            return "user/loginForm";
+        }
+
     }
     @PostMapping("/login")
     public String loginPost(@Valid @ModelAttribute LoginForm loginForm, BindingResult bindingResult, HttpServletRequest request, Model model){

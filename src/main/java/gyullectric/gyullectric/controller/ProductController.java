@@ -71,9 +71,12 @@ public class ProductController {
     }
 
     @PostMapping("/create")
-public String productOrderPost(@ModelAttribute("loginMember") Members loginMember, Model model,
+public String productOrderPost(@ModelAttribute("loginMember") Members loginMember, Model model,HttpSession session,
                                @Valid @ModelAttribute("productOrderForm") ProductOrderForm productOrderForm, BindingResult bindingResult) {
-
+        Members loginCurrentMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if (loginCurrentMember == null) {
+            return "redirect:/login";
+        }
         Map<ProductName, Integer> dailyTargetMap = productService.getTodayTargetMap();
         Map<ProductName, Integer> completedCountMap = new HashMap<>();
         Map<ProductName, Integer> remainingCountMap = new HashMap<>();
@@ -114,6 +117,14 @@ public String productOrderPost(@ModelAttribute("loginMember") Members loginMembe
             model.addAttribute("orderedCountMap", completedCountMap);
             model.addAttribute("remainingCountMap", remainingCountMap);
             return "product/orderNew";
+        }
+        if (remainingQty == 0) {
+            bindingResult.reject("errMessage", productName +  "의 금일 목표 달성 완료");
+
+            model.addAttribute("productOrderForm", productOrderForm);
+            model.addAttribute("dailyTargetMap", dailyTargetMap);
+            model.addAttribute("orderedCountMap", completedCountMap);
+            model.addAttribute("remainingCountMap", remainingCountMap);
         }
 
         // 주문 저장

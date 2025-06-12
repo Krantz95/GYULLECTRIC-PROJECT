@@ -1,6 +1,5 @@
 <html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <th:block layout:fragment="content">
-
     <div class="subtitle_css"><i class="bi-clipboard-check"></i> 생산지시서</div>
 
     <div class="order-card">
@@ -80,7 +79,7 @@
             </div>
         </div>
     </div>
-
+</th:block>
     <script th:inline="javascript">
         function changeImage() {
             const selected = document.getElementById("bikeSelect").value;
@@ -102,5 +101,5 @@
         document.addEventListener("DOMContentLoaded", changeImage);
     </script>
 
-</th:block>
+
 </html>

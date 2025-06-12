@@ -22,7 +22,7 @@
     <div class="py-4">
 
         <!-- 상단 왼쪽 : 시간대별 제품 생산 현황 + 현재 시간 -->
-        <div class="container-fluid px-4" style="max-width: 1140px; margin: 0 auto;">
+        <div class="container-fluid px-4" style="max-width: 1200px; margin: 0 auto;">
         <div class="row g-4">
             <div class="col-lg-6 col-12">
                 <div class="chart-card">
@@ -37,6 +37,20 @@
                             REAL TIME  : <span id="timeRange">--시 ~ --시 59분</span>
                         </p>
                         <canvas id="productAchievementChart" width="650" height="280"></canvas>
+                    </div>
+                    <div class="bar-legend mt-3">
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #D7263D;"></span> 낮음 <br> (0% ~ 39%)
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #FFB627;"></span> 보통  <br> (40% ~ 69%)
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #219EBC;"></span> 양호  <br> (70% ~ 99%)
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #06D6A0;"></span> 달성 완료  <br> (100%)
+                        </div>
                     </div>
                 </div>
             </div>
@@ -222,7 +236,7 @@
                         ? ` (${Math.round(errorValue * 10) / 10})`
                         : '';
 
-                alertBar.innerHTML = `📛 [${productName}] ${processStep}공정 ERROR: ${errorDescription}${roundedErrorValue}`;
+                alertBar.innerHTML = `🔔 [${productName}] ${processStep}공정 ERROR: ${errorDescription}${roundedErrorValue}`;
                 alertBar.style.display = 'block';
 
                 // 5초 후 자동 숨김
@@ -356,10 +370,16 @@
             const textDiv = document.getElementById(textElementId);
             if (textDiv) {
                 textDiv.innerHTML =
-                    `<span style="display: inline-block; width: 20px; height: 10px; background-color: #4caf50; margin-right: 5px;"></span>` +
-                    `<span style="font-weight:bold;  font-size: 15px">${okLabel} </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +
-                    `<span style="display: inline-block; width: 20px; height: 10px; background-color: #f44336; margin-right: 5px;"></span>` +
-                    `<span style="font-weight:bold; font-size: 15px">${ngLabel} </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;
+                    `<div style="margin-bottom: 6px;">
+                        <span style="display: inline-block; width: 20px; height: 10px; background-color: #4caf50; margin-right: 5px;"></span>
+                        <span style="font-weight:bold; font-size: 15px;">${okLabel}</span><br>
+                        <span style="font-size: 15px;">${ok}건 / ${okPercent}%</span>
+                    </div>
+                    <div>
+                        <span style="display: inline-block; width: 20px; height: 10px; background-color: #f44336; margin-right: 5px;"></span>
+                        <span style="font-weight:bold; font-size: 15px;">${ngLabel}</span><br>
+                        <span style="font-size: 15px;">${ng}건 / ${ngPercent}%</span>
+                    </div>`;
             }
 
             return chart;
@@ -381,10 +401,16 @@
             const textDiv = document.getElementById(textElementId);
             if (textDiv) {
                 textDiv.innerHTML =
-                    `<span style="display: inline-block; width: 20px; height: 10px; background-color: #4caf50; margin-right: 5px;"></span>` +
-                    `<span style="font-weight:bold;  font-size: 15px">${okLabel} </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +
-                    `<span style="display: inline-block; width: 20px; height: 10px; background-color: #f44336; margin-right: 5px;"></span>` +
-                    `<span style="font-weight:bold; font-size: 15px">${ngLabel} </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;
+                    `<div style="margin-bottom: 6px;">
+                        <span style="display: inline-block; width: 20px; height: 10px; background-color: #4caf50; margin-right: 5px;"></span>
+                        <span style="font-weight:bold; font-size: 15px;">${okLabel}</span><br>
+                        <span style="font-size: 15px;">${ok}건 / ${okPercent}%</span>
+                    </div>
+                    <div>
+                        <span style="display: inline-block; width: 20px; height: 10px; background-color: #f44336; margin-right: 5px;"></span>
+                        <span style="font-weight:bold; font-size: 15px;">${ngLabel}</span><br>
+                        <span style="font-size: 15px;">${ng}건 / ${ngPercent}%</span>
+                    </div>`;
             }
         }
 
@@ -407,7 +433,7 @@
             if (percent < 40) return '#D7263D';
             if (percent < 70) return '#FFB627';
             if (percent < 100) return '#219EBC';
-            return '#219EBC';
+            return '#005805';
         }
 
         function createOrUpdateProductAchievementChart(labels, actualCounts, targetCounts, achievementRates) {
@@ -420,7 +446,7 @@
             productAchievementChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['GyulRide', 'InteliBike', 'PedalAt4'],
+                    labels: ['GyulRide','PedalAt4','InteliBike'],
                     datasets: [{
                         label: '현재 달성률 (%)',
                         data: achievementRates,
@@ -511,7 +537,6 @@
                         processResultStatus,
                         lotNumber,
                         errorDescription,
-                        // errorValue,
                         errorCode
                     } = p;
 
@@ -539,7 +564,7 @@
                             productName,
                             processStep,
                             errorDescription: errorDescription || errorCode || '에러 발생',
-                            // errorValue
+
                         });
 
                         updateNgWarningRealtime(step);
