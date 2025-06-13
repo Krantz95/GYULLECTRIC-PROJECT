@@ -1,7 +1,8 @@
 <html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <th:block layout:fragment="alert">
     <div class="dashboard_error" >
-        <span id = "errorText"></span>
+        <div id="dashboard-alert-bar">
+        </div>
         <p style="margin: 0;"></p>
     </div>
 
@@ -22,160 +23,162 @@
 
         <!-- 상단 왼쪽 : 시간대별 제품 생산 현황 + 현재 시간 -->
         <div class="container-fluid px-4" style="max-width: 1200px; margin: 0 auto;">
-        <div class="row g-4">
-            <div class="col-lg-6 col-12">
-                <div class="chart-card">
-                    <div class="chart-header d-flex justify-content-between align-items-center">
-                        <p class="chart-title mt-3">
-                            <i class="bi bi-clipboard-data"></i>
-                            현재 시간 목표량
-                        </p>
-                    </div>
-                    <div class="chart-body" style="margin-top: 20px;">
-                        <p class="chart-baseline text-center text-muted fw-semibold" style="font-size: 16px; margin-bottom: 12px;">
-                            기준: <span id="timeRange"></span>
-                        </p>
-                        <canvas id="productAchievementChart" width="650" height="280"></canvas>
-                    </div>
-                    <div class="bar-legend mt-3">
-                        <div class="legend-item">
-                            <span class="legend-color" style="background-color: #D7263D;"></span> 낮음 <br> (0% ~ 39%)
+            <div class="row g-4">
+                <div class="col-lg-6 col-12">
+                    <div class="chart-card">
+                        <div class="chart-header d-flex justify-content-between align-items-center">
+                            <p class="chart-title mt-3">
+                                <i class="bi bi-clipboard-data"></i>
+                                현재 시간 목표량
+                            </p>
                         </div>
-                        <div class="legend-item">
-                            <span class="legend-color" style="background-color: #FFB627;"></span> 보통  <br> (40% ~ 69%)
+                        <div class="chart-body" style="margin-top: 20px;">
+                            <p class="chart-baseline text-center text-muted fw-semibold" style="font-size: 16px; margin-bottom: 12px;">
+                                REAL TIME  : <span id="timeRange">--시 ~ --시 59분</span>
+                            </p>
+                            <canvas id="productAchievementChart" width="650" height="280"></canvas>
                         </div>
-                        <div class="legend-item">
-                            <span class="legend-color" style="background-color: #219EBC;"></span> 양호  <br> (70% ~ 99%)
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color" style="background-color: #06D6A0;"></span> 달성 완료  <br> (100%)
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 상단 오른쪽 : 공정별 상태 -->
-            <div class="col-lg-6 col-12"><!-- [수정] chart-card 위치 수정 -->
-                <div class="chart-card h-100"><!-- [수정] 기존에 col에 있었던 chart-card를 안쪽으로 이동 -->
-                <div class="d-flex justify-content-between align-items-center mb-2" style="min-height: 24px;">
-                    <div class="d-flex align-items-center">
-                        <p class="fw-bold">
-                            <i class="bi bi-gear" style="color: #fd7e14;"></i> 공정별 현재 상태
-                        </p>
-                    </div>
-                    <div id="ngWarningMessage" style="height: 100%; display: flex; align-items: center;"></div>
-                </div>
-                    <!-- 테두리 라인 맞추기 용 wrapper -->
-                    <div class="chart-body" style="padding: 20px 10px;">
-                <div class="row text-center"><!-- sm 사이즈에서는 차트 1개씩-->
-                    <!-- 프레임 -->
-                    <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
-                        <div style="width: 100%; max-width: 320px;">
-                            <p class="text-center">1공정 - 프레임</p>
-                            <canvas id="myChart1" class="w-100" style="height: 240px;" height="240"></canvas>
-                            <div id="text1" class="pt-2 text-center"></div>
-                        </div>
-                    </div>
-                    <!-- 도장 -->
-                    <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
-                        <div style="width: 100%; max-width: 320px;">
-                            <p class="text-center">2공정 - 도장</p>
-                            <canvas id="myChart2" class="w-100" style="height: 240px;" height="240"></canvas>
-                            <div id="text2" class="pt-2 text-center"></div>
-                        </div>
-                    </div>
-                    <!-- 검수 -->
-                    <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
-                        <div style="width: 100%; max-width: 320px;">
-                            <p class="text-center">3공정 - 검수</p>
-                            <canvas id="myChart3" class="w-100" style="height: 240px;" height="240"></canvas>
-                            <div id="text3" class="pt-2 text-center"></div>
+                        <div class="bar-legend mt-3">
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #D7263D;"></span> 낮음 <br> (0% ~ 39%)
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #FFB627;"></span> 보통  <br> (40% ~ 69%)
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #219EBC;"></span> 양호  <br> (70% ~ 99%)
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #06D6A0;"></span> 달성 완료  <br> (100%)
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
-        <!-- 중간 KPI 요약 카드 (오직 첫 줄만 .kpi-card 사용) -->
-        <div class="container-fluid px-4">
-            <div class="row g-4 mt-2 text-center">
-            <!-- 1. 금일 목표 달성 현황 -->
-            <div class="col-lg-4 col-12">
-                <div class="kpi-card">
-                    <p class="kpi-title"><i class="bi bi-bar-chart-fill"></i> 금일 목표 달성 현황</p>
-                    <div class="kpi-value">300대 중 175대 완료</div>
-                    <div class="kpi-sub text-muted">달성률: <strong class="text-primary">58%</strong></div>
-                </div>
-            </div>
-            <!-- 2. 현재 속도 -->
-            <div class="col-lg-4 col-12">
-                <div class="kpi-card">
-                    <p class="kpi-title"><i class="bi bi-clock-fill"></i> 현재 속도</p>
-                    <div class="kpi-value">1.2대/분</div>
-                    <div class="kpi-sub text-muted">남기 내 달성 예상</div>
-                </div>
-            </div>
-
-            <!-- 3. 납기 예측 -->
-            <div class="col-lg-4 col-12">
-                <div class="kpi-card">
-                    <p class="kpi-title"><i class="bi bi-calendar-check-fill"></i> 납기 예측</p>
-                    <div class="kpi-value text-success">83%</div>
-                    <div class="kpi-sub">
-                        납기 내 완료 가능<br>
-                        남은 예상시간: <strong>1시간 28분</strong>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        <!-- 하단 : 기계 이상 감지 -->
-        <div class="row g-4 mt-4">
-            <div class="col-lg-12">
-                <div class="chart-card w-100">
-
-                    <div class="chart-header d-flex align-items-center mb-2">
-                        <p class="chart-title fw-bold">
-                            <i class="bi bi-exclamation-diamond-fill"></i> 기계 이상 감지
-                        </p>
-                    </div>
-
-                    <div class="chart-body" style="padding: 20px 10px;">
-                        <div class="row g-4 justify-content-center mx-0">
-                            <!-- 왼쪽 -->
-                            <div class="col-lg-6 col-12 text-center">
-                                <div id="castingWarning" class="warning-placeholder"></div>
-                                <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
-                                    <canvas id="castingChart" style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
-                                    <div id="castingStatus" class="d-flex justify-content-between align-items-center" style="margin-top: 0; padding-top: 0;">
-                                        <div class="defect-box">
-                                            <span class="defect-label">압력/온도 감지 (80%)</span>
-                                            <button type="button" class="defect-btn" style="background-color: #FF0004;" disabled>점검요청</button>
-                                        </div>
+                <!-- 상단 오른쪽 : 공정별 상태 -->
+                <div class="col-lg-6 col-12"><!-- [수정] chart-card 위치 수정 -->
+                    <div class="chart-card h-100"><!-- [수정] 기존에 col에 있었던 chart-card를 안쪽으로 이동 -->
+                        <div class="d-flex justify-content-between align-items-center mb-2" style="min-height: 24px;">
+                            <div class="d-flex align-items-center">
+                                <p class="fw-bold">
+                                    <i class="bi bi-gear" style="color: #fd7e14;"></i> 공정별 현재 상태
+                                </p>
+                            </div>
+                            <div id="ngWarningMessage" style="height: 100%; display: flex; align-items: center;"></div>
+                        </div>
+                        <!-- 테두리 라인 맞추기 용 wrapper -->
+                        <div class="chart-body" style="padding: 20px 10px;">
+                            <div class="row text-center"><!-- sm 사이즈에서는 차트 1개씩-->
+                                <!-- 프레임 -->
+                                <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
+                                    <div style="width: 100%; max-width: 320px;">
+                                        <p class="text-center">1공정 - 프레임</p>
+                                        <canvas id="myChart1" class="w-100" style="height: 240px;" height="240"></canvas>
+                                        <div id="text1" class="pt-2 text-center"></div>
+                                    </div>
+                                </div>
+                                <!-- 도장 -->
+                                <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
+                                    <div style="width: 100%; max-width: 320px;">
+                                        <p class="text-center">2공정 - 도장</p>
+                                        <canvas id="myChart2" class="w-100" style="height: 240px;" height="240"></canvas>
+                                        <div id="text2" class="pt-2 text-center"></div>
+                                    </div>
+                                </div>
+                                <!-- 검수 -->
+                                <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
+                                    <div style="width: 100%; max-width: 320px;">
+                                        <p class="text-center">3공정 - 검수</p>
+                                        <canvas id="myChart3" class="w-100" style="height: 240px;" height="240"></canvas>
+                                        <div id="text3" class="pt-2 text-center"></div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
 
-                            <!-- 오른쪽 -->
-                            <div class="col-lg-6 col-12 text-center">
-                                <div id="weldingWarning" class="warning-placeholder"></div>
-                                <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
-                                    <canvas id="weldingChart" style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
-                                    <div id="weldingStatus" class="d-flex justify-content-between align-items-center" style="margin-top: 0; padding-top: 0;">
-                                        <div class="defect-box">
-                                            <span class="defect-label">용접 출력 감지 (0%)</span>
-                                            <button type="button" class="defect-btn" style="background-color: #FF0004;" disabled>점검요청</button>
-                                        </div>
-                                    </div>
+                <!-- 중간 KPI 요약 카드 (오직 첫 줄만 .kpi-card 사용) -->
+                <div class="container-fluid px-4">
+                    <div class="row g-4 mt-2 text-center">
+                        <!-- 1. 금일 목표 달성 현황 -->
+                        <div class="col-lg-4 col-12">
+                            <div class="kpi-card">
+                                <p class="kpi-title"><i class="bi bi-bar-chart-fill"></i> 금일 목표 달성 현황</p>
+                                <div class="kpi-value">300대 중 175대 완료</div>
+                                <div class="kpi-sub text-muted">달성률: <strong class="text-primary">58%</strong></div>
+                            </div>
+                        </div>
+                        <!-- 2. 현재 속도 -->
+                        <div class="col-lg-4 col-12">
+                            <div class="kpi-card">
+                                <p class="kpi-title"><i class="bi bi-clock-fill"></i> 현재 속도</p>
+                                <div class="kpi-value">1.2대/분</div>
+                                <div class="kpi-sub text-muted">남기 내 달성 예상</div>
+                            </div>
+                        </div>
+
+                        <!-- 3. 납기 예측 -->
+                        <div class="col-lg-4 col-12">
+                            <div class="kpi-card">
+                                <p class="kpi-title"><i class="bi bi-calendar-check-fill"></i> 납기 예측</p>
+                                <div class="kpi-value text-success">83%</div>
+                                <div class="kpi-sub">
+                                    납기 내 완료 가능<br>
+                                    남은 예상시간: <strong>1시간 28분</strong>
                                 </div>
                             </div>
-                    </div> <!-- 내부 row 끝 -->
-                </div> <!-- chart-card 끝 -->
+                        </div>
+                    </div>
+
+
+                    <!-- 하단 : 기계 이상 감지 -->
+                    <div class="row g-4 mt-4">
+                        <div class="col-lg-12">
+                            <div class="chart-card w-100">
+
+                                <div class="chart-header d-flex align-items-center mb-2">
+                                    <p class="chart-title fw-bold">
+                                        <i class="bi bi-exclamation-diamond-fill"></i> 기계 이상 감지
+                                    </p>
+                                </div>
+
+                                <div class="chart-body" style="padding: 20px 10px;">
+                                    <div class="row g-4 justify-content-center mx-0">
+                                        <!-- 왼쪽 -->
+                                        <div class="col-lg-6 col-12 text-center">
+                                            <div id="castingWarning" class="warning-placeholder"></div>
+                                            <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
+                                                <canvas id="castingChart" style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
+                                                <div id="castingStatus" class="d-flex justify-content-between align-items-center" style="margin-top: 0; padding-top: 0;">
+                                                    <div class="defect-box">
+                                                        <span class="defect-label">압력/온도 감지 (80%)</span>
+                                                        <button type="button" class="defect-btn" style="background-color: #FF0004;" disabled>점검요청</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 오른쪽 -->
+                                        <div class="col-lg-6 col-12 text-center">
+                                            <div id="weldingWarning" class="warning-placeholder"></div>
+                                            <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
+                                                <canvas id="weldingChart" style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
+                                                <div id="weldingStatus" class="d-flex justify-content-between align-items-center" style="margin-top: 0; padding-top: 0;">
+                                                    <div class="defect-box">
+                                                        <span class="defect-label">용접 출력 감지 (0%)</span>
+                                                        <button type="button" class="defect-btn" style="background-color: #FF0004;" disabled>점검요청</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div> <!-- 내부 row 끝 -->
+                                </div> <!-- chart-card 끝 -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
         </div>
     </div>
 </th:block>
@@ -201,31 +204,42 @@
         });
     </script>
 
-        // 공정별 ok/ng 차트
-        <script th:inline="javascript">
-            /*<![CDATA[*/
-            const okCounts = {
-                1: [[${okCountByStep[1] ?: 0}]],
-                2: [[${okCountByStep[2] ?: 0}]],
-                3: [[${okCountByStep[3] ?: 0}]]
-            };
-            const ngCounts = {
-                1: [[${ngCountByStep[1] ?: 0}]],
-                2: [[${ngCountByStep[2] ?: 0}]],
-                3: [[${ngCountByStep[3] ?: 0}]]
-            };
-            /*]]>*/
+    // 공정별 ok/ng 차트
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var ng1 = [[${ngCountByStep[1] ?: 0}]];
+        var ok1 = [[${okCountByStep[1] ?: 0}]];
+        var ng2 = [[${ngCountByStep[2] ?: 0}]];
+        var ok2 = [[${okCountByStep[2] ?: 0}]];
+        var ng3 = [[${ngCountByStep[3] ?: 0}]];
+        var ok3 = [[${okCountByStep[3] ?: 0}]];
 
-        /** 🔔 상단 에러 알림바 표시 */
+        window.okCounts = {1: ok1, 2: ok2, 3: ok3};
+        window.ngCounts = {1: ng1, 2: ng2, 3: ng3};
+        /*]]>*/
+
+        // 상단 에러 알람
         function showNgAlert(data) {
-            const { productName, processStep, errorDescription = '에러 발생', errorValue } = data;
-            const alertBar = document.getElementById('dashboard-alert-bar');
-            if (!alertBar) return;
+            const productName = data.productName;
+            const processStep = data.processStep;
+            const errorDescription = data.errorDescription || '에러 발생';
+            const errorValue = data.errorValue;
 
-            const rounded = errorValue != null ? ` (${Math.round(errorValue * 10) / 10})` : '';
-            alertBar.innerHTML = `🔔 [${productName}] ${processStep}공정 ERROR: ${errorDescription}${rounded}`;
+            const alertBar = document.getElementById('dashboard-alert-bar');
+            if (!alertBar) {
+                console.warn('알림 표시 영역(dashboard-alert-bar)이 없습니다.');
+                return;
+            }
+
+            const roundedErrorValue =
+                (errorValue !== null && errorValue !== undefined)
+                    ? ` (${Math.round(errorValue * 10) / 10})`
+                    : '';
+
+            alertBar.innerHTML = `🔔 [${productName}] ${processStep}공정 ERROR: ${errorDescription}${roundedErrorValue}`;
             alertBar.style.display = 'block';
 
+            // 5초 후 자동 숨김
             setTimeout(() => {
                 alertBar.style.display = 'none';
             }, 20000);
@@ -237,8 +251,17 @@
                 (ng2 / (ok2 + ng2)) * 100,
                 (ng3 / (ok3 + ng3)) * 100
             ];
-            const avgNg = ngRates.reduce((a, b) => a + b, 0) / ngRates.length;
             const warningDiv = document.getElementById('ngWarningMessage');
+
+            // 1. ngRates 배열 숫자 필터링 (예: 문자열, NaN 제거)
+            const validNgRates = ngRates.filter(v => typeof v === 'number' && !isNaN(v));
+
+// 2. 평균 계산
+            let avgNg = 0;
+            if (validNgRates.length > 0) {
+                avgNg = validNgRates.reduce((a, b) => a + b, 0) / validNgRates.length;
+            }
+            avgNg = parseFloat(avgNg.toFixed(1));  // 소수점 1자리 반올림 + 숫자로 변환
 
             let message = '', style = '', icon = '';
             if (avgNg < 10) {
@@ -259,6 +282,10 @@
             }
             warningDiv.setAttribute('style', `${style} padding: 5px 10px; border-radius: 10px; font-weight: bold;`);
             warningDiv.textContent = message;
+
+            console.log("ngRates =", ngRates);
+            console.log("avgNg =", avgNg);
+            console.log("typeof avgNg =", typeof avgNg);
         }
 
         updateNgWarning();
@@ -394,165 +421,154 @@
             window.chart3 = drawChart(document.getElementById('myChart3'), ok3, ng3, 'text3', '검수 통과', '검수 불량');
         });
 
-      <!-- ✅ 목표 대비 달성률 가로바 차트 -->
-//<script>
-let productAchievementChart = null;
+        // 시간대별 목표달성량 가로바 차트
+        const rawData      = /*[[${chartData}]]*/ '{}';
+        const prodStats    = JSON.parse(rawData);
+        const PRODUCT_LIST = ["GyulRide","InteliBike","PedalAt4"];
 
-// 퍼센트 구간에 따른 색상
-function getBarColor(percent) {
-    if (percent < 40) return '#D7263D';      // 낮음
-    if (percent < 70) return '#FFB627';      // 보통
-    if (percent < 100) return '#219EBC';     // 양호
-    return '#005805';                        // 100% 달성 이상
-}
+        let labels       = PRODUCT_LIST;
+        let targetCounts = prodStats.targetCounts ?? [0, 0, 0];
 
-// 차트 생성 및 갱신 함수
-function createOrUpdateProductAchievementChart(labels, actualCounts, targetCounts) {
-    const ctx = document.getElementById('productAchievementChart').getContext('2d');
-    const achievementRates = actualCounts.map((v, i) => targetCounts[i] > 0 ? (v / targetCounts[i]) * 100 : 0);
+        // 🟢 서버에서 받은 완제품 수량 (완성된 product 기준)
+        let completeByProduct = prodStats.totalCompleteByProduct ?? {};
+        let actualCounts = PRODUCT_LIST.map(p => completeByProduct[p] ?? 0);
 
-    if (productAchievementChart) {
-        productAchievementChart.destroy();
-    }
-
-    productAchievementChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: '현재 달성률 (%)',
-                data: achievementRates,
-                backgroundColor: achievementRates.map(getBarColor),
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            layout: { padding: { right: 120 } },
-            scales: {
-                x: {
-                    beginAtZero: true,
-                    max: 100,
-                    ticks: {
-                        callback: val => `${val}%`,
-                        font: { size: 14 }
-                    }
-                },
-                y: {
-                    ticks: { font: { size: 16 } }
-                }
-            },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => {
-                            const i = ctx.dataIndex;
-                            return `${actualCounts[i]}/${targetCounts[i]}대 (${achievementRates[i].toFixed(1)}%)`;
-                        }
-                    }
-                }
-            }
-        },
-        plugins: [{
-            id: 'barLabelPlugin',
-            afterDatasetsDraw(chart) {
-                const { ctx, scales: { x, y } } = chart;
-                chart.data.datasets[0].data.forEach((rate, i) => {
-                    const label = `${actualCounts[i]}/${targetCounts[i]}대`;
-                    ctx.save();
-                    ctx.font = 'bold 16px sans-serif';
-                    ctx.fillStyle = rate < 60 ? '#F44336' : '#333';
-                    ctx.textAlign = 'left';
-                    ctx.fillText(label, x.getPixelForValue(100) + 10, y.getPixelForValue(i));
-                    ctx.restore();
-                });
-            }
-        }]
-    });
-}
-//</script>
-
-<!-- ✅ WebSocket 구독 및 차트 업데이트 -->
-//<script>
-const socket = new SockJS("/ws");
-const stomp = Stomp.over(socket);
-
-stomp.connect({}, () => {
-    // 목표달성 가로바 차트 업데이트 메시지
-    stomp.subscribe("/topic/progress", (msg) => {
-        const { fakeHour, labels, actualCounts, targetCounts } = JSON.parse(msg.body);
-        document.getElementById("timeRange").textContent = `${fakeHour}시 ~ ${fakeHour}시 59분`;
-        createOrUpdateProductAchievementChart(labels, actualCounts, targetCounts);
-    });
-
-    // 공정별 OK/NG 실시간 수신 (이전 로직 유지)
-    stomp.subscribe("/topic/process", (msg) => {
-        const p = JSON.parse(msg.body);
-        const step = Number(p.processStep);
-        const status = p.processResultStatus;
-
-        if (!okCounts[step]) okCounts[step] = 0;
-        if (!ngCounts[step]) ngCounts[step] = 0;
-
-        if (status === 'OK') okCounts[step]++;
-        if (status === 'NG') {
-            ngCounts[step]++;
-            showNgAlert(p);
-        }
-
-        updateNgWarning();
-
-        // 실시간 차트 갱신
-        updateChart(
-            step === 1 ? chart1 : step === 2 ? chart2 : chart3,
-            okCounts[step],
-            ngCounts[step],
-            `text${step}`,
-            step === 1 ? '용접 출력 통과' : step === 2 ? '도장 온도 정상' : '검수 통과',
-            step === 1 ? '용접 출력 이상' : step === 2 ? '도장 온도 이상' : '검수 불량'
-        );
-    });
-});
-
-            function getErrorDescription(errorCode, value) {
-                switch(errorCode) {
-                    case "ERROR_101":
-                        return `ERROR_101_용접 출력 과다 (${value.toFixed(1)}V)`;
-                    case "ERROR_102":
-                        return `ERROR_102_용접 출력 부족 (${value.toFixed(1)}V)`;
-                    case "ERROR_201":
-                        return `ERROR_201_온도 이상 (${value.toFixed(1)}℃)`;
-                    case "ERROR_202":
-                        return `ERROR_202_온도 이하 (${value.toFixed(1)}℃)`;
-                    case "ERROR_103":
-                        return "ERROR_103_스크래치 불량";
-                    case "ERROR_110":
-                        return "ERROR_110_조립 불량";
-                    case "ERROR_111":
-                        return "ERROR_111_기능 불량";
-                    default:
-                        return "EXCEPTION_ERROR";
-                }
-            }
-            function showErrorBanner(errorCode, value) {
-                const message = getErrorDescription(errorCode, value);
-                const banner = document.getElementById("errorBanner");
-                const text = document.getElementById("errorText");
-
-                if (banner && text) {
-                    text.textContent = message;
-                    banner.style.display = "block";
-
-                    // 일정 시간 후 자동 숨김 (예: 5초)
-                    setTimeout(() => {
-                        banner.style.display = "none";
-                    }, 5000);
-                }
-            }
+        // 🧠 달성률 계산
+        let achievementRates = PRODUCT_LIST.map((_, i) => {
+            const target = targetCounts[i];
+            const actual = actualCounts[i];
+            return target === 0 ? 0.0 : Math.round((actual * 1000.0 / target)) / 10.0;
         });
 
-    </script>
+        /* ---------- 차트 함수 ---------- */
+        let productAchievementChart;
+        const getBarColor = p => p<40?"#D7263D":p<70?"#FFB627":p<100?"#219EBC":"#005805";
 
+        function drawProductChart(){
+            const ctx = document.getElementById("productAchievementChart").getContext("2d");
+            if(productAchievementChart) productAchievementChart.destroy();
+
+            productAchievementChart = new Chart(ctx,{
+                type:"bar",
+                data:{labels,datasets:[{
+                        label:"현재 달성률(%)",
+                        data:achievementRates,
+                        backgroundColor:achievementRates.map(getBarColor)
+                    }]},
+                options:{
+                    indexAxis:"y",responsive:true,layout:{padding:{right:120}},
+                    scales:{
+                        x:{beginAtZero:true,max:100,ticks:{callback:v=>`${v}%`,font:{size:14}}},
+                        y:{ticks:{font:{size:16}}}
+                    },
+                    plugins:{
+                        legend:{display:false},
+                        tooltip:{callbacks:{label:ctx=>{
+                                    const i=ctx.dataIndex;
+                                    return `${actualCounts[i]}/${targetCounts[i]}대 (${achievementRates[i].toFixed(1)}%)`;
+                                }}}
+                    }
+                },
+                plugins:[{
+                    id:"barLabelPlugin",
+                    afterDatasetsDraw(chart){
+                        const {ctx,scales:{x,y}} = chart;
+                        chart.data.datasets[0].data.forEach((rate,i)=>{
+                            ctx.save();
+                            ctx.font = "bold 16px sans-serif";
+                            ctx.fillStyle = rate<60?"#F44336":"#333";
+                            ctx.textAlign="left";
+                            ctx.fillText(`${actualCounts[i]}/${targetCounts[i]}대`,
+                                x.getPixelForValue(100)+10,
+                                y.getPixelForValue(i));
+                            ctx.restore();
+                        });
+                    }
+                }]
+            });
+        }
+        document.addEventListener("DOMContentLoaded",drawProductChart);
+
+        // WebSocket 처리 부분은 그대로 유지하되, updateChart 호출 시 위 함수 사용
+        const socket = new SockJS("/ws");
+        const stomp = Stomp.over(socket);
+
+        stomp.connect({}, () => {
+
+            console.log("✅ WebSocket Connected");
+
+            //  실시간 제품 목표 달성률 구독
+            stomp.subscribe('/topic/product-achievement', (message) => {
+                const data = JSON.parse(message.body);
+                console.log("🛰️ 실시간 수신:", data);
+
+                //  목표/실적/달성률 값 재계산
+                targetCounts = PRODUCT_LIST.map(label => data.targetCounts?.[label] ?? 0);
+                actualCounts = PRODUCT_LIST.map(label => data.totalCompleteByProduct?.[label] ?? 0);
+                achievementRates = PRODUCT_LIST.map((_, i) => {
+                    const target = targetCounts[i];
+                    const actual = actualCounts[i];
+                    return target === 0 ? 0.0 : Math.round((actual * 1000.0 / target)) / 10.0;
+                });
+
+                //  시간 범위 업데이트
+                document.getElementById("timeRange").textContent =
+                    `${data.fakeHour}시 ~ ${data.fakeHour}시 59분`;
+
+                //  차트 리렌더링
+                drawProductChart();
+            });
+
+
+            // 공정별 OK/NG 상태 수신
+            stomp.subscribe("/topic/process", (msg) => {
+                const p = JSON.parse(msg.body);
+
+                const {
+                    productName,
+                    processStep,
+                    processResultStatus,
+                    lotNumber,
+                    errorDescription,
+                    errorCode
+                } = p;
+
+                const step = Number(processStep);
+                const status = processResultStatus;
+
+                const baseLot = lotNumber ? lotNumber.split("_").slice(0, 3).join("_") : '';
+                if (!lotStepStatusMap[baseLot]) lotStepStatusMap[baseLot] = {};
+                lotStepStatusMap[baseLot][step] = status;
+
+                if (!window.okCounts[step]) window.okCounts[step] = 0;
+                if (!window.ngCounts[step]) window.ngCounts[step] = 0;
+
+                if (status === 'OK') {
+                    window.okCounts[step]++;
+                } else if (status === 'NG') {
+                    window.ngCounts[step]++;
+                    showNgAlert({
+                        productName,
+                        processStep,
+                        errorDescription: errorDescription || errorCode || '에러 발생',
+                    });
+                }
+
+                //  실시간 반영 핵심: 해당 공정 차트 업데이트
+                updateChart(
+                    window['chart' + step],
+                    window.okCounts[step],
+                    window.ngCounts[step],
+                    'text' + step,
+                    step === 1 ? '용접 출력 통과' : step === 2 ? '도장 온도 정상' : '검수 통과',
+                    step === 1 ? '용접 출력 이상' : step === 2 ? '도장 온도 이상' : '검수 불량'
+                );
+
+                //  평균 NG율 실시간 반영
+                updateNgWarning();
+            });
+
+        });
+    </script>
 </th:block>
 </html>
