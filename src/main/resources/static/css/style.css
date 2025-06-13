@@ -119,7 +119,7 @@ nav.d-lg-none {
     max-width: 600px;                /* 최대 너비 600px */
     width: 100%;                     /* 가로 100% */
     border-radius: 16px;             /* 둥근 테두리 */
-    padding: 80px 60px;              /* 안쪽 여백: 세로 80px, 가로 60px */
+    padding: 60px 60px;              /* 안쪽 여백: 세로 80px, 가로 60px */
 }
 .form_lg_css {
     background-color: #ffffff;        /* 흰색 배경 */
@@ -441,6 +441,57 @@ nav.d-lg-none {
     text-decoration: underline;          /* 밑줄 효과 */
 }
 
+.gyul-pagination {
+    display: flex;
+    gap: 6px;
+    list-style: none;
+    padding-left: 0;
+}
+
+.gyul-pagination .page-link {
+    display: inline-block;
+    min-width: 30px;
+    padding: 6px 10px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #c64e00;
+    background-color: white;
+    border: 1px solid #c64e00;
+    border-radius: 8px;
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.gyul-pagination .page-link:hover {
+    background-color: #c64e00;
+    color: white;
+}
+
+.gyul-pagination .page-item.active .page-link {
+    background-color: #ff6037;
+    color: white;
+}
+
+.gyul-pagination .page-item.disabled .page-link {
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+
+
+.table1_css tbody tr:hover {
+    background-color: #ffe8cc; /* 팝한 복숭아빛 */
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+}
+
+.table1_css tbody tr:hover td {
+    font-weight: 500;
+    color: #d35400; /* 진한 오렌지 텍스트 */
+}
+
 
 
 /* ────────────────────────────  페이지별 (대시보드)  ──────────────────────────── */
@@ -541,13 +592,33 @@ nav.d-lg-none {
     margin-top: 10px;
     text-align: right;
 }
+/*대시보드 가로 바 차트 라벨*/
+.bar-legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    font-size: 0.9rem;
+    color: #444;
+}
 
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend-color {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
 
 
 
 /* ────────────────────────────  페이지별 (재고관리)  ──────────────────────────── */
 .inventory-box {
-    border: 2px solid #F37221;
+    border: 4px solid #F37221;
     border-radius: 10px;
     background-color: #fff3e0;
     width: 100%;
@@ -580,64 +651,118 @@ nav.d-lg-none {
 }
 
 /* ────────────────────────────  페이지별 (생산지시)  ──────────────────────────── */
-/* 주문 컨테이너 */
-.order-container {
-    height: auto;                            /* 높이 자동 */
-    max-height: none;                       /* 최대 높이 제한 없음 */
-    overflow: visible;                      /* 내용 잘림 방지 */
-    border: 2px solid #F37221;             /* 주황 테두리 */
-    border-radius: 10px;                   /* 둥근 모서리 */
-    padding: 50px;                         /* 안쪽 여백 */
-    margin: 50px;                          /* 바깥 여백 */
-    background-color: white;               /* 배경색 흰색 */
-    width: 100%;                           /* 전체 너비 */
-    max-width: 1200px;                     /* 최대 너비 1200px */
-    box-sizing: border-box;                /* 테두리, 패딩 포함 크기 계산 */
+/*!* 주문 컨테이너 *!*/
+/*.order-container {*/
+/*    height: auto;                            !* 높이 자동 *!*/
+/*    max-height: none;                       !* 최대 높이 제한 없음 *!*/
+/*    overflow: visible;                      !* 내용 잘림 방지 *!*/
+/*    border: 2px solid #F37221;             !* 주황 테두리 *!*/
+/*    border-radius: 10px;                   !* 둥근 모서리 *!*/
+/*    padding: 50px;                         !* 안쪽 여백 *!*/
+/*    margin: 50px;                          !* 바깥 여백 *!*/
+/*    background-color: white;               !* 배경색 흰색 *!*/
+/*    width: 100%;                           !* 전체 너비 *!*/
+/*    max-width: 1200px;                     !* 최대 너비 1200px *!*/
+/*    box-sizing: border-box;                !* 테두리, 패딩 포함 크기 계산 *!*/
+/*}*/
+/*!* 주문 폼 컬럼 *!*/
+/*.order-form-col {*/
+/*    padding: 0 30px;                       !* 좌우 여백 *!*/
+/*}*/
+/*!* 주문 이미지 컬럼 *!*/
+/*.order-image-col {*/
+/*    height: auto;                          !* 높이 자동 *!*/
+/*    max-height: none;                     !* 최대 높이 제한 없음 *!*/
+/*    display: flex;                        !* flexbox 사용 *!*/
+/*    flex-direction: column;               !* 세로 정렬 *!*/
+/*    align-items: center;                  !* 가로 중앙 정렬 *!*/
+/*    justify-content: flex-start;          !* 위쪽 정렬 *!*/
+/*}*/
+/*!* 주문 이미지 감싸는 박스 *!*/
+/*.order-image-wrapper {*/
+/*    flex: 1;                              !* 공간 채움 *!*/
+/*    display: flex;                        !* flexbox 사용 *!*/
+/*    justify-content: center;             !* 가로 중앙 정렬 *!*/
+/*    align-items: center;                 !* 세로 중앙 정렬 *!*/
+/*    width: 100%;                         !* 전체 너비 *!*/
+/*}*/
+/*!* 자전거 이미지 스타일 *!*/
+/*#bikeImage {*/
+/*    max-width: 100%;                     !* 최대 너비 100% *!*/
+/*    max-height: 100%;                    !* 최대 높이 100% *!*/
+/*    object-fit: contain;                 !* 비율 유지하며 맞춤 *!*/
+/*    border-radius: 20px;                 !* 둥근 모서리 *!*/
+/*}*/
+/*!* 일일 생산량 박스 *!*/
+/*.daily-output-box {*/
+/*    border: 2px solid #F37221;           !* 주황 테두리 *!*/
+/*    border-radius: 10px;                 !* 둥근 모서리 *!*/
+/*    background-color: #fff3e0;           !* 연한 주황 배경 *!*/
+/*    width: 100%;                         !* 전체 너비 *!*/
+/*    max-width: 100%;                     !* 최대 너비 100% *!*/
+/*    text-align: center;                  !* 텍스트 가운데 정렬 *!*/
+/*    word-break: break-word;              !* 긴 단어 줄바꿈 *!*/
+/*    overflow-wrap: break-word;           !* 긴 단어 줄바꿈 (대체) *!*/
+/*    padding: 10px;                       !* 안쪽 여백 *!*/
+/*    font-size: clamp(12px, 2.5vw, 16px); !* 반응형 글씨 크기 *!*/
+/*    box-sizing: border-box;              !* 테두리, 패딩 포함 크기 계산 *!*/
+/*    margin-bottom: 20px;                 !* 아래쪽 여백 *!*/
+/*    !*flex-shrink: 0;                      !* 크기 줄어들지 않게 *!*!*/
+/*    white-space: nowrap;                 !* 줄바꿈 안됨 *!*/
+/*}*/
+body {
+    background-color: #FFF6EB;
 }
-/* 주문 폼 컬럼 */
-.order-form-col {
-    padding: 0 30px;                       /* 좌우 여백 */
+.order-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 30px;
+    max-width: 1000px;
+    margin: 40px auto;
 }
-/* 주문 이미지 컬럼 */
-.order-image-col {
-    height: auto;                          /* 높이 자동 */
-    max-height: none;                     /* 최대 높이 제한 없음 */
-    display: flex;                        /* flexbox 사용 */
-    flex-direction: column;               /* 세로 정렬 */
-    align-items: center;                  /* 가로 중앙 정렬 */
-    justify-content: flex-start;          /* 위쪽 정렬 */
+.custom-select, .form-control {
+    border-radius: 10px;
+    border: 1px solid #FFA26B;
 }
-/* 주문 이미지 감싸는 박스 */
-.order-image-wrapper {
-    flex: 1;                              /* 공간 채움 */
-    display: flex;                        /* flexbox 사용 */
-    justify-content: center;             /* 가로 중앙 정렬 */
-    align-items: center;                 /* 세로 중앙 정렬 */
-    width: 100%;                         /* 전체 너비 */
+.submit-btn {
+    background: linear-gradient(45deg, #ff6541, #ff8328);
+    color: #ffffff;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    width: 100%;
 }
-/* 자전거 이미지 스타일 */
-#bikeImage {
-    max-width: 100%;                     /* 최대 너비 100% */
-    max-height: 100%;                    /* 최대 높이 100% */
-    object-fit: contain;                 /* 비율 유지하며 맞춤 */
-    border-radius: 20px;                 /* 둥근 모서리 */
+
+.thumbnail-img {
+    width: 30%;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 3px solid transparent;
 }
-/* 일일 생산량 박스 */
-.daily-output-box {
-    border: 2px solid #F37221;           /* 주황 테두리 */
-    border-radius: 10px;                 /* 둥근 모서리 */
-    background-color: #fff3e0;           /* 연한 주황 배경 */
-    width: 100%;                         /* 전체 너비 */
-    max-width: 100%;                     /* 최대 너비 100% */
-    text-align: center;                  /* 텍스트 가운데 정렬 */
-    word-break: break-word;              /* 긴 단어 줄바꿈 */
-    overflow-wrap: break-word;           /* 긴 단어 줄바꿈 (대체) */
-    padding: 10px;                       /* 안쪽 여백 */
-    font-size: clamp(12px, 2.5vw, 16px); /* 반응형 글씨 크기 */
-    box-sizing: border-box;              /* 테두리, 패딩 포함 크기 계산 */
-    margin-bottom: 20px;                 /* 아래쪽 여백 */
-    /*flex-shrink: 0;                      !* 크기 줄어들지 않게 *!*/
-    white-space: nowrap;                 /* 줄바꿈 안됨 */
+
+.thumbnail-img.active {
+    border: 3px solid #FF6A00;
+    border-radius: 16px;
+    animation: blink 1s ease-in-out 3;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.product-card {
+    background-color: #FFF3E0;
+    border-radius: 12px;
+    padding: 16px;
 }
 
 /* ────────────────────────────  페이지별 (ORDER LIST)  ──────────────────────────── */
@@ -646,6 +771,19 @@ button[name="processButton"]:disabled {
     background-color: #878787 !important;
     color: white !important;
     cursor: not-allowed;
+}
+/* 공정상태 글씨 , 아이콘*/
+.status-pending {
+    color: #0b76bc !important;
+    font-weight: bold;
+}
+.status-in-progress {
+    color: #8f2e21 !important;
+    font-weight: bold;
+}
+.status-completed {
+    color: #0d774d !important;
+    font-weight: bold;
 }
 
 
@@ -664,6 +802,15 @@ button[name="processButton"]:disabled {
     50%      { background-color: #FF4D4D; }  /* 중간은 밝은 빨강으로 전환 */
 }
 
+@keyframes blink-row {
+    0%   { background-color: rgba(255, 167, 81, 0.5) !important; }
+    50%  { background-color: rgba(255, 100, 0, 0.85) !important; }
+    100% { background-color: rgba(255, 167, 81, 0.5) !important; }
+}
+
+.blinking-row {
+    animation: blink-row 1s ease-in-out 7!important;
+}
 
 
 

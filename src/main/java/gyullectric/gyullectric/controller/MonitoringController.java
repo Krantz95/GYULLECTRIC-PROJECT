@@ -49,6 +49,9 @@ public class MonitoringController {
     @GetMapping("/monitoring/list/{id}")
     public String getProductList(@PathVariable("id")Long id, Model model, HttpSession session) {
         Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if(loginMember == null){
+            return "redirect:/login";
+        }
 
         ProcessDataDto processDataDto = monitoringDataService.getProcessData(id);
         List<ProcessLog> sortedProcesses = processDataDto.getProcesses().stream()
@@ -71,7 +74,11 @@ public class MonitoringController {
     }
 
     @GetMapping("/monitoring/list")
-    public String monitoringListChart(Model model){
+    public String monitoringListChart(Model model, HttpSession session) {
+        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if(loginMember == null){
+            return "redirect:/login";
+        }
         // 현재 진행 중인 작업 조회
         List<OrderList> orderLists = orderListRepository.findByProcessStatus(ProcessStatus.IN_PROGRESS);
         Long orderId = !orderLists.isEmpty()
@@ -137,7 +144,11 @@ public class MonitoringController {
     }
 
     @GetMapping("/monitoring/product/list")
-    public String monitoringProduct(Model model) throws JsonProcessingException {
+    public String monitoringProduct(Model model, HttpSession session) throws JsonProcessingException {
+        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if(loginMember == null){
+            return "redirect:/login";
+        }
         List<OrderList> orderLists = productService.allFindOrderList();
         List<ProcessLog> processLogs = monitoringService.allFindProcesses();
 

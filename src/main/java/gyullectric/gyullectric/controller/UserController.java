@@ -4,6 +4,7 @@ import gyullectric.gyullectric.MyPageFormValidator;
 import gyullectric.gyullectric.domain.Members;
 import gyullectric.gyullectric.dto.MyPageForm;
 import gyullectric.gyullectric.service.MemberService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -34,7 +35,11 @@ public class UserController {
         return "user/myPageForm";
     }
     @PostMapping("/{id}/edit")
-    public String updateUser(Model model, @ModelAttribute("myPageForm")MyPageForm myPageForm, BindingResult bindingResult){
+    public String updateUser(Model model, @ModelAttribute("myPageForm")MyPageForm myPageForm, BindingResult bindingResult, HttpSession session) {
+        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if(loginMember == null){
+            return "redirect:/login";
+        }
 
         myPageFormValidator.validate(myPageForm, bindingResult);
 

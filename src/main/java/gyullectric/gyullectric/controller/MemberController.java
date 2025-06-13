@@ -48,7 +48,11 @@ public class MemberController {
 
     // 수정 폼
     @GetMapping("/{id}/edit")
-    public String editMemberForm(@PathVariable("id") Long id, Model model) {
+    public String editMemberForm(@PathVariable("id") Long id, Model model,HttpSession session) {
+        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if(loginMember == null){
+            return "redirect:/login";
+        }
         Members members = memberService.oneFindMembers(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 아이디를 찾을 수 없습니다"));
 

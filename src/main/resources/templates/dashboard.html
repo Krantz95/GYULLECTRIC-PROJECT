@@ -21,7 +21,7 @@
     <div class="py-4">
 
         <!-- 상단 왼쪽 : 시간대별 제품 생산 현황 + 현재 시간 -->
-        <div class="container-fluid px-4" style="max-width: 1140px; margin: 0 auto;">
+        <div class="container-fluid px-4" style="max-width: 1200px; margin: 0 auto;">
         <div class="row g-4">
             <div class="col-lg-6 col-12">
                 <div class="chart-card">
@@ -36,6 +36,20 @@
                             기준: <span id="timeRange"></span>
                         </p>
                         <canvas id="productAchievementChart" width="650" height="280"></canvas>
+                    </div>
+                    <div class="bar-legend mt-3">
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #D7263D;"></span> 낮음 <br> (0% ~ 39%)
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #FFB627;"></span> 보통  <br> (40% ~ 69%)
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #219EBC;"></span> 양호  <br> (70% ~ 99%)
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #06D6A0;"></span> 달성 완료  <br> (100%)
+                        </div>
                     </div>
                 </div>
             </div>
@@ -170,11 +184,6 @@
 <!-- ============ 데이터연동(타임리프)는 html 내부에서 직접 스크립트 구성 =============-->
 <th:block layout:fragment="script">
 
-    <!-- 제품리스트에서 데이터가져오기 (타임리프는 내부에서 써야함) -->
-    <script th:inline="javascript">
-        window.chartDataHourly = /*[[${chartDataHourly}]]*/ '{}';
-    </script>
-
     <script src="/js/dashboard-charts.js"></script>
 
     <!-- ============ 공지사항 배너 스크립트 =============-->
@@ -192,19 +201,36 @@
         });
     </script>
 
-    <!-- ============ 공정별 OK/NG 차트 =============-->
-    <script th:inline="javascript">
-        var ng1 = /*[[${ngCountByStep[1]?:0}]]*/0;
-        var ok1 = /*[[${okCountByStep[1]?:0}]]*/0;
-        var ng2 = /*[[${ngCountByStep[2]?:0}]]*/0;
-        var ok2 = /*[[${okCountByStep[2]?:0}]]*/0;
-        var ng3 = /*[[${ngCountByStep[3]?:0}]]*/0;
-        var ok3 = /*[[${okCountByStep[3]?:0}]]*/0;
+        // 공정별 ok/ng 차트
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            const okCounts = {
+                1: [[${okCountByStep[1] ?: 0}]],
+                2: [[${okCountByStep[2] ?: 0}]],
+                3: [[${okCountByStep[3] ?: 0}]]
+            };
+            const ngCounts = {
+                1: [[${ngCountByStep[1] ?: 0}]],
+                2: [[${ngCountByStep[2] ?: 0}]],
+                3: [[${ngCountByStep[3] ?: 0}]]
+            };
+            /*]]>*/
 
-        window.okCounts = {1: ok1, 2: ok2, 3: ok3};
-        window.ngCounts = {1: ng1, 2: ng2, 3: ng3};
-    </script>
-    <script>
+        /** 🔔 상단 에러 알림바 표시 */
+        function showNgAlert(data) {
+            const { productName, processStep, errorDescription = '에러 발생', errorValue } = data;
+            const alertBar = document.getElementById('dashboard-alert-bar');
+            if (!alertBar) return;
+
+            const rounded = errorValue != null ? ` (${Math.round(errorValue * 10) / 10})` : '';
+            alertBar.innerHTML = `🔔 [${productName}] ${processStep}공정 ERROR: ${errorDescription}${rounded}`;
+            alertBar.style.display = 'block';
+
+            setTimeout(() => {
+                alertBar.style.display = 'none';
+            }, 20000);
+        }
+
         function updateNgWarning() {
             const ngRates = [
                 (ng1 / (ok1 + ng1)) * 100,
@@ -248,7 +274,7 @@
                 const centerX = width / 2;
                 const centerY = height / 2;
 
-                // ⭕ Draw orange circle
+                //  Draw orange circle
                 const innerRadius = chart._metasets[0].data[0].innerRadius;
                 ctx.save();
                 ctx.beginPath();
@@ -259,7 +285,7 @@
                 ctx.closePath();
                 ctx.restore();
 
-                // 🔢 Draw center percentage text
+                //  Draw center percentage text
                 ctx.save();
                 ctx.font = 'bold 20px sans-serif';
                 ctx.fillStyle = '#000';
@@ -317,10 +343,16 @@
             const textDiv = document.getElementById(textElementId);
             if (textDiv) {
                 textDiv.innerHTML =
-                    `<span style="display: inline-block; width: 20px; height: 10px; background-color: #4caf50; margin-right: 5px;"></span>` +
-                    `<span style="font-weight:bold;  font-size: 15px">${okLabel} </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +
-                    `<span style="display: inline-block; width: 20px; height: 10px; background-color: #f44336; margin-right: 5px;"></span>` +
-                    `<span style="font-weight:bold; font-size: 15px">${ngLabel} </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;
+                    `<div style="margin-bottom: 6px;">
+                        <span style="display: inline-block; width: 20px; height: 10px; background-color: #4caf50; margin-right: 5px;"></span>
+                        <span style="font-weight:bold; font-size: 15px;">${okLabel}</span><br>
+                        <span style="font-size: 15px;">${ok}건 / ${okPercent}%</span>
+                    </div>
+                    <div>
+                        <span style="display: inline-block; width: 20px; height: 10px; background-color: #f44336; margin-right: 5px;"></span>
+                        <span style="font-weight:bold; font-size: 15px;">${ngLabel}</span><br>
+                        <span style="font-size: 15px;">${ng}건 / ${ngPercent}%</span>
+                    </div>`;
             }
 
             return chart;
@@ -342,10 +374,16 @@
             const textDiv = document.getElementById(textElementId);
             if (textDiv) {
                 textDiv.innerHTML =
-                    `<span style="display: inline-block; width: 20px; height: 10px; background-color: #4caf50; margin-right: 5px;"></span>` +
-                    `<span style="font-weight:bold;  font-size: 15px">${okLabel} </span><span style="font-size: 15px">${ok}건 / ${okPercent}%</span><br>` +
-                    `<span style="display: inline-block; width: 20px; height: 10px; background-color: #f44336; margin-right: 5px;"></span>` +
-                    `<span style="font-weight:bold; font-size: 15px">${ngLabel} </span><span style="font-size: 15px">${ng}건 / ${ngPercent}%</span>`;
+                    `<div style="margin-bottom: 6px;">
+                        <span style="display: inline-block; width: 20px; height: 10px; background-color: #4caf50; margin-right: 5px;"></span>
+                        <span style="font-weight:bold; font-size: 15px;">${okLabel}</span><br>
+                        <span style="font-size: 15px;">${ok}건 / ${okPercent}%</span>
+                    </div>
+                    <div>
+                        <span style="display: inline-block; width: 20px; height: 10px; background-color: #f44336; margin-right: 5px;"></span>
+                        <span style="font-weight:bold; font-size: 15px;">${ngLabel}</span><br>
+                        <span style="font-size: 15px;">${ng}건 / ${ngPercent}%</span>
+                    </div>`;
             }
         }
 
@@ -356,108 +394,127 @@
             window.chart3 = drawChart(document.getElementById('myChart3'), ok3, ng3, 'text3', '검수 통과', '검수 불량');
         });
 
-        // 시간대별 목표달성량 가로바 차트
-        const ctx = document.getElementById('orderChart').getContext('2d');
+      <!-- ✅ 목표 대비 달성률 가로바 차트 -->
+//<script>
+let productAchievementChart = null;
 
-        const chartConfig = {
-            type: 'bar',
-            data: {
-                labels: [], // 제품명 리스트
-                datasets: [{
-                    label: '주문 달성량',
-                    data: [], // 수량 리스트
-                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                }]
+// 퍼센트 구간에 따른 색상
+function getBarColor(percent) {
+    if (percent < 40) return '#D7263D';      // 낮음
+    if (percent < 70) return '#FFB627';      // 보통
+    if (percent < 100) return '#219EBC';     // 양호
+    return '#005805';                        // 100% 달성 이상
+}
+
+// 차트 생성 및 갱신 함수
+function createOrUpdateProductAchievementChart(labels, actualCounts, targetCounts) {
+    const ctx = document.getElementById('productAchievementChart').getContext('2d');
+    const achievementRates = actualCounts.map((v, i) => targetCounts[i] > 0 ? (v / targetCounts[i]) * 100 : 0);
+
+    if (productAchievementChart) {
+        productAchievementChart.destroy();
+    }
+
+    productAchievementChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '현재 달성률 (%)',
+                data: achievementRates,
+                backgroundColor: achievementRates.map(getBarColor),
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            layout: { padding: { right: 120 } },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: val => `${val}%`,
+                        font: { size: 14 }
+                    }
+                },
+                y: {
+                    ticks: { font: { size: 16 } }
+                }
             },
-            options: {
-                indexAxis: 'y',  // 가로 바 차트 설정
-                scales: {
-                    x: {
-                        beginAtZero: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => {
+                            const i = ctx.dataIndex;
+                            return `${actualCounts[i]}/${targetCounts[i]}대 (${achievementRates[i].toFixed(1)}%)`;
+                        }
                     }
                 }
             }
-        };
-
-        const orderChart = new Chart(ctx, chartConfig);
-
-        // WebSocket 처리 부분은 그대로 유지하되, updateChart 호출 시 위 함수 사용
-        const socket = new SockJS("/ws");
-        const stomp = Stomp.over(socket);
-
-        stomp.connect({}, () => {
-
-            stomp.subscribe('/topic/progress', function (message) {
-                const orderData = JSON.parse(message.body);
-                updateOrderChart(orderData);
-            });
-            function updateChart(data) {
-                // data 예: { products: ['제품1', '제품2', '제품3'], quantities: [10, 20, 15] }
-
-                orderChart.data.labels = data.products;
-                orderChart.data.datasets[0].data = data.quantities;
-                orderChart.update();
+        },
+        plugins: [{
+            id: 'barLabelPlugin',
+            afterDatasetsDraw(chart) {
+                const { ctx, scales: { x, y } } = chart;
+                chart.data.datasets[0].data.forEach((rate, i) => {
+                    const label = `${actualCounts[i]}/${targetCounts[i]}대`;
+                    ctx.save();
+                    ctx.font = 'bold 16px sans-serif';
+                    ctx.fillStyle = rate < 60 ? '#F44336' : '#333';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(label, x.getPixelForValue(100) + 10, y.getPixelForValue(i));
+                    ctx.restore();
+                });
             }
+        }]
+    });
+}
+//</script>
 
-            stomp.subscribe("/topic/process", (msg) => {
-                const p = JSON.parse(msg.body);
+<!-- ✅ WebSocket 구독 및 차트 업데이트 -->
+//<script>
+const socket = new SockJS("/ws");
+const stomp = Stomp.over(socket);
 
-                const step = p.processStep;
-                const status = p.processResultStatus;
-                const lotNumber = p.lotNumber;
-                const errorMessage = p.errorMessage;
+stomp.connect({}, () => {
+    // 목표달성 가로바 차트 업데이트 메시지
+    stomp.subscribe("/topic/progress", (msg) => {
+        const { fakeHour, labels, actualCounts, targetCounts } = JSON.parse(msg.body);
+        document.getElementById("timeRange").textContent = `${fakeHour}시 ~ ${fakeHour}시 59분`;
+        createOrUpdateProductAchievementChart(labels, actualCounts, targetCounts);
+    });
 
-                const base = lotNumber.split("_").slice(0, 3).join("_");
-                if (!lotStepStatusMap[base]) lotStepStatusMap[base] = {};
-                lotStepStatusMap[base][step] = status;
+    // 공정별 OK/NG 실시간 수신 (이전 로직 유지)
+    stomp.subscribe("/topic/process", (msg) => {
+        const p = JSON.parse(msg.body);
+        const step = Number(p.processStep);
+        const status = p.processResultStatus;
 
-                // 실시간 OK/NG 카운트 초기화
-                if (!window.okCounts[step]) window.okCounts[step] = 0;
-                if (!window.ngCounts[step]) window.ngCounts[step] = 0;
+        if (!okCounts[step]) okCounts[step] = 0;
+        if (!ngCounts[step]) ngCounts[step] = 0;
 
-                if (status === 'OK') {
-                    window.okCounts[step]++;
-                } else if (status === 'NG') {
-                    window.ngCounts[step]++;
-                    showNgAlert(step, errorMessage);        // NG 메시지 알림
-                    updateNgWarningRealtime(step);          // NG 비율 경고 업데이트
-                }
+        if (status === 'OK') okCounts[step]++;
+        if (status === 'NG') {
+            ngCounts[step]++;
+            showNgAlert(p);
+        }
 
-                // 실시간 NG 비율 업데이트 함수
-                function updateNgWarningRealtime(step) {
-                    if (window.ngCounts && window.okCounts) {
-                        window.ngCounts[step] = (window.ngCounts[step] || 0) + 1;
-                        updateNgWarning();
-                        updateChart(
-                            step === 1 ? window.chart1 : step === 2 ? window.chart2 : window.chart3,
-                            window.okCounts[step] || 0,
-                            window.ngCounts[step] || 0,
-                            'text' + step,
-                            step === 1 ? '용접 출력 통과' : step === 2 ? '도장 통과' : '완제품 출하 통과',
-                            step === 1 ? '용접 출력 이상' : step === 2 ? '도장 이상' : '완제품 출하 이상'
-                        );
-                    }
-                }
+        updateNgWarning();
 
+        // 실시간 차트 갱신
+        updateChart(
+            step === 1 ? chart1 : step === 2 ? chart2 : chart3,
+            okCounts[step],
+            ngCounts[step],
+            `text${step}`,
+            step === 1 ? '용접 출력 통과' : step === 2 ? '도장 온도 정상' : '검수 통과',
+            step === 1 ? '용접 출력 이상' : step === 2 ? '도장 온도 이상' : '검수 불량'
+        );
+    });
+});
 
-                if (!window.okCounts[step]) window.okCounts[step] = 0;
-                if (!window.ngCounts[step]) window.ngCounts[step] = 0;
-
-                if (status === 'OK') window.okCounts[step]++;
-                if (status === 'NG') window.ngCounts[step]++;
-
-                switch (Number(step)) {
-                    case 1:
-                        updateChart(window.chart1, window.okCounts[1], window.ngCounts[1], 'text1', '용접 출력 통과', '용접 출력 이상');
-                        break;
-                    case 2:
-                        updateChart(window.chart2, window.okCounts[2], window.ngCounts[2], 'text2', '도장 온도 정상', '도장 온도 이상');
-                        break;
-                    case 3:
-                        updateChart(window.chart3, window.okCounts[3], window.ngCounts[3], 'text3', '검수 통과', '검수 불량');
-                        break;
-                }
-            });
             function getErrorDescription(errorCode, value) {
                 switch(errorCode) {
                     case "ERROR_101":

@@ -39,7 +39,11 @@ public class ErrorController {
                                   @RequestParam(value = "page", defaultValue = "0") int page,
                                   @RequestParam(value = "kw", defaultValue = "") String kw,
                                   @RequestParam(value = "type", required = false, defaultValue = "") String type) {
+
         Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if(loginMember == null){
+            return "redirect:/login";
+        }
 
         Page<ErrorReport> paging = errorService.getList(page, kw, type);
         model.addAttribute("loginMember", loginMember);
@@ -59,46 +63,14 @@ public class ErrorController {
         return "errors/errorGuideList";
     }
 
-//    @GetMapping("/report/form")
-//    public String getReport(Model model) {
-//        model.addAttribute("errorReportForm", new ErrorReportForm());
-//        return "errors/errorReportForm";
-//    }
-//
-//    @PostMapping("report/form")
-//    public String postReport(@Valid @ModelAttribute("errorReportForm")ErrorReportForm errorReportForm, BindingResult bindingResult,
-//                             HttpSession session){
-//
-//        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
-//
-//        if(bindingResult.hasErrors()){
-//            return "errors/errorReportForm";
-//        }
-//        Long processLogId = errorReportForm.getId();
-//        ProcessLog processLog = monitoringService.oneFindProcess(processLogId)
-//                .orElseThrow(() -> new IllegalArgumentException("Invalid processLogId: " + processLogId));
-//
-//        ErrorReport errorReport = ErrorReport.builder()
-//                .errorTitle(errorReportForm.getTitle())
-//                .content(errorReportForm.getDescription())
-//                .members(loginMember)
-//                .processLog(processLog)
-//                .writtenAt(LocalDateTime.now())
-//                .priority(errorReportForm.getPriority())
-//                .occurredAt(errorReportForm.getCreatedAt())
-//                .processStep(String.valueOf(errorReportForm.getProcessStep()))
-//                .productName(ProductName.valueOf(errorReportForm.getProductName()))
-//                .build();
-//        errorService.errorSave(errorReport);
-//        return "errors/errorReportList";
-//
-//    }
 
     @GetMapping("/report/form/{id}")
     public String errorReportForm(Model model,
                                   @PathVariable("id") Long id, HttpSession session) {
         Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
-
+        if(loginMember == null){
+            return "redirect:/login";
+        }
 
 
         ProcessLog processLog = monitoringService.oneFindProcess(id)
@@ -122,6 +94,9 @@ public class ErrorController {
                                  @Valid @ModelAttribute("errorReportForm")ErrorReportForm errorReportForm, BindingResult bindingResult,
                                  HttpSession session){
         Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if(loginMember == null){
+            return "redirect:/login";
+        }
 
         if(bindingResult.hasErrors()){
             return "errors/errorReportForm";
@@ -150,7 +125,12 @@ public class ErrorController {
     @GetMapping("/detail/{id}")
     public String getReportDetail(Model model,
                                   @PathVariable("id")Long id,
-                                  AnswerForm answerForm) {
+                                  AnswerForm answerForm, HttpSession session) {
+        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if(loginMember == null){
+            return "redirect:/login";
+        }
+
         Optional<ErrorReport> errorReport = errorService.oneFindError(id);
         if(errorReport.isPresent()){
             model.addAttribute("errorReport", errorReport.get());
@@ -162,7 +142,11 @@ public class ErrorController {
     }
 
     @GetMapping("/report/delete/{id}")
-    public String deleteReport(@PathVariable("id")Long id) {
+    public String deleteReport(@PathVariable("id")Long id, HttpSession session) {
+        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if(loginMember == null){
+            return "redirect:/login";
+        }
         Optional<ErrorReport> deleteError = errorService.oneFindError(id);
         errorService.deletError(deleteError.get().getId());
         return "redirect:/errors/report";
@@ -192,11 +176,31 @@ public class ErrorController {
     }
 
     @GetMapping("/answer/modify/{answerId}")
-    public String modifyAnswer(@PathVariable("answerId")Long answerId, Model model, AnswerForm answerForm) {
-        Optional<ErrorAnswer> errorAnswer = errorService.getAnswerById(answerId);
-        answerForm.setContent(errorAnswer.get().getContent());
+    public String modifyAnswer(@PathVariable("answerId")Long answerId, Model model, AnswerForm answerForm, HttpSession session) {
+        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if(loginMember == null){
+            return "redirect:/login";
+        }
+
+        Optional<ErrorAnswer> errorAnswerOpt = errorService.getAnswerById(answerId);
+        if (errorAnswerOpt.isEmpty()) {
+            throw new IllegalArgumentException("해당 답변이 존재하지 않습니다: id=" + answerId);
+        }
+        ErrorAnswer errorAnswer = errorAnswerOpt.get();
+
+        // 답변 내용과 ID를 세팅
+        answerForm.setId(errorAnswer.getId());
+        answerForm.setContent(errorAnswer.getContent());
+
+        // 리포트 정보도 세팅
+        Optional<ErrorReport> errorReportOpt = errorService.oneFindError(errorAnswer.getErrorReport().getId());
+        if (errorReportOpt.isEmpty()) {
+            throw new IllegalArgumentException("해당 리포트가 존재하지 않습니다");
+        }
 
         model.addAttribute("answerForm", answerForm);
+        model.addAttribute("errorReport", errorReportOpt.get());
+
         return "errors/errorAnswerUpdate";
     }
 
@@ -220,6 +224,8 @@ public class ErrorController {
         errorAnswer.setMembers(loginMember);
         errorAnswer.setErrorReport(errorReport.get());
         errorService.answerError(errorAnswer);
+        model.addAttribute("errorReport", errorReport.get());
+
         return String.format("redirect:/errors/detail/%s", errorReport.get().getId());
     }
     @GetMapping("/answer/delete/{answerId}")

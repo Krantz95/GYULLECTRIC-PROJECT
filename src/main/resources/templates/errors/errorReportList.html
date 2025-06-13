@@ -40,8 +40,6 @@
                     th:data-comments="${#lists.size(error.errorAnswerList)}"
                     onclick="onRowClick(this)"
                     style="cursor: pointer;">
-<!--                    th:onclick="|location.href='/errors/detail/' + ${error.id}|"-->
-
                     <td th:text="${paging.getTotalElements() - (paging.number*paging.size)-loop.index}">ID</td>
                     <td>
                         <span th:text="${error.errorTitle}"></span>
@@ -67,7 +65,7 @@
 
     <!-- 글쓰기 -->
     <div class="d-flex justify-content-end mt-1">
-        <a th:href="@{/errors/report/form}" class="write_css">글쓰기</a>
+        <a th:href="@{/errors/report}" class="write_css">LIST</a>
     </div>
 
     <!-- 페이지네이션 (디자인)-->
@@ -75,9 +73,9 @@
         <!-- 페이징 처리 시작 -->
         <div th:if="${!paging.isEmpty()}" class="py-3 d-flex justify-content-center">
             <nav aria-label="Page navigation example">
-                <ul class="pagination">
+                <ul class="pagination gyul-pagination">
                     <li class="page-item" th:classappend="${!paging.hasPrevious()} ? 'disabled'">
-                        <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number - 1}">&laquo;</a>
+                        <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number - 1}">&lt;</a>
                     </li>
                     <li class="page-item"
                         th:each="page : ${#numbers.sequence(0, paging.totalPages - 1)}"
@@ -86,7 +84,7 @@
                         <a class="page-link" href="javascript:void(0)" th:text="${page + 1}" th:data-page="${page}">1</a>
                     </li>
                     <li class="page-item" th:classappend="${!paging.hasNext()} ? 'disabled'">
-                        <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number + 1}">&raquo;</a>
+                        <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number + 1}">&gt;</a>
                     </li>
                 </ul>
             </nav>

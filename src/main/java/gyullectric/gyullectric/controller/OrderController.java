@@ -6,6 +6,7 @@ import gyullectric.gyullectric.service.OrderService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -56,7 +57,11 @@ public class OrderController {
      */
     @PostMapping("/inventory")
     public String postInventory(@Valid @ModelAttribute("inventoryForm") InventoryForm inventoryForm,
-                                BindingResult bindingResult, HttpSession session, Model model) {
+                                BindingResult bindingResult, HttpSession session, Model model,
+                                @RequestParam(value = "page", defaultValue = "0") int page,
+                                @RequestParam(value = "kw", defaultValue = "") String kw,
+                                @RequestParam(value = "partName", defaultValue = "") String partName,
+                                @RequestParam(value = "supplier", defaultValue = "") String supplier) {
         Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
         if (loginMember == null) {
             return "redirect:/login";
@@ -67,6 +72,14 @@ public class OrderController {
         }
 
         if (bindingResult.hasErrors()) {
+            Page<Inventory> paging = orderService.orderGetList(page, kw, partName, supplier);
+            model.addAttribute("loginMember", loginMember);
+            model.addAttribute("paging", paging);
+            model.addAttribute("kw", kw);
+            model.addAttribute("partName", partName);
+            model.addAttribute("supplier", supplier);
+            model.addAttribute("partNames", PartName.values());
+            model.addAttribute("suppliers", Supplier.values());
             return "inventory/inventory";
         }
 
@@ -88,7 +101,12 @@ public class OrderController {
      */
     @GetMapping("/history")
     public String getOrderHistory(Model model,
-                                  @RequestParam(value = "page", defaultValue = "0") int page) {
+                                  @RequestParam(value = "page", defaultValue = "0") int page,
+                                  HttpSession session) {
+        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if(loginMember == null){
+            return "redirect:/login";
+        }
         Page<Inventory> paging = orderService.orderHistoryGetList(page);
         List<OrderHistory> historyList = orderService.lastPageCancelOrder(page);
 

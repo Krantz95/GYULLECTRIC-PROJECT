@@ -131,6 +131,7 @@
             ctx.fillText(`${okPercent}%`, centerX, centerY);
             ctx.restore();
         }
+
     };
 
     Chart.register(centerTextPlugin);
@@ -288,7 +289,6 @@
                 }
             }
 
-
             tr.innerHTML = `
                 <td>${p.productName}</td>
                 <td>${p.lotNumber}</td>
@@ -297,6 +297,7 @@
                 <td>${p.createAt || '-'}</td>
                 <td style="color: ${errorColor};">${errorDisplay}</td>
             `;
+
             if (tbody) {
                 tbody.prepend(tr);
                 // 최대 10개까지만 유지
@@ -304,7 +305,10 @@
                     tbody.removeChild(tbody.lastChild);
                 }
             }
+
         });
     });
+
 </script>
+
 </html>
