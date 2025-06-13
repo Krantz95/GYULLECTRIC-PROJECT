@@ -15,7 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
-//@Component
+@Component
 @AllArgsConstructor
 public class DummyDataLoader implements CommandLineRunner {
 
