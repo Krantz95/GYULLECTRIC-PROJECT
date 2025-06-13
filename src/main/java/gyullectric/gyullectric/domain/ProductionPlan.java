@@ -1,6 +1,5 @@
-package gyullectric.gyullectric.dto;
+package gyullectric.gyullectric.domain;
 
-import gyullectric.gyullectric.domain.ProductName;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

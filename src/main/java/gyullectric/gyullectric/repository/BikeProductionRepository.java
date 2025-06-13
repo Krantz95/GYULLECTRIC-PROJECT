@@ -19,5 +19,4 @@ public interface BikeProductionRepository extends JpaRepository<BikeProduction, 
     @Query("SELECT SUM(o.quantity) FROM OrderList o WHERE o.productName = :productName")
     Integer sumOrderedQuantityByProductName(ProductName productName);
 
-
 }

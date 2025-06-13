@@ -35,8 +35,8 @@ public class OrderController {
                                @RequestParam(value = "partName", defaultValue = "") String partName,
                                @RequestParam(value = "supplier", defaultValue = "") String supplier) {
         Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        if (loginMember == null || loginMember.getPositionName() != PositionName.ADMIN) {
-            return "redirect:/";
+        if (loginMember == null) {
+            return "redirect:/login";
         }
 
         Page<Inventory> paging = orderService.orderGetList(page, kw, partName, supplier);
