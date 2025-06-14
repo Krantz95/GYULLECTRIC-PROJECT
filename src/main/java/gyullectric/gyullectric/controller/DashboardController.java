@@ -9,7 +9,6 @@ import gyullectric.gyullectric.dto.ProcessDataDto;
 import gyullectric.gyullectric.dto.ProductionKpiDto;
 import gyullectric.gyullectric.repository.BikeProductionRepository;
 import gyullectric.gyullectric.repository.OrderListRepository;
-import gyullectric.gyullectric.service.KpiService;
 import gyullectric.gyullectric.service.MonitoringDataService;
 import gyullectric.gyullectric.service.MonitoringService;
 import gyullectric.gyullectric.service.ProductService;

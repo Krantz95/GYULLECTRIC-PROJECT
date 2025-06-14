@@ -119,6 +119,7 @@
                             </div>
                         </div>
 
+
                         <!-- 3. 납기 예측 -->
                         <div class="col-lg-4 col-12">
                             <div class="kpi-card">
@@ -127,6 +128,7 @@
                                 <div class="kpi-sub text-muted">
                                     <span id="kpi-on-time-msg" th:text="${onTime ? '납기 내 완료 가능' : '지연 예상'}"></span><br>
                                     남은 예상시간: <strong id="kpi-estimated-time" th:text="${estimatedTime}"></strong>
+
                                 </div>
                             </div>
                         </div>
