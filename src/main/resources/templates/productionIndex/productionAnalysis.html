@@ -153,6 +153,7 @@
             stompClient.connect({}, function () {
                 stompClient.subscribe('/topic/analysis', function (message) {
                     const data = JSON.parse(message.body);
+                    console.log('KPI 수신', data.kpi);
 
                     if (data.kpi) {
                         document.getElementById('kpi-completed').innerText = `300대 중 ${data.kpi.completed}대 완료`;
@@ -163,6 +164,7 @@
                         const msg = data.kpi.expectedRate >= 100 ? '납기 내 완료 가능' : '지연 예상';
                         document.getElementById('kpi-speed-status').innerText = msg;
                         document.getElementById('kpi-on-time-msg').innerText = msg;
+
                     }
 
                     if (data.avgProcessingTime) {

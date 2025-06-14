@@ -208,6 +208,13 @@ public class ProcessScheduler {
             List<ProcessLog> processLogs = monitoringService.allFindProcesses();
             Map<String, Object> chartData = monitoringDataService.calculateProductAchievementAndCounts(productOrderList, processLogs);
 
+            Map<ProductName, Integer> todayTargetMap = productService.getTodayTargetMap();
+            Map<String, Integer> targetCountsMap = new HashMap<>();
+            for (ProductName name : ProductName.values()) {
+                targetCountsMap.put(name.name(), todayTargetMap.getOrDefault(name, 0));
+            }
+            chartData.put("targetCounts", targetCountsMap);
+
             chartData.put("fakeHour", fakeTime.getHour());
             simpMessagingTemplate.convertAndSend("/topic/product-achievement", chartData);
             log.info("Dashboard data pushed (fakeHour={}): {}", fakeTime.getHour(), chartData);

@@ -3,7 +3,10 @@ package gyullectric.gyullectric.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gyullectric.gyullectric.domain.*;
-import gyullectric.gyullectric.dto.*;
+import gyullectric.gyullectric.dto.BikeProductionDto;
+import gyullectric.gyullectric.dto.OrderSummaryDto;
+import gyullectric.gyullectric.dto.ProcessDataDto;
+import gyullectric.gyullectric.dto.ProductionKpiDto;
 import gyullectric.gyullectric.repository.BikeProductionRepository;
 import gyullectric.gyullectric.repository.OrderListRepository;
 import gyullectric.gyullectric.service.KpiService;
@@ -21,9 +24,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-@Slf4j
 @Controller
+@Slf4j
 @RequestMapping("/dashboard")
 @RequiredArgsConstructor
 public class DashboardController {
@@ -34,132 +38,129 @@ public class DashboardController {
     private final ProductService productService;
     private final BikeProductionRepository bikeProductionRepository;
     private final KpiService kpiService;
-    private final ObjectMapper objectMapper; // ✅ 스프링 빈으로 주입받기
 
-    /* ---------- 대시보드 메인 ---------- */
     @GetMapping("/main")
-    public String getDashboard(Model model, HttpSession session) throws JsonProcessingException {
-        // 0. 로그인 체크 (feat/minjeong 브랜치 로직 통합)
+    public String getDashboard(Model model, HttpSession session)throws JsonProcessingException {
+        // ───────────────────────────────── 로그인 체크
         Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
         if (loginMember == null) {
             return "redirect:/login";
         }
 
-        /* 1) 현재 진행 중인 주문 ID (없으면 최근 주문) */
-        Long orderId = findCurrentOrderId();
-        model.addAttribute("orderId", orderId);
-        log.info("현재 작업 중인 주문 id: {}", orderId);
+        // ───────────────────────────────── 진행 중 주문 ID
+        List<OrderList> inProgress = orderListRepository.findByProcessStatus(ProcessStatus.IN_PROGRESS);
+        Long orderId = inProgress.isEmpty()
+                ? orderListRepository.findTopByOrderByIdDesc().map(OrderList::getId).orElse(null)
+                : inProgress.get(0).getId();
 
-        /* 2) 공정 모니터링 데이터 */
-        addProcessData(model, orderId);
+        // ───────────────────────────────── 공정별 OK/NG 카운트
+        ProcessDataDto processDataDto = monitoringDataService.getProcessData(orderId);
+        model.addAttribute("orderId",         orderId);
+        model.addAttribute("productCount",    processDataDto.getProductCount());
+        model.addAttribute("totalCount",      processDataDto.getTotalCount());
+        model.addAttribute("ngCountByStep",   processDataDto.getNgCountByStep());
+        model.addAttribute("okCountByStep",   processDataDto.getOkCountByStep());
+        model.addAttribute("countByStep",     processDataDto.getCountBystep());
 
-        /* 3) 금일 KPI 요약 */
-        addTodayKpi(model);
+        // ───────────────────────────────── 오늘 목표량
+        Map<ProductName, Integer> todayTargetMap = productService.getTodayTargetMap();
 
-        /* 4) 도넛 차트 초기값 (고정) */
-        model.addAttribute("initialChartData", buildStaticDonutChartJson());
-
-        /* 5) 주문 목록 & 6) 주문/공정 로그 결합 달성률 Bar 차트 */
-        List<OrderList> orderLists = productService.allFindOrderList();
+        // ───────────────────────────────── 완제품·불량 로트 집계
         List<ProcessLog> processLogs = monitoringService.allFindProcesses();
-        model.addAttribute("orderList", orderLists);
-        model.addAttribute("chartData", buildBarChartJson(orderLists, processLogs));
 
-        /* 7) 금일 생산 실적 */
-        model.addAttribute("productionList", buildTodayProductionList());
+        Map<String, Long> totalCompleteByProduct = new HashMap<>();
+        Map<String, Long> totalNgByProduct       = new HashMap<>();
 
-        /* 8) 에러 알림 제품 목록 (상수) */
-        model.addAttribute("productNames", List.of("PedalAt4", "GyulRide", "InteliBike"));
+        /*  로트별 공정상태 모으기
+            productName → lotNumber → Set<ProcessResultStatus>
+        */
+        Map<String, Map<String, EnumSet<ProcessResultStatus>>> lotStatusMap = new HashMap<>();
 
-        return "dashboard";
-    }
+        for (ProcessLog log : processLogs) {
+            String productName = log.getOrderList().getProductName().name();
+            String lotNumber   = log.getLotNumber();
 
-    /* ---------- 공지 페이지 ---------- */
-    @GetMapping("/notice")
-    public String showNoticePage() {
-        return "notice";
-    }
+            lotStatusMap
+                    .computeIfAbsent(productName, k -> new HashMap<>())
+                    .computeIfAbsent(lotNumber,   k -> EnumSet.noneOf(ProcessResultStatus.class))
+                    .add(log.getProcessResultStatus());
+        }
 
-    /* ================== Private Helpers ================== */
+        // 1·2·3 공정 모두 OK → 완제품, 그 외(OK/NG 혼합 또는 NG 포함) → 불량
+        for (var productEntry : lotStatusMap.entrySet()) {
+            String productName = productEntry.getKey();
+            long completeLots = 0;
+            long ngLots       = 0;
 
-    /** 현재 진행 중인 주문 ID → 없으면 최근 주문 */
-    private Long findCurrentOrderId() {
-        return orderListRepository.findByProcessStatus(ProcessStatus.IN_PROGRESS).stream()
-                .findFirst()
-                .map(OrderList::getId)
-                .or(() -> orderListRepository.findTopByOrderByIdDesc().map(OrderList::getId))
-                .orElse(null);
-    }
+            for (EnumSet<ProcessResultStatus> statuses : productEntry.getValue().values()) {
+                if (statuses.size() == 1 && statuses.contains(ProcessResultStatus.OK)) {
+                    completeLots++;
+                } else {
+                    ngLots++;
+                }
+            }
+            totalCompleteByProduct.put(productName, completeLots);
+            totalNgByProduct.put(productName, ngLots);
+        }
 
-    /** 공정별 데이터 → Model 바인딩 */
-    private void addProcessData(Model model, Long orderId) {
-        ProcessDataDto dto = monitoringDataService.getProcessData(orderId);
-        model.addAttribute("productCount", dto.getProductCount());
-        model.addAttribute("totalCount", dto.getTotalCount());
-        model.addAttribute("ngCountByStep", dto.getNgCountByStep());
-        model.addAttribute("okCountByStep", dto.getOkCountByStep());
-        model.addAttribute("countByStep", dto.getCountBystep());
-    }
+        // ───────────────────────────────── 차트 데이터 계산
+        List<String> labels = List.of("GyulRide", "InteliBike", "PedalAt4");
 
-    /** 금일 KPI 요약 → Model 바인딩 */
-    private void addTodayKpi(Model model) {
+        List<Integer> targetCounts = labels.stream()
+                .map(label -> todayTargetMap.getOrDefault(ProductName.valueOf(label), 0))
+                .collect(Collectors.toList());
+
+        List<Long> actualCounts = labels.stream()
+                .map(label -> totalCompleteByProduct.getOrDefault(label, 0L))
+                .collect(Collectors.toList());
+
+        List<Double> achievementRates = IntStream.range(0, labels.size())
+                .mapToObj(i -> {
+                    int  target = targetCounts.get(i);
+                    long actual = actualCounts.get(i);
+                    return target == 0 ? 0.0
+                            : Math.round(actual * 1000.0 / target) / 10.0;
+                })
+                .collect(Collectors.toList());
+
+        // ───────────────────────────────── 모델 바인딩
+        model.addAttribute("totalCompleteByProduct", totalCompleteByProduct);
+        model.addAttribute("totalNgByProduct",       totalNgByProduct);
+        model.addAttribute("todayTargetMap",         todayTargetMap);
+
+        Map<String, Object> chartData = new HashMap<>();
+        chartData.put("labels",           labels);
+        chartData.put("targetCounts",     targetCounts);
+        chartData.put("actualCounts",     actualCounts);
+        chartData.put("achievementRates", achievementRates);
+
+        model.addAttribute("chartData", new ObjectMapper().writeValueAsString(chartData));
+        model.addAttribute("productNames", labels);
+
+        // ───────────────────────────────── 오늘 생산 계획(목표·실적)
+        List<BikeProductionDto> dtoList = bikeProductionRepository
+                .findByProductionDate(LocalDate.now())
+                .stream()
+                .map(p -> new BikeProductionDto(
+                        p.getProductName(),
+                        p.getTargetCount(),
+                        p.getActualCount()))
+                .collect(Collectors.toList());
+        model.addAttribute("productionList", dtoList);
+
+        // ───────────────────────────── ✅ KPI 데이터 주입
         ProductionKpiDto kpi = kpiService.getTodayProductionKpi();
         model.addAttribute("kpi", kpi);
         model.addAttribute("currentSpeed", kpi.getCurrentSpeed());
         model.addAttribute("expectedRate", kpi.getExpectedRate());
         model.addAttribute("onTime", kpi.isOnTime());
         model.addAttribute("estimatedTime", kpi.getEstimatedTime());
+
+        return "dashboard";
     }
 
-    /** 도넛 차트 초기 데이터 (고정) */
-    private String buildStaticDonutChartJson() throws JsonProcessingException {
-        Map<String, Object> data = Map.of(
-                "labels", List.of("GyulRide", "InteliBike", "PedalAt4"),
-                "targetCounts", List.of(100, 100, 100)
-        );
-        return objectMapper.writeValueAsString(data);
-    }
-
-    /** 주문 + 공정 로그 → 달성률 Bar 차트 JSON */
-    private String buildBarChartJson(List<OrderList> orderLists, List<ProcessLog> processLogs) throws JsonProcessingException {
-        // 주문별 공정 요약
-        Map<Long, OrderSummaryDto> summaryByOrder = monitoringDataService.getOrderSummaryByOrderId(processLogs);
-
-        // 제품별 누적 집계
-        Map<String, Long> totalOrderQty = new HashMap<>();
-        Map<String, Long> totalComplete = new HashMap<>();
-
-        for (OrderList order : orderLists) {
-            String product = order.getProductName().name();
-            totalOrderQty.merge(product, (long) order.getQuantity(), Long::sum);
-
-            OrderSummaryDto s = summaryByOrder.getOrDefault(order.getId(), new OrderSummaryDto(0, 0, 0));
-            totalComplete.merge(product, (long) s.getFinishedLots(), Long::sum);
-        }
-
-        List<String> labels = new ArrayList<>(totalOrderQty.keySet());
-        List<Long> orderQty = labels.stream().map(totalOrderQty::get).collect(Collectors.toList());
-        List<Long> productCnt = labels.stream().map(totalComplete::get).collect(Collectors.toList());
-        List<Double> achievementRates = new ArrayList<>();
-        for (int i = 0; i < labels.size(); i++) {
-            long total = orderQty.get(i);
-            long done = productCnt.get(i);
-            achievementRates.add(total == 0 ? 0.0 : Math.round(done * 1000.0 / total) / 10.0);
-        }
-
-        Map<String, Object> chart = Map.of(
-                "labels", labels,
-                "orderQuantity", orderQty,
-                "productCount", productCnt,
-                "achievementRates", achievementRates
-        );
-        return objectMapper.writeValueAsString(chart);
-    }
-
-    /** 금일 생산 실적 테이블 DTO */
-    private List<BikeProductionDto> buildTodayProductionList() {
-        return bikeProductionRepository.findByProductionDate(LocalDate.now()).stream()
-                .map(p -> new BikeProductionDto(p.getProductName(), p.getTargetCount(), p.getActualCount()))
-                .collect(Collectors.toList());
+    @GetMapping("/notice")
+    public String showNoticePage() {
+        return "notice";
     }
 }
