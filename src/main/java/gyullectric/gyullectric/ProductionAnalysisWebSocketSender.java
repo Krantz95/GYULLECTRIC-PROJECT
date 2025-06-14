@@ -1,5 +1,7 @@
 package gyullectric.gyullectric;
 
+import gyullectric.gyullectric.dto.ProductionKpiDto;
+import gyullectric.gyullectric.service.KpiService;
 import gyullectric.gyullectric.service.ProductionAnalysisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +9,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -17,33 +20,29 @@ public class ProductionAnalysisWebSocketSender {
     private final SimpMessagingTemplate messagingTemplate;
     private final ProductionAnalysisService analysisService;
 
+    /* ⬇️ 새로 주입 */
+    private final KpiService kpiService;
+
     @Scheduled(fixedRate = 5000)
     public void sendProductionAnalysis() {
+
+        /* 1) 그래프·병목 관련 데이터 */
         Map<Integer, Double> avgProcessingTime = analysisService.getChartAvgProcessingTime();
-        Map<Integer, Long> errorCounts = analysisService.getErrorCountByProcess();
+        Map<Integer, Long>   errorCounts       = analysisService.getErrorCountByProcess();
         Map<Integer, Map<String, Double>> powerDefect = analysisService.getPowerVsDefectData();
 
-        // 🔹 KPI 항목 계산 (예시값 — 실제 서비스에서 KPI 계산 메서드 활용)
-        double currentSpeed = analysisService.getCurrentSpeed(); // 대/분
-        double expectedRate = analysisService.getExpectedCompletionRate(); // %
-        String estimatedTime = analysisService.getEstimatedTimeString(); // "3시간 24분"
-        int completed = analysisService.getTodayCompletedCount();
-        double achievementRate = (completed / 300.0) * 100;
+        /* 2) KPI -- 단일 진입점으로 통일 */
+        ProductionKpiDto kpi = kpiService.getTodayProductionKpi();
 
-        Map<String, Object> result = Map.of(
-                "avgProcessingTime", avgProcessingTime,
-                "errorCounts", errorCounts,
-                "powerDefect", powerDefect,
-                "kpi", Map.of(
-                        "completed", completed,
-                        "achievementRate", Math.round(achievementRate * 10.0) / 10.0,
-                        "currentSpeed", currentSpeed,
-                        "expectedRate", expectedRate,
-                        "estimatedTime", estimatedTime
-                )
-        );
+        /* 3) 페이로드 조립 */
+        Map<String, Object> result = new HashMap<>();
+        result.put("avgProcessingTime", avgProcessingTime);
+        result.put("errorCounts",       errorCounts);
+        result.put("powerDefect",       powerDefect);
+        result.put("kpi",               kpi);   // ★ 그대로 직렬화
 
+        /* 4) WebSocket 전송 */
         messagingTemplate.convertAndSend("/topic/analysis", result);
+        log.info("[WS] analysis payload pushed: {}", kpi);
     }
-
 }

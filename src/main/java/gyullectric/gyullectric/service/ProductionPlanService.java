@@ -1,7 +1,7 @@
 package gyullectric.gyullectric.service;
 
 import gyullectric.gyullectric.domain.ProductName;
-import gyullectric.gyullectric.dto.ProductionPlan;
+import gyullectric.gyullectric.domain.ProductionPlan;
 import gyullectric.gyullectric.dto.ProductionProgressDto;
 import gyullectric.gyullectric.repository.MonitoringRepository;
 import gyullectric.gyullectric.repository.ProductionPlanRepository;

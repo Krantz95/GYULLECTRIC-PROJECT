@@ -26,7 +26,13 @@ public class ProductionAnalysisService {
         for (Object[] row : results) {
             Integer step = (Integer) row[0];
             Double avgSeconds = ((Number) row[1]).doubleValue();
-            timeMap.put(step, avgSeconds); // 초 단위 그대로 저장
+            timeMap.put(step, avgSeconds); // 초 단위 저장
+        }
+
+        // 🎯 시연 목적: 데이터 없을 경우 랜덤값으로 채움
+        Random random = new Random();
+        for (int step = 1; step <= 3; step++) {
+            timeMap.putIfAbsent(step, 60.0 + random.nextDouble() * 120); // 1분~3분
         }
 
         return timeMap;

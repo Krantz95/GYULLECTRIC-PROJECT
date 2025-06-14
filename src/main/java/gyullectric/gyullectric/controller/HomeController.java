@@ -26,16 +26,10 @@ public class HomeController {
     private final LoginService loginService;
 
     @GetMapping("/")
-    public String home(HttpServletRequest request, Model model) {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
-            if (loginMember != null) {
-                model.addAttribute("loginMember", loginMember);
-            }
-        }
+    public String home() {
         return "home";
     }
+
 
     @GetMapping("/login")
     public String loginForm(Model model, HttpSession session) {

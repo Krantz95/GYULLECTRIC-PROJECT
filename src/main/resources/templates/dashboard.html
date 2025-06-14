@@ -105,27 +105,30 @@
                         <div class="col-lg-4 col-12">
                             <div class="kpi-card">
                                 <p class="kpi-title"><i class="bi bi-bar-chart-fill"></i> 금일 목표 달성 현황</p>
-                                <div class="kpi-value">300대 중 175대 완료</div>
-                                <div class="kpi-sub text-muted">달성률: <strong class="text-primary">58%</strong></div>
+                                <div class="kpi-value" id="kpi-completed" th:text="'300대 중 ' + ${kpi.completed} + '대 완료'"></div>
+                                <div class="kpi-sub text-muted">달성률: <strong class="text-primary" id="kpi-rate" th:text="${kpi.achievementRate + '%'}"></strong></div>
                             </div>
                         </div>
+
                         <!-- 2. 현재 속도 -->
                         <div class="col-lg-4 col-12">
                             <div class="kpi-card">
                                 <p class="kpi-title"><i class="bi bi-clock-fill"></i> 현재 속도</p>
-                                <div class="kpi-value">1.2대/분</div>
-                                <div class="kpi-sub text-muted">남기 내 달성 예상</div>
+                                <div class="kpi-value" id="kpi-speed" th:text="${currentSpeed} + '대/분'"></div>
+                                <div class="kpi-sub text-muted" id="kpi-speed-status" th:text="${onTime ? '납기 내 달성 예상' : '지연 예상'}"></div>
                             </div>
                         </div>
+
 
                         <!-- 3. 납기 예측 -->
                         <div class="col-lg-4 col-12">
                             <div class="kpi-card">
                                 <p class="kpi-title"><i class="bi bi-calendar-check-fill"></i> 납기 예측</p>
-                                <div class="kpi-value text-success">83%</div>
-                                <div class="kpi-sub">
-                                    납기 내 완료 가능<br>
-                                    남은 예상시간: <strong>1시간 28분</strong>
+                                <div class="kpi-value text-success" id="kpi-expected-rate" th:text="${expectedRate + '%'}"></div>
+                                <div class="kpi-sub text-muted">
+                                    <span id="kpi-on-time-msg" th:text="${onTime ? '납기 내 완료 가능' : '지연 예상'}"></span><br>
+                                    남은 예상시간: <strong id="kpi-estimated-time" th:text="${estimatedTime}"></strong>
+
                                 </div>
                             </div>
                         </div>
@@ -489,38 +492,56 @@
         }
         document.addEventListener("DOMContentLoaded",drawProductChart);
 
-        // WebSocket 처리 부분은 그대로 유지하되, updateChart 호출 시 위 함수 사용
+        // ▸ WebSocket + STOMP 초기화
         const socket = new SockJS("/ws");
-        const stomp = Stomp.over(socket);
+        const stomp  = Stomp.over(socket);
 
         stomp.connect({}, () => {
 
-            console.log("✅ WebSocket Connected");
+            /** KPI 카드 실시간 갱신 */
+            stomp.subscribe('/topic/analysis', (msg) => {
+                const { kpi } = JSON.parse(msg.body);
+                if (!kpi) return;
 
-            //  실시간 제품 목표 달성률 구독
-            stomp.subscribe('/topic/product-achievement', (message) => {
+                const completed    = kpi.completed       ?? 0;
+                const rate         = kpi.achievementRate ?? 0;
+                const speed        = kpi.currentSpeed    ?? 0;
+                const expectedRate = kpi.expectedRate    ?? 0;
+                const estTime      = kpi.estimatedTime   ?? '-';
+                const onTimeMsg    = kpi.onTime ? '납기 내 완료 가능' : '지연 예상';
+                const speedMsg     = kpi.onTime ? '납기 내 달성 예상' : '지연 예상';
+
+                document.getElementById('kpi-completed').innerText     = `300대 중 ${completed}대 완료`;
+                document.getElementById('kpi-rate').innerText          = `${rate}%`;
+                document.getElementById('kpi-speed').innerText         = `${speed}대/분`;
+                document.getElementById('kpi-expected-rate').innerText = `${expectedRate}%`;
+                document.getElementById('kpi-estimated-time').innerText= estTime;
+                document.getElementById('kpi-speed-status').innerText  = speedMsg;
+                document.getElementById('kpi-on-time-msg').innerText   = onTimeMsg;
+            });
+
+            /* ─────────────────────────────── ② 제품 달성률 실시간 ─────────────────────────────── */
+            stomp.subscribe("/topic/product-achievement", (message) => {
                 const data = JSON.parse(message.body);
-                console.log("🛰️ 실시간 수신:", data);
+                console.log("🛰️ product-achievement 수신:", data);
 
-                //  목표/실적/달성률 값 재계산
+                // 목표/실적/달성률 재계산
                 targetCounts = PRODUCT_LIST.map(label => data.targetCounts?.[label] ?? 0);
                 actualCounts = PRODUCT_LIST.map(label => data.totalCompleteByProduct?.[label] ?? 0);
                 achievementRates = PRODUCT_LIST.map((_, i) => {
-                    const target = targetCounts[i];
-                    const actual = actualCounts[i];
-                    return target === 0 ? 0.0 : Math.round((actual * 1000.0 / target)) / 10.0;
+                    const t = targetCounts[i], a = actualCounts[i];
+                    return t === 0 ? 0 : Math.round(a * 1000 / t) / 10;
                 });
 
-                //  시간 범위 업데이트
+                // 시간 범위 표시
                 document.getElementById("timeRange").textContent =
                     `${data.fakeHour}시 ~ ${data.fakeHour}시 59분`;
 
-                //  차트 리렌더링
+                // 차트 리렌더
                 drawProductChart();
             });
 
-
-            // 공정별 OK/NG 상태 수신
+            /* ─────────────────────────────── ③ 공정 OK/NG 실시간 ─────────────────────────────── */
             stomp.subscribe("/topic/process", (msg) => {
                 const p = JSON.parse(msg.body);
 
@@ -533,42 +554,47 @@
                     errorCode
                 } = p;
 
-                const step = Number(processStep);
+                const step   = Number(processStep);
                 const status = processResultStatus;
 
-                const baseLot = lotNumber ? lotNumber.split("_").slice(0, 3).join("_") : '';
+                // ① 로트별 상태 Map 관리
+                const baseLot = lotNumber ? lotNumber.split("_").slice(0, 3).join("_") : "";
                 if (!lotStepStatusMap[baseLot]) lotStepStatusMap[baseLot] = {};
                 lotStepStatusMap[baseLot][step] = status;
 
-                if (!window.okCounts[step]) window.okCounts[step] = 0;
-                if (!window.ngCounts[step]) window.ngCounts[step] = 0;
+                // ② 공정별 OK/NG 누적 카운터
+                window.okCounts ??= {};
+                window.ngCounts ??= {};
+                window.okCounts[step] ??= 0;
+                window.ngCounts[step] ??= 0;
 
-                if (status === 'OK') {
+                if (status === "OK") {
                     window.okCounts[step]++;
-                } else if (status === 'NG') {
+                } else if (status === "NG") {
                     window.ngCounts[step]++;
                     showNgAlert({
                         productName,
                         processStep,
-                        errorDescription: errorDescription || errorCode || '에러 발생',
+                        errorDescription: errorDescription || errorCode || "에러 발생",
                     });
                 }
 
-                //  실시간 반영 핵심: 해당 공정 차트 업데이트
+                // ③ 해당 공정 차트 즉시 반영
                 updateChart(
-                    window['chart' + step],
+                    window["chart" + step],
                     window.okCounts[step],
                     window.ngCounts[step],
-                    'text' + step,
-                    step === 1 ? '용접 출력 통과' : step === 2 ? '도장 온도 정상' : '검수 통과',
-                    step === 1 ? '용접 출력 이상' : step === 2 ? '도장 온도 이상' : '검수 불량'
+                    "text" + step,
+                    step === 1 ? "용접 출력 통과" : step === 2 ? "도장 온도 정상" : "검수 통과",
+                    step === 1 ? "용접 출력 이상" : step === 2 ? "도장 온도 이상" : "검수 불량"
                 );
 
-                //  평균 NG율 실시간 반영
+                // ④ 평균 NG 경고 업데이트
                 updateNgWarning();
             });
 
         });
+
     </script>
 </th:block>
 </html>

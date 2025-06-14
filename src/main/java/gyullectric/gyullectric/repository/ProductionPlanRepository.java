@@ -1,7 +1,7 @@
 package gyullectric.gyullectric.repository;
 
 import gyullectric.gyullectric.domain.ProductName;
-import gyullectric.gyullectric.dto.ProductionPlan;
+import gyullectric.gyullectric.domain.ProductionPlan;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

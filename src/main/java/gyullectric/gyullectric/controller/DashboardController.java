@@ -6,6 +6,7 @@ import gyullectric.gyullectric.domain.*;
 import gyullectric.gyullectric.dto.BikeProductionDto;
 import gyullectric.gyullectric.dto.OrderSummaryDto;
 import gyullectric.gyullectric.dto.ProcessDataDto;
+import gyullectric.gyullectric.dto.ProductionKpiDto;
 import gyullectric.gyullectric.repository.BikeProductionRepository;
 import gyullectric.gyullectric.repository.OrderListRepository;
 import gyullectric.gyullectric.service.MonitoringDataService;
@@ -35,6 +36,7 @@ public class DashboardController {
     private final OrderListRepository orderListRepository;
     private final ProductService productService;
     private final BikeProductionRepository bikeProductionRepository;
+    private final KpiService kpiService;
 
     @GetMapping("/main")
     public String getDashboard(Model model, HttpSession session)throws JsonProcessingException {
@@ -144,6 +146,14 @@ public class DashboardController {
                         p.getActualCount()))
                 .collect(Collectors.toList());
         model.addAttribute("productionList", dtoList);
+
+        // ───────────────────────────── ✅ KPI 데이터 주입
+        ProductionKpiDto kpi = kpiService.getTodayProductionKpi();
+        model.addAttribute("kpi", kpi);
+        model.addAttribute("currentSpeed", kpi.getCurrentSpeed());
+        model.addAttribute("expectedRate", kpi.getExpectedRate());
+        model.addAttribute("onTime", kpi.isOnTime());
+        model.addAttribute("estimatedTime", kpi.getEstimatedTime());
 
         return "dashboard";
     }

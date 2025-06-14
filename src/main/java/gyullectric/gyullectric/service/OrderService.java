@@ -1,12 +1,8 @@
 package gyullectric.gyullectric.service;
 
-import gyullectric.gyullectric.domain.Inventory;
-import gyullectric.gyullectric.domain.PartName;
-import gyullectric.gyullectric.domain.ProductName;
-import gyullectric.gyullectric.domain.OrderHistory;
+import gyullectric.gyullectric.domain.*;
 import gyullectric.gyullectric.repository.InventoryRepository;
 import gyullectric.gyullectric.repository.OrderHistoryRepository;
-import gyullectric.gyullectric.repository.OrderRepository;
 import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,15 +21,20 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final InventoryRepository inventoryRepository;
-    private final OrderRepository orderRepository;
     private final OrderHistoryRepository orderHistoryRepository;
 
+    /* ------------------------------------------------------------------
+       🚲 제품별 필요 부품 매핑 (제품 추가 시 여기만 수정)
+    ------------------------------------------------------------------ */
     private static final Map<ProductName, List<PartName>> PRODUCT_NAME_LIST_MAP = Map.of(
-            ProductName.GyulRide, List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK),
+            ProductName.GyulRide,   List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK),
             ProductName.InteliBike, List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK),
-            ProductName.PedalAt4, List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK)
+            ProductName.PedalAt4,   List.of(PartName.FRAME, PartName.MOTOR, PartName.CONTROLLER, PartName.WHEEL, PartName.BATTERY_PACK)
     );
 
+    /* ------------------------------------------------------------------
+       🔄 인벤토리 기본 CRUD
+    ------------------------------------------------------------------ */
     @Transactional
     public void saveInventory(Inventory inventory) {
         inventoryRepository.save(inventory);
@@ -56,6 +57,9 @@ public class OrderService {
         inventoryRepository.deleteById(id);
     }
 
+    /* ------------------------------------------------------------------
+       📊 재고 집계/조회 로직
+    ------------------------------------------------------------------ */
     public Map<PartName, Long> getInventoryQuantity() {
         return inventoryRepository.findAll().stream()
                 .collect(Collectors.groupingBy(
@@ -65,33 +69,31 @@ public class OrderService {
     }
 
     public Map<PartName, Long> getRequiredInventoryStock(ProductName productName) {
-        Map<PartName, Long> inventoryQuantities = getInventoryQuantity();
-        List<PartName> requiredInventories = PRODUCT_NAME_LIST_MAP.getOrDefault(productName, List.of());
+        Map<PartName, Long> current = getInventoryQuantity();
+        List<PartName> required = PRODUCT_NAME_LIST_MAP.getOrDefault(productName, List.of());
 
-        log.info("원재료 리스트 : {}", requiredInventories);
-
-        return requiredInventories.stream().collect(Collectors.toMap(
-                partName -> partName,
-                partName -> inventoryQuantities.getOrDefault(partName, 0L)
-        ));
+        return required.stream()
+                .collect(Collectors.toMap(
+                        part -> part,
+                        part -> current.getOrDefault(part, 0L)
+                ));
     }
 
     public boolean isEnoughInventory(ProductName productName, int quantity) {
-        Map<PartName, Long> inventoryQuantities = getInventoryQuantity();
-        List<PartName> requiredParts = PRODUCT_NAME_LIST_MAP.getOrDefault(productName, List.of());
+        Map<PartName, Long> current = getInventoryQuantity();
+        List<PartName> required = PRODUCT_NAME_LIST_MAP.getOrDefault(productName, List.of());
 
-        for (PartName part : requiredParts) {
-            long availableQty = inventoryQuantities.getOrDefault(part, 0L);
-            if (availableQty < quantity) {
-                return false;
-            }
-        }
-        return true;
+        return required.stream()
+                .allMatch(part -> current.getOrDefault(part, 0L) >= quantity);
     }
 
+    /* ------------------------------------------------------------------
+       📑 재고 목록(검색+페이징)
+    ------------------------------------------------------------------ */
     public Page<Inventory> orderGetList(int page, String kw, String partName, String supplier) {
-        PageRequest pageable = PageRequest.of(page, 10, Sort.by(Sort.Order.desc("orderAt")));
+        Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Order.desc("orderAt")));
 
+        // 검색 조건 없으면 전체 조회
         if ((kw == null || kw.isBlank()) &&
                 (partName == null || partName.isBlank()) &&
                 (supplier == null || supplier.isBlank())) {
@@ -107,24 +109,24 @@ public class OrderService {
             query.distinct(true);
             List<Predicate> predicates = new ArrayList<>();
 
-            if (kw != null && !kw.trim().isEmpty()) {
-                Predicate partNameLike = cb.like(cb.lower(root.get("partName").as(String.class)), "%" + kw.toLowerCase() + "%");
-                Predicate supplierLike = cb.like(cb.lower(root.get("supplier").as(String.class)), "%" + kw.toLowerCase() + "%");
-                predicates.add(cb.or(partNameLike, supplierLike));
+            if (kw != null && !kw.isBlank()) {
+                Predicate partLike = cb.like(cb.lower(root.get("partName").as(String.class)), "%" + kw.toLowerCase() + "%");
+                Predicate supLike  = cb.like(cb.lower(root.get("supplier").as(String.class)), "%" + kw.toLowerCase() + "%");
+                predicates.add(cb.or(partLike, supLike));
             }
-
-            if (partName != null && !partName.trim().isEmpty()) {
+            if (partName != null && !partName.isBlank()) {
                 predicates.add(cb.equal(root.get("partName"), partName));
             }
-
-            if (supplier != null && !supplier.trim().isEmpty()) {
+            if (supplier != null && !supplier.isBlank()) {
                 predicates.add(cb.equal(root.get("supplier"), supplier));
             }
-
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 
+    /* ------------------------------------------------------------------
+       🗂️ 발주 이력 처리
+    ------------------------------------------------------------------ */
     @Transactional
     public void saveOrderHistory(OrderHistory history) {
         orderHistoryRepository.save(history);
@@ -134,45 +136,37 @@ public class OrderService {
         return orderHistoryRepository.findAll();
     }
 
+    /** 📄 발주 이력 페이지용 인벤토리 페이징 */
     public Page<Inventory> orderHistoryGetList(int page) {
-        List<Sort.Order> sorts = new ArrayList<>();
-        sorts.add(Sort.Order.desc("orderAt"));
-        PageRequest pageable = PageRequest.of(page, 10, Sort.by(sorts));
-        return orderRepository.findAll(pageable);
+        Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Order.desc("orderAt")));
+        return inventoryRepository.findAll(pageable);          // ← 변경 포인트
     }
 
+    /** 마지막 페이지(취소 시)용 정렬 리스트 */
     public List<OrderHistory> lastPageCancelOrder(int currentPage) {
-        Page<Inventory> pagedOrders = orderHistoryGetList(currentPage);
-        int totalPages = pagedOrders.getTotalPages();
-
+        int totalPages = orderHistoryGetList(currentPage).getTotalPages();
         if (currentPage >= totalPages - 1) {
-            return orderHistoryRepository.findAll(Sort.by(Sort.Order.desc("orderedAt")));
+            return orderHistoryRepository.findAll(
+                    Sort.by(Sort.Order.desc("orderedAt")));
         }
         return Collections.emptyList();
     }
 
+    /* ------------------------------------------------------------------
+       🔎 기타 편의 메서드
+    ------------------------------------------------------------------ */
     public int getInventoryQuantity(PartName partName) {
-        Map<PartName, Long> inventoryMap = getInventoryQuantity();
-        return inventoryMap.getOrDefault(partName, 0L).intValue();
+        return getInventoryQuantity().getOrDefault(partName, 0L).intValue();
     }
 
-    // 부족한 부품 리스트 반환
-    public List<PartName> getInsufficientParts(ProductName productName, int orderQuantity) {
-        Map<PartName, Long> requiredParts = getRequiredInventoryStock(productName);
-        Map<PartName, Long> currentInventory = getInventoryQuantity();
+    /** 부족한 부품 리스트 */
+    public List<PartName> getInsufficientParts(ProductName productName, int orderQty) {
+        Map<PartName, Long> required = getRequiredInventoryStock(productName);
+        Map<PartName, Long> current  = getInventoryQuantity();
 
-        List<PartName> insufficientParts = new ArrayList<>();
-
-        for (Map.Entry<PartName, Long> entry : requiredParts.entrySet()) {
-            PartName part = entry.getKey();
-            long requiredTotal = entry.getValue() * orderQuantity;
-            long available = currentInventory.getOrDefault(part, 0L);
-
-            if (available < 0) {
-                insufficientParts.add(part);
-            }
-        }
-
-        return insufficientParts;
+        return required.entrySet().stream()
+                .filter(e -> current.getOrDefault(e.getKey(), 0L) < e.getValue() * orderQty)
+                .map(Map.Entry::getKey)
+                .toList();
     }
 }
