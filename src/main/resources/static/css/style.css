@@ -811,7 +811,20 @@ button[name="processButton"]:disabled {
 .blinking-row {
     animation: blink-row 1s ease-in-out 7!important;
 }
+/*카드디자인 정적화면*/
+.card:hover {
+    transform: scale(1.03);
+}
+.progressMoni-bar-animate {
+    background: linear-gradient(90deg, #4CAF50, #C8E6C9, #4CAF50);
+    background-size: 200% 100%;
+    animation: moveProgress 2s linear infinite;
+}
+@keyframes moveProgress {
+    0% { background-position: 200% 0;}
+    100% { background-position: -200% 0;}
 
+}
 
 
 /* ────────────────────────────  페이지별 (에러가이드/에러리포트)  ──────────────────────────── */
