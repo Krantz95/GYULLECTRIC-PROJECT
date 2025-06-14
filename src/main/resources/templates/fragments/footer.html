@@ -1,11 +1,29 @@
 <footer class="w-100 m-0 p-0" th:fragment="footerFragment">
+    <!-- 상단 검은 바 -->
     <p style="background-color: #212529; height: 8px; margin: 0;"></p>
-    <div class="text-center py-4"
-         style="background-color: #FF9100; font-family: 'Source Sans Pro', 'Rubik', sans-serif; font-size: 18px; margin: 0; padding: 0;">
-        <p class="mb-2">© 2025 GYULLECTRIC. 귤처럼 유연한 공정을 설계합니다</p>
-        <p class="mb-0"><span class="fw-bold">고객센터</span> ☎ 02-1234-5678 | <span class="fw-bold">상담시간</span> : 평일 09:00 ~ 18:00</span>
-        <p class="mb-0"><span class="fw-bold">주소</span> 경기 성남시 중원구 광명로 4 5층 두드림 IT 교육원</p>
+
+    <!-- 푸터 본문 -->
+    <div class="text-center py-4 footer-box"
+         style="background-color: #FF9100; font-family: 'Source Sans Pro', 'Rubik', sans-serif; font-size: 18px;">
+
+        <!-- 브랜드 문구 (모바일에서 줄바꿈) -->
+        <p class="mb-2">
+            © 2025 GYULLECTRIC.<br class="d-sm-none">
+            귤처럼 유연한 공정을 설계합니다
+        </p>
+
+        <!-- 고객센터 + 상담시간 (모바일 줄바꿈) -->
+        <p class="mb-0">
+            <span class="fw-bold">고객센터</span> ☎ 02-1234-5678
+            <br class="d-sm-none">
+            <span class="fw-bold">상담시간</span> : 평일 09:00 ~ 18:00
+        </p>
+
+        <!-- 주소 (모바일 줄바꿈) -->
+        <p class="mb-0">
+            <span class="fw-bold">주소</span> 경기 성남시 중원구 광명로 4
+            <br class="d-sm-none">
+            5층 두드림 IT 교육원
+        </p>
     </div>
 </footer>
-
-<!-- 푸터는 그냥 css처리안하고 직접 style기재함 -->
