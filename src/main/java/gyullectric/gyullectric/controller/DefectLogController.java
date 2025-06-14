@@ -2,69 +2,48 @@ package gyullectric.gyullectric.controller;
 
 import gyullectric.gyullectric.domain.DefectLog;
 import gyullectric.gyullectric.dto.DefectLogDto;
-import gyullectric.gyullectric.repository.DefectLogRepository;
 import gyullectric.gyullectric.service.DefectLogService;
 import gyullectric.gyullectric.Dummy_DefectLog;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-
-// 불량 예측 결과 + 경고 로그 관리 컨트롤러
-// Flask 연동 기반 점수 예측 + 경고 메시지 출력 + 로그 DB 저장
-
+@Slf4j
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/indicators")
+@RequestMapping("/indicators/defect-predict")
 public class DefectLogController {
 
     private final DefectLogService defectLogService;
-    private final DefectLogRepository defectLogRepository;
     private final Dummy_DefectLog dummyDefectLog;
 
-    // 불량 예측 페이지 출력
-    // 더미 센서 데이터 기반 예측 점수 + 경고 메시지 출력
-    // Flask 예측 결과로부터 경고 로그도 자동 저장
-    @GetMapping("/defect-predict")
+    // 불량 예측 페이지 진입 더미 데이터로 Flask에 예측 요청
+    @GetMapping
     public String getDefectPredictPage(Model model) {
-        // 1. 더미 센서 데이터 생성
-        DefectLogDto dto = dummyDefectLog.getDummySensorData();
+        DefectLogDto dto = dummyDefectLog.getDummySensorData2();
 
-        // 2. Flask 예측 점수 + 경고 메시지 호출
+        // 1. Flask 예측 요청 → 점수 + 경고 메시지 수신
         Map<String, Object> result = defectLogService.getDefectResultFromFlask(dto);
 
-        // 3. casting 공정에서 경고 있을 경우 DB에 경고 로그 저장
+        // 2. DB에 경고 로그 저장 (중복 방지 포함)
         defectLogService.saveWarningLogsFromFlaskResult(dto);
 
-        // 4. 경고 로그 전체 조회 (최근순 정렬)
-        List<DefectLog> defectLogs = defectLogRepository.findAllByOrderByDetectedAtDesc();
+        // 3. 최근 경고 로그 조회
+        List<DefectLog> defectLogs = defectLogService.getRecentLogs();
 
-        // 5. Thymeleaf에 바인딩
+        // 4. 모델 전달값 설정
         model.addAttribute("castingScore", result.get("castingScore"));
         model.addAttribute("weldingScore", result.get("weldingScore"));
         model.addAttribute("castingWarningMsg", result.get("castingWarning"));
         model.addAttribute("weldingWarningMsg", result.get("weldingWarning"));
         model.addAttribute("defectLogs", defectLogs);
+        model.addAttribute("defectLogsJson", defectLogs);
 
         return "productionIndex/defectLog";
-    }
-
-    // 경고 로그 점검 요청 버튼 처리
-    @PostMapping("/defect-predict/inspect")
-    public String markAsInspected(@RequestParam("detectedAt")
-                                  @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") LocalDateTime detectedAt) {
-        Optional<DefectLog> logOpt = defectLogRepository.findById(detectedAt);
-        logOpt.ifPresent(log -> {
-            log.setInspectionRequested(true);
-            defectLogRepository.save(log);
-        });
-        return "redirect:/indicators/defect-predict";
     }
 }
