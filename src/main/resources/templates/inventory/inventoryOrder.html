@@ -26,33 +26,20 @@
                     <td th:text="${#temporals.format(inventoryLists.getOrderAt(), 'yyyy-MM-dd HH:mm')}"></td>
                     <td th:text="${inventoryLists.getQuantity() > 0 ? '발주 완료' : ''}"></td>
                     <td>
-                        <button type="button" class="btn_red cancel-btn"
+                        <button type="button"
+                                class="btn_red cancel-btn"
                                 data-bs-toggle="modal"
-                                th:attr="data-bs-target='#cancelModal' + ${inventoryLists.id}"
-                                th:data-id="${inventoryLists.id}">취소</button>
+                                th:attr="data-bs-target='#cancelModal' + ${inventoryLists.id}">
+                            주문삭제
+                        </button>
+
+<!--                        <button type="button" class="btn_red cancel-btn"-->
+<!--                                data-bs-toggle="modal"-->
+<!--                                th:attr="data-bs-target='#cancelModal' + ${inventoryLists.id}"-->
+<!--                                th:data-id="${inventoryLists.id}">취소</button>-->
                     </td>
 
-                    <!-- 취소 모달창 -->
-                    <div class="modal fade" th:id="'cancelModal' + ${inventoryLists.id}" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">발주 취소</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <p th:text="|${inventoryLists.getSupplier()} 업체의 ${inventoryLists.getPartName()}|"></p>
-                                    <p>부품 재고 주문을 삭제하시겠습니까 ?</p>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                                    <button type="button" class="btn btn-danger" style="background-color: red; color: white"
-                                            th:data-id="${inventoryLists.id}"
-                                            th:onclick="|location.href='@{/order/{id}/delete(id=${inventoryLists.id})}'|">주문삭제</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
                 </tr>
 
                 <tr th:if="${historyList != null} and ${historyList.size() > 0}"
@@ -68,6 +55,32 @@
                 </tbody>
             </table>
         </div>
+        <th:block th:each="inventoryLists : ${paging}">
+            <div class="modal fade"
+                 th:id="'cancelModal' + ${inventoryLists.id}"
+                 tabindex="-1"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">발주 취소</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p th:text="|${inventoryLists.supplier}의 ${inventoryLists.partName}|"></p>
+                            <p>부품 재고 주문을 삭제하시겠습니까?</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                            <a th:href="@{/order/{id}/delete(id=${inventoryLists.id})}"
+                               class="btn btn-danger text-white">발주취소</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </th:block>
+
+
 
         <!-- 페이징 처리용 폼 추가 -->
         <form id="pageForm" method="get" action="/order/history">
