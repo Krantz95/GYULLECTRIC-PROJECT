@@ -27,7 +27,7 @@ public class DefectWebSocketSender {
     @Scheduled(fixedRate = 5000)
     public void sendDefectPrediction() {
         // 1. 더미 센서 데이터 생성
-        DefectLogDto dto = dummyDefectLog.getDummySensorData();
+        DefectLogDto dto = dummyDefectLog.getDummySensorData2();
 
         // 2. Flask 예측 호출 및 결과 수신 (점수 + 경고 메시지 포함)
         Map<String, Object> result = defectLogService.getDefectResultFromFlask(dto);
@@ -37,5 +37,25 @@ public class DefectWebSocketSender {
 
         // 4. 로그 출력
         log.info("[WebSocket] 예측 결과 전송 완료: {}", result);
+    }
+
+    // 차트1 : API받은 값에 가중치 계산
+    private int calculateCastingScore(Map<String, Object> result) {
+        double pressure = toDouble(result.get("pressure"));
+        double upperTemp = toDouble(result.get("upperTemp"));
+        double lowerTemp = toDouble(result.get("lowerTemp"));
+
+        int score = 0;
+        if (pressure >= 299) score += 40;
+        if (upperTemp >= 94) score += 30;
+        if (lowerTemp >= 193) score += 30;
+
+        return score;
+    }
+
+    private double toDouble(Object value) {
+        if (value instanceof Number) return ((Number) value).doubleValue();
+        if (value instanceof String) return Double.parseDouble((String) value);
+        return 0.0;
     }
 }
