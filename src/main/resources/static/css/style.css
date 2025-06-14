@@ -910,6 +910,13 @@ button[name="processButton"]:disabled {
 .col-large {
     width: 50%;                           /* 큰 칸 */
 }
+
+/* 테이블 배경색은 흰색으로 통일*/
+.col-warn td,
+.col-warning td,
+.col-danger td {
+    background-color: white !important;
+}
 /* 깜빡이는 애니메이션 효과 */
 .blinking {
     animation: blink 0.7s infinite;       /* 0.7초 간격 무한 반복 */
@@ -919,6 +926,25 @@ button[name="processButton"]:disabled {
     50% { opacity: 0; }                   /* 중간: 안 보임 */
     100% { opacity: 1; }                  /* 끝: 다시 보임 */
 }
+@keyframes blinkingText { /* 글자도 효과 */
+    0% { opacity: 1; }
+    50% { opacity: 0.2; }
+    100% { opacity: 1; }
+}
+
+.blink-warning td {
+    animation: blink 1s infinite;
+    font-weight: bold;
+}
+/* 차트2 - "주의"문구 전용- 연노랑 배경 + 진한 글씨 */
+.custom-warning {
+    background-color: #fff3cd !important;  /* Bootstrap 연노랑 */
+    color: #856404 !important;             /* 진한 노랑 텍스트 */
+    border: 1px solid #ffeeba;
+    font-weight: bold;
+}
+
+
 /* 불량예측 행 flex 정렬 */
 .defect-row {
     display: flex;                        /* flexbox 행 */
