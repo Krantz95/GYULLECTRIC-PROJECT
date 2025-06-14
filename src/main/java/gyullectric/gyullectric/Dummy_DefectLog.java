@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 // 불량예측 데이터 시뮬레이션용 더미
 // 정상 -> 위험 순으로 더미 재생성 필요
-//@Component
+@Component
 public class Dummy_DefectLog {
 
     // ---------------------------차트 1-----------------------------------

@@ -1,8 +1,8 @@
 package gyullectric.gyullectric.controller;
 
 import gyullectric.gyullectric.domain.*;
-import gyullectric.gyullectric.dto.OrderSummaryDto;
 import gyullectric.gyullectric.dto.ProductOrderForm;
+import gyullectric.gyullectric.repository.OrderListRepository;
 import gyullectric.gyullectric.service.*;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -12,14 +12,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Controller
 @Slf4j
