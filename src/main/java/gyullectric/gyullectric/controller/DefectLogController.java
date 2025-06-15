@@ -1,16 +1,18 @@
 package gyullectric.gyullectric.controller;
 
-import gyullectric.gyullectric.domain.DefectLog;
+import gyullectric.gyullectric.domain.Members;
 import gyullectric.gyullectric.dto.DefectLogDto;
 import gyullectric.gyullectric.service.DefectLogService;
 import gyullectric.gyullectric.Dummy_DefectLog;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import java.util.Collections;
 import java.util.Map;
 
 @Slf4j
@@ -22,28 +24,40 @@ public class DefectLogController {
     private final DefectLogService defectLogService;
     private final Dummy_DefectLog dummyDefectLog;
 
-    // 불량 예측 페이지 진입 더미 데이터로 Flask에 예측 요청
+    // 페이지 진입 - 예측 실행 없이 UI
     @GetMapping
-    public String getDefectPredictPage(Model model) {
-        DefectLogDto dto = dummyDefectLog.getDummySensorData2();
+    public String getDefectPredictPage(HttpSession session, Model model) {
+        Members loginMember = (Members) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if (loginMember == null) {
+            return "redirect:/login";
+        }
 
-        // 1. Flask 예측 요청 → 점수 + 경고 메시지 수신
-        Map<String, Object> result = defectLogService.getDefectResultFromFlask(dto);
-
-        // 2. DB에 경고 로그 저장 (중복 방지 포함)
-        defectLogService.saveWarningLogsFromFlaskResult(dto);
-
-        // 3. 최근 경고 로그 조회
-        List<DefectLog> defectLogs = defectLogService.getRecentLogs();
-
-        // 4. 모델 전달값 설정
-        model.addAttribute("castingScore", result.get("castingScore"));
-        model.addAttribute("weldingScore", result.get("weldingScore"));
-        model.addAttribute("castingWarningMsg", result.get("castingWarning"));
-        model.addAttribute("weldingWarningMsg", result.get("weldingWarning"));
-        model.addAttribute("defectLogs", defectLogs);
-        model.addAttribute("defectLogsJson", defectLogs);
+        // 차트/로그 비우고 화면만 보여주기
+        model.addAttribute("castingScore", null);
+        model.addAttribute("weldingScore", null);
+        model.addAttribute("castingWarningMsg", null);
+        model.addAttribute("weldingWarningMsg", null);
+        model.addAttribute("defectLogs", Collections.emptyList());
+        model.addAttribute("defectLogsJson", Collections.emptyList());
 
         return "productionIndex/defectLog";
+    }
+
+    /**
+     * [2️⃣ 예측 요청] 버튼 클릭 시 Flask 호출 및 DB 저장
+     */
+    @PostMapping("/start")
+    @ResponseBody
+    public ResponseEntity<?> startDefectPrediction() {
+        try {
+            DefectLogDto dto = dummyDefectLog.getDummySensorData2();
+            Map<String, Object> result = defectLogService.getDefectResultFromFlask(dto);
+
+            return ResponseEntity.ok(result); // ✅ 정상 응답
+        } catch (Exception e) {
+            log.error("❌ 예측 요청 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "예측 실패", "message", e.getMessage()));
+        }
     }
 }
