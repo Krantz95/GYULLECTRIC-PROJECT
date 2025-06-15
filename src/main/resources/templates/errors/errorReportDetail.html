@@ -5,165 +5,145 @@
 
         <div class="d-flex justify-content-center pt-3">
             <div class="form_lg_css mb-5 shadow-sm">
+                <!-- ================== 리포트 기본 정보 ================== -->
                 <form th:object="${errorReport}">
-
                     <div class="mb-3">
                         <label class="form-label" th:for="*{errorTitle}">제목</label>
-                        <input type="text" class="form-control line_css" th:field="*{errorTitle}">
+                        <input type="text" class="form-control line_css" th:field="*{errorTitle}" readonly>
                     </div>
 
                     <div class="mb-3">
-                        <div class="row">
+                        <div class="row g-3">
                             <div class="col-6">
                                 <label class="form-label" th:for="*{occurredAt}">발생일시</label>
-                                <input type="datetime-local" class="form-control line_css" th:field="*{occurredAt}">
+                                <input type="datetime-local" class="form-control line_css" th:field="*{occurredAt}" readonly>
                             </div>
                             <div class="col-6">
                                 <label class="form-label" th:for="*{processStep}">발생공정</label>
-                                <input type="text" class="form-control line_css" th:field="*{processStep}">
+                                <input type="text" class="form-control line_css" th:field="*{processStep}" readonly>
                             </div>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <div class="row">
+                        <div class="row g-3">
                             <div class="col-6">
-                                <label class="form-label" th:for="*{priority}">우선순위(긴급도)</label>
-                                <input type="text" class="form-control line_css" th:field="*{priority}">
-
+                                <label class="form-label" th:for="*{priority}">우선순위</label>
+                                <input type="text" class="form-control line_css" th:field="*{priority}" readonly>
                             </div>
                             <div class="col-6">
                                 <label class="form-label" th:for="*{productName}">제품명</label>
-                               <input type="text" class="form-control line_css" th:field="*{productName}">
+                                <input type="text" class="form-control line_css" th:field="*{productName}" readonly>
                             </div>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label" th:for="*{content}">에러 내용</label>
-                        <textarea class="form-control line_css" style="height: 200px;" th:field="*{content}"></textarea>
+                        <textarea class="form-control line_css" style="height:200px" th:field="*{content}" readonly></textarea>
                     </div>
                 </form>
-                    <div class="mb-3">
-                        <label class="form-label" th:text="|${#lists.size(errorReport.errorAnswerList)}개의 답변이 있습니다|">댓글</label>
 
-                        <div class="card my-3" style="border: 1px solid #FF5900; padding: 10px; border-radius: 8px;"
-                             th:each="answer : ${errorReport.errorAnswerList}" th:id="'answerCard' + ${answer.id}">
-                            <div class="card-body">
+                <!-- ================== 댓글 리스트 ================== -->
+                <div class="mb-3">
+                    <label class="form-label" th:text="|${#lists.size(errorReport.errorAnswerList)}개의 답변이 있습니다|">댓글</label>
 
-                                <!-- 본문 내용 -->
-                                <div class="card-text" th:text="${answer.content}" th:id="'answerText'+${answer.id}"></div>
+                    <div th:each="answer : ${errorReport.errorAnswerList}" class="card my-3" style="border:1px solid #FF5900; padding:10px; border-radius:8px;" th:id="'answerCard' + ${answer.id}">
+                        <div class="card-body p-3">
+                            <!-- 원본 텍스트 -->
+                            <div class="card-text" th:id="'answerText' + ${answer.id}" th:text="${answer.content}"></div>
 
-                                <!-- 수정 폼 (숨김 처리) -->
-                                <form th:action="@{/errors//answer/modify/{id}(id=${answer.id})}"
-                                      method="post"
-                                      th:if="${loginMember.loginId == answer.members.loginId}"
-                                      th:id="'editForm' + ${answer.id}"
-                                      style="display: none;">
-                                    <textarea name="content" class="form-control my-2" rows="3"
-                                    th:text="${answer.content}"></textarea>
-                                    <div class="d-flex justify-content-end">
-                                        <button type="submit" class="btn btn-outline-warning">저장</button>
-                                    </div>
-                                </form>
-
-                                <!-- 작성자 + 작성일 -->
-                                <div class="d-flex justify-content-end mt-3">
-                                    <div class="badge bg-light text-dark p-2 text-start">
-                                        <div class="mb-2"
-                                             th:if="${answer.members != null and answer.members.loginId != null}"
-                                             th:text="${answer.members.name}">작성자: 홍길동</div>
-                                        <div th:if="${answer.modifyDate == null}"
-                                             th:text="${#temporals.format(answer.createDate, 'yyyy-MM-dd HH:mm')}">
-                                            작성일: 2025-05-22 14:30
-                                        </div>
-                                        <div th:if="${answer.modifyDate != null}"
-                                             th:text="${#temporals.format(answer.modifyDate, 'yyyy-MM-dd HH:mm')}">
-                                            수정일: 2025-06-12 02:30
-                                        </div>
-                                    </div>
+                            <!-- 수정 폼 -->
+                            <form th:action="@{/errors/answer/modify/{id}(id=${answer.id})}"
+                                  method="post"
+                                  th:id="'editForm' + ${answer.id}"
+                                  th:if="${loginMember.loginId == answer.members.loginId}"
+                                  style="display:none;">
+                                <textarea name="content" class="form-control my-2" rows="3" th:text="${answer.content}"></textarea>
+                                <div class="text-end">
+                                    <button type="submit" class="btn btn-outline-warning btn-sm">저장</button>
                                 </div>
+                            </form>
 
-                                <!-- 수정/삭제 버튼 -->
-                                <div class="d-flex justify-content-start gap-2 mt-2"
-                                     th:if="${errorReport.members.loginId != null and loginMember.loginId == answer.members.loginId}">
-                                    <button type="button"
-                                            class="btn_sm_orange"
-                                            th:onclick="'toggleEdit(' + ${answer.id} + ')'"
-                                            style="margin: 0; justify-content: center;">수정</button>
+                            <!-- 작성자/시간 -->
+                            <div class="text-end mt-2">
+                                <span class="badge bg-light text-dark" th:text="${answer.members.name}"></span>
+                                <span class="text-muted ms-1" th:text="${#temporals.format(answer.modifyDate != null ? answer.modifyDate : answer.createDate,'yyyy-MM-dd HH:mm')}"></span>
+                            </div>
 
-                                    <button type="button"
-                                            class="btn_sm_orange"
-                                            style="margin: 0; justify-content: center; color: black; border-color: black"
-                                            data-bs-toggle="modal"
-                                            th:attr="data-bs-target='#deleteComment' + ${answer.id}">삭제</button>
+                            <!-- 버튼 -->
+                            <div class="mt-2 d-flex gap-2" th:if="${loginMember.loginId == answer.members.loginId}">
+                                <button type="button" class="btn_sm_orange" th:onclick="'toggleEdit(' + ${answer.id} + ')'">수정</button>
+                                <button type="button" class="btn_sm_orange" style="color:black; border-color:black" data-bs-toggle="modal" th:attr="data-bs-target='#deleteComment-' + ${answer.id}">삭제</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================== 댓글 삭제 모달 ================== -->
+                <th:block th:each="answer : ${errorReport.errorAnswerList}">
+                    <div class="modal fade" th:id="'deleteComment-' + ${answer.id}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">댓글 삭제</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
-
-                                <!-- 삭제 모달 -->
-                                <div class="modal fade" th:id="'deleteComment'+${answer.id}" tabindex="-1" aria-labelledby="deleteCommentLabel" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h1 class="modal-title fs-5">댓글 삭제</h1>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body">댓글을 삭제하시겠습니까?</div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
-                                                <a th:href="@{/errors/answer/delete/{id}(id=${answer.id})}" class="btn btn-danger">확인</a>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div class="modal-body">댓글을 삭제하시겠습니까?</div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                                    <a th:href="@{/errors/answer/delete/{id}(id=${answer.id})}" class="btn btn-danger">확인</a>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </th:block>
+                <!-- ================== 리포트 삭제 모달 ================== -->
+                <div class="modal fade" id="deleteReport" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">에러 리포트 삭제</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">에러 리포트를 삭제하시겠습니까?</div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                                <a th:href="@{/errors/report/delete/{id}(id=${errorReport.id})}" class="btn btn-danger">확인</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                <!-- 답글작성 폼+버튼 -->
-                <form method="post" th:action="@{|/errors/answer/${errorReport.id}|}" th:object="${answerForm}">
-                    <div class="alert alert-warning" role="alert" th:if="${#fields.hasAnyErrors()}">
+                <!-- ================== 답글 작성 ================== -->
+                <form th:action="@{|/errors/answer/${errorReport.id}|}" method="post" th:object="${answerForm}">
+                    <div class="alert alert-warning" th:if="${#fields.hasAnyErrors()}">
                         <div th:each="err : ${#fields.allErrors()}" th:text="${err}"></div>
                     </div>
-                    <div class="position-relative mb-1">
-                        <textarea class="form-control line_css" style="min-height: 100px; margin-bottom: 60px;" th:field="*{content}"></textarea>
-                        <button type="submit"
-                                class="btn_orange btn-sm px-4 position-absolute"
-                                style="color: white; bottom: 10px; right: 10px; width: 100px; height: 40px">
-                            답글작성
-                        </button>
+
+                    <div class="position-relative mb-2">
+                        <textarea class="form-control line_css" style="min-height:100px; margin-bottom:60px;" th:field="*{content}"></textarea>
+                        <button type="submit" class="btn_orange btn-sm px-4 position-absolute" style="bottom:10px; right:10px; width:100px; height:40px">답글작성</button>
                     </div>
-                    <div class="d-flex justify-content-end gap-2" style="margin-top: -10px;">
-                        <a href="/errors/report" class="btn_red" style="margin: 0; justify-content: center; background-color: black; height: 50px">목록</a>
-                        <button type="button" class="btn_red" style="margin: 0; justify-content: center; height: 50px" th:if="${errorReport.members.loginId != null
-                            and loginMember.loginId == errorReport.members.loginId}" th:text="삭제"
-                                data-bs-toggle="modal" data-bs-target="#deleteReport">삭제</button>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="/errors/report" class="btn_red" style="background:black; height:50px;">목록</a>
+                        <button type="button" class="btn_red" style="height:50px;" th:if="${loginMember.loginId == errorReport.members.loginId}" data-bs-toggle="modal" data-bs-target="#deleteReport">삭제</button>
                     </div>
                 </form>
-                </div>
             </div>
         </div>
+    </div>
 </th:block>
 
-    <script layout:fragment="script">
-        document.addEventListener('DOMContentLoaded', function () {
-            const input = document.getElementById('eventDateTime');
-            const now = new Date();
-            const pad = (n) => n.toString().padStart(2, '0');
-            const formatted = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
-            input.value = formatted;
-        });
-
-        function toggleEdit(answerId) {
-            const form = document.getElementById("editForm" + answerId);
-            const text = document.getElementById("answerText" + answerId);
-            if (form.style.display === "none") {
-                form.style.display = "block";
-                text.style.display = "none";
-            } else {
-                form.style.display = "none";
-                text.style.display = "block";
-            }
-        }
-    </script>
-</th:block>
+<script layout:fragment="script">
+    // 답변 수정 폼 토글
+    function toggleEdit(id) {
+        const form = document.getElementById('editForm' + id);
+        const text = document.getElementById('answerText' + id);
+        const isHidden = form.style.display === 'none';
+        form.style.display = isHidden ? 'block' : 'none';
+        text.style.display = isHidden ? 'none' : 'block';
+    }
+</script>
 </html>
