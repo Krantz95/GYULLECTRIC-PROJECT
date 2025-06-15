@@ -36,7 +36,7 @@
                             <p class="chart-baseline text-center text-muted fw-semibold" style="font-size: 16px; margin-bottom: 12px;">
                                 REAL TIME  : <span id="timeRange">--시 ~ --시 59분</span>
                             </p>
-                            <canvas id="productAchievementChart" width="650" height="280"></canvas>
+                            <canvas id="productAchievementChart" style="width: 100%; height: 280px;"></canvas>
                         </div>
                         <div class="bar-legend mt-3">
                             <div class="legend-item">
@@ -537,7 +537,7 @@
                         backgroundColor:achievementRates.map(getBarColor)
                     }]},
                 options:{
-                    indexAxis:"y",responsive:true,layout:{padding:{right:120}},
+                    indexAxis:"y",responsive:true, layout:{padding:{right:120}},
                     scales:{
                         x:{beginAtZero:true,max:100,ticks:{callback:v=>`${v}%`,font:{size:14}}},
                         y:{ticks:{font:{size:16}}}
