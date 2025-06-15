@@ -49,7 +49,7 @@
                         <button type="button" class="btn_orange" onclick="handleValidationBeforeModal()">주문</button>
                         <a th:href="@{/order/history}" class="btn_black ms-3">발주이력</a>
                     </div>
-<!--모달-->
+                    <!--모달-->
                     <div class="modal fade" id="orderConfirmModal" tabindex="-1" aria-labelledby="orderConfirmLabel" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
                             <div class="modal-content" style="min-height: 600px;">
@@ -76,10 +76,17 @@
         </div>
 
         <!-- 검색 필터 -->
+        <!-- 검색 필터 -->
         <div class="my-3">
-            <form id="searchForm" role="form" method="get" th:action="@{/order/inventory}"
-                  class="d-flex justify-content-end align-items-center mb-3 gap-2">
-                <select name="partName" class="pointer_orange form-select" style="width: 200px;">
+            <form id="searchForm"
+                  role="form"
+                  method="get"
+                  th:action="@{/order/inventory}"
+                  class="d-flex flex-column flex-sm-row align-items-end align-items-sm-center justify-content-end gap-2">
+
+                <!-- 자재명 -->
+                <select name="partName"
+                        class="pointer_orange form-select responsive-select">
                     <option value="">자재명</option>
                     <option th:each="partName : ${partNames}"
                             th:value="${partName}"
@@ -87,7 +94,9 @@
                             th:selected="${partName} == ${param.partName}"></option>
                 </select>
 
-                <select name="supplier" class="pointer_orange form-select" style="width: 200px;">
+                <!-- 공급업체 -->
+                <select name="supplier"
+                        class="pointer_orange form-select responsive-select">
                     <option value="">공급업체</option>
                     <option th:each="supplier : ${suppliers}"
                             th:value="${supplier}"
@@ -95,12 +104,15 @@
                             th:selected="${supplier} == ${param.supplier}"></option>
                 </select>
 
+                <!-- 버튼 -->
                 <button type="submit" class="btn_search">검색</button>
 
                 <input type="hidden" id="page" name="page"
                        th:value="${paging != null ? paging.number : 0}">
             </form>
         </div>
+
+
 
         <!-- 테이블 -->
         <div class="subtitle_css py-3"><i class="bi bi-box-seam"></i><span class="en-font"> ORDER</span>_재고목록</div>

@@ -47,43 +47,46 @@ body {
 }
 
 /* ────────────────────────────  공통 : 레이아웃  ──────────────────────────── */
-/* 모달 */
+
+/* 폼 위의 로고+타이틀 전용 */
+.logo-img {
+    max-height: 150px;
+}
+.logo-title {
+    font-size: 35px;
+    margin-bottom: 20px;
+    color: #FF5900;
+}
+
+/* 검색필터 lg일때는 200px만 */
+.responsive-select {
+    max-width: 200px;
+    width: 100%;
+}
 @media (max-width: 576px) {
-    .modal-dialog {
-        width: 90vw;
-        max-width: none;
-        margin: 1.75rem auto;
+    /* 생산분석-일부 타이틀 위여백 모바일만 */
+    .mt-mobile-gap {
+        margin-top: 1.5rem !important;
     }
-
-    .modal-content {
-        border-radius: 12px;
-        padding: 1rem;
-    }
-
-    .modal-header {
-        border-bottom: none;
-        padding-bottom: 0;
-    }
-
-    .modal-body {
-        font-size: 15px;
-        line-height: 1.5;
-        padding: 1rem 1rem 0.5rem 1rem;
-    }
-
-    .modal-footer {
-        padding: 1rem;
+    .canvas-wrapper {
         display: flex;
-        justify-content: space-between;
-        gap: 10px;
+        justify-content: center;
     }
-
-    .modal-footer .btn {
-        flex: 1;
-        font-size: 15px;
-        padding: 10px 0;
+    .logo-img {
+        max-height: 80px; /* 이미지 절반 크기로 */
+    }
+    .logo-title {
+        font-size: 20px;   /* 글자 크기 줄이기 */
+        margin-bottom: 10px;
+    }
+    /* 검색필터 sm일때는 모든가로차지 (ex.재고관리) */
+    .responsive-select {
+        max-width: 100% !important;
+        width: 100% !important;
     }
 }
+
+
 /* 전체 화면을 flex column으로 배치 */
 html, body {
     height: 100%;                     /* 화면 전체 높이 채움 */
@@ -190,6 +193,43 @@ nav.d-lg-none {
         padding-left: 0.5rem;
         padding-right: 0.5rem;
     }
+
+    /* 모달 전용 */
+    .modal-dialog {
+        width: 90vw;
+        max-width: none;
+        margin: 1.75rem auto;
+    }
+
+    .modal-content {
+        border-radius: 12px;
+        padding: 1rem;
+    }
+
+    .modal-header {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .modal-body {
+        font-size: 15px;
+        line-height: 1.5;
+        padding: 1rem 1rem 0.5rem 1rem;
+    }
+
+    .modal-footer {
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .modal-footer .btn {
+        flex: 1;
+        font-size: 15px;
+        padding: 10px 0;
+    }
+
 }
 
 
@@ -227,7 +267,7 @@ nav.d-lg-none {
     border: 1px solid #FF5900;       /* 주황 테두리 */
     height: 50px;                    /* 고정 높이 50px */
     padding: 10px;                   /* 안쪽 여백 10px */
-    border-radius: 0;                /* 각진 테두리 */
+    border-radius: 10px;                /* 각진 테두리 */
 }
 
 /* ────────────────────────────  공통 : 버튼  ──────────────────────────── */
@@ -259,14 +299,14 @@ nav.d-lg-none {
     justify-content: center;        /* 수평 방향으로 가운데 정렬 */
 }
 
-/* 주황+라운드없음 ex.'검색' */
+/* 주황 ex.'검색' */
 .btn_search {
     background-color: #FF9100;       /* 배경색: 오렌지 */
     border: none;                    /* 기본 테두리 제거 */
     width: 100px;                    /* 버튼 가로 길이 고정 */
     height: 50px;
     padding: 10px;
-    border-radius: 0;
+    border-radius: 10px;
     white-space: nowrap;            /* 텍스트 줄바꿈 방지 */
     display: flex;                  /* 가로 세로 딱 중앙에 텍스트 배치 */
     align-items: center;            /* 수직 방향으로 가운데 정렬 */
@@ -344,6 +384,7 @@ nav.d-lg-none {
 .write_css {
     background-color: #FF9100;             /* 배경색: 주황 */
     border: 1px solid #FF5900;            /* 테두리: 진한 주황 */
+    border-radius: 10px;
     padding: 15px 30px;                   /* 안쪽 여백 */
     width: 90px; height: 50px;            /* 버튼 크기 */
     color: black;                         /* 글씨 색 */
@@ -358,6 +399,7 @@ nav.d-lg-none {
 .refreshTime_css {
     background-color: #FF9100;            /* 배경색: 주황 */
     border: none;                         /* 테두리 없음 */
+    border-radius: 10px;
     padding: 15px 30px;                   /* 안쪽 여백 */
     width: 120px; height: 50px;           /* 버튼 크기 */
     color: white;                         /* 글씨 색: 흰색 */
@@ -376,7 +418,7 @@ nav.d-lg-none {
     height: 50px;                         /* 고정 높이 */
     padding: 10px;                        /* 내부 여백 */
     border: 1px solid #FF5900;            /* 주황색 테두리 */
-    border-radius: 0;                     /* 직각 테두리 */
+    border-radius: 10px;
     background-color: #ffffff;            /* 흰 배경 */
 
     appearance: none;                     /* 기본 화살표 제거 */
@@ -395,7 +437,7 @@ nav.d-lg-none {
     height: 50px;                         /* 고정 높이 */
     padding: 10px;                        /* 내부 여백 */
     border: 1px solid #FF5900;            /* 주황색 테두리 */
-    border-radius: 8px;                   /* 둥근 테두리 */
+    border-radius: 10px;                   /* 둥근 테두리 */
     background-color: #ffffff;            /* 흰 배경 */
 
     appearance: none;                     /* 기본 화살표 제거 */
@@ -414,7 +456,7 @@ nav.d-lg-none {
     height: 50px;                         /* 고정 높이 */
     padding: 10px;                        /* 내부 여백 */
     border: 1px solid #939393;            /* 회색 테두리 */
-    border-radius: 0;                     /* 직각 테두리 */
+    border-radius: 10px;
     background-color: #ffffff;            /* 흰 배경 */
 
     appearance: none;                     /* 기본 화살표 제거 */

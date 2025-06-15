@@ -7,17 +7,21 @@
 
         <!-- 검색 필터 -->
         <div class="my-3">
-            <form th:action="@{/members/list}" method="get" id="searchForm" class="d-flex justify-content-end align-items-center my-3 gap-2">
-                <select name="type" class="pointer_orange form-select" style="width: 200px;">
+            <form th:action="@{/members/list}" method="get" id="searchForm"
+                  class="d-flex flex-column flex-sm-row justify-content-end align-items-end align-items-sm-center gap-2">
+                <select name="type" class="pointer_orange form-select responsive-select">
                     <option value="" th:selected="${type == ''}">이름/아이디</option>
                     <option value="name" th:selected="${type == 'name'}">이름</option>
                     <option value="loginId" th:selected="${type == 'loginId'}">아이디</option>
                 </select>
-                <input type="text" class="form-control line2_css" style="width: 200px;" id="search_kw" th:value="${kw}" name="kw">
+                <input type="text" class="form-control line2_css responsive-select"
+                       id="search_kw" th:value="${kw}" name="kw">
                 <button class="btn_search px-4" id="btn_search" type="submit">검색</button>
-                <input type="hidden" id="page" name="page" th:value="${paging != null ? paging.number : 0}">
+                <input type="hidden" id="page" name="page"
+                       th:value="${paging != null ? paging.number : 0}">
             </form>
         </div>
+
 
         <!-- 테이블 -->
         <div class="table-responsive py-3">
