@@ -29,74 +29,67 @@ public class DefectLogService {
 
     // ========== [1] 예측 요청 및 결과 처리 ==========
     public Map<String, Object> getDefectResultFromFlask(DefectLogDto dto) {
-        // 시계열기반 예측 더미 시퀀스 생성(ex.20초간 진동값)
-        List<Double> weldingSeq = dummyDefectLog.getDummyWeldingSequence();
-        System.out.println("🔥 용접 시퀀스: " + weldingSeq);
-
-        // 도장 + 용접 예측값 받아오기
-        Map<String, Object> flaskResult = defectPredictionClient.predictDefectAndWelding(
-                dto.getPressure(), dto.getUpperTemp(), dto.getLowerTemp(), weldingSeq);
-
-        // 도장 점수는 로그 기반으로 재계산
-        List<WarningLogDto> warningLogs = evaluateCastingWarnings(dto, 0); // 초기 점수는 의미 없음
-        int castingScore = calculateCastingScore(warningLogs);             //  새 점수 계산!
-        System.out.println("🔥 재계산된 도장 점수(castingScore): " + castingScore);
-
-        // 차트2 용접 : 예측 출력 값(실측 단위)
-        double predictedReal = ((Number) flaskResult.getOrDefault("weldingPredictedReal", 0)).doubleValue();
-        int weldingScore = calculateWeldingScore(predictedReal);
-
-        // 차트2 용접 : 퍼센트 및 평균 출력 계산
-        Map<String, Object> weldingData = calculateWeldingPercentScore(weldingSeq);
-        int weldingPercentScore = (int) weldingData.get("percent");
-        double avg = (double) weldingData.get("average");
-        System.out.println("📊 용접 퍼센트 계산 결과: " + weldingPercentScore);
-        flaskResult.put("weldingScore", weldingPercentScore);
-
-        // ❗ 퍼센트 기반으로 이모지 판단 (✔ 변경된 부분)
-        String weldingLevelEmoji = getWeldingWarningLevel(weldingPercentScore);
-
-        // 차트2 용접출력 : 경고 로그 '감지현상' 3단계로 구성
-        List<WarningLogDto> weldingLogs = new ArrayList<>();
-
-        String weldingSymptomText;
-        if (weldingPercentScore >= 80) {
-            weldingSymptomText = "급감 감지";          // 🔴 위험
-        } else if (weldingPercentScore >= 61) {
-            weldingSymptomText = "출력 변화 감지";     // 🟡 주의
-        } else {
-            weldingSymptomText = "정상 범위";          // 🟢 안정
-        }
-        weldingLogs.add(new WarningLogDto(
-                "용접 출력",
-                weldingSymptomText,
-                (int) Math.round(avg),
-                "1공정 - 용접"
-        ));
-        weldingLogs.get(0).setWarningLevel(weldingLevelEmoji);  // 이모지도 퍼센트 기준
-
-        // 차트 1번 경고메시지
-        String castingWarningMsg = !getWarningLevel(castingScore).equals("🟢 안정") ?
-                "공정에서 이상 상태 감지 (압력/온도 초과)" : "";
-
-        // 차트 2번 경고메시지
-        String weldingWarningMsg;
-        if (weldingPercentScore >= 80) {
-            weldingWarningMsg = "설비 용접 출력 이상 (점검 필요)";           // 🔴 위험
-        } else if (weldingPercentScore >= 61) {
-            weldingWarningMsg = "설비 출력 변화 감지됨 (주의 요망)";       // 🟡 주의
-        } else {
-            weldingWarningMsg = ""; // 🟢 안정 → 메시지 없음
-        }
-
         Map<String, Object> result = new HashMap<>();
-        result.put("castingScore", castingScore);
-        result.put("castingWarning", castingWarningMsg);
-        result.put("defectLogs", warningLogs);
-        result.put("weldingScore", weldingScore);
-        result.put("weldingWarning", weldingWarningMsg);
-        result.put("weldingLogs", weldingLogs);
-        result.put("weldingPercent", weldingPercentScore);
+
+        try {
+            // 예측용 시퀀스 생성
+            List<Double> weldingSeq = dummyDefectLog.getDummyWeldingSequence();
+            System.out.println("🔥 용접 시퀀스: " + weldingSeq);
+
+            // ========== [1] Flask 예측 호출 ==========
+            Map<String, Object> flaskResult = defectPredictionClient.predictDefectAndWelding(
+                    dto.getPressure(), dto.getUpperTemp(), dto.getLowerTemp(), weldingSeq);
+
+            // 도장 점수 재계산
+            List<WarningLogDto> warningLogs = evaluateCastingWarnings(dto, 0);
+            int castingScore = calculateCastingScore(warningLogs);
+            System.out.println("🔥 재계산된 도장 점수(castingScore): " + castingScore);
+
+            // 용접 출력 예측값
+            double predictedReal = ((Number) flaskResult.getOrDefault("weldingPredictedReal", 0)).doubleValue();
+            int weldingScore = calculateWeldingScore(predictedReal);
+
+            // 용접 퍼센트 계산
+            Map<String, Object> weldingData = calculateWeldingPercentScore(weldingSeq);
+            int weldingPercentScore = (int) weldingData.get("percent");
+            double avg = (double) weldingData.get("average");
+            System.out.println("📊 용접 퍼센트 계산 결과: " + weldingPercentScore);
+
+            String weldingLevelEmoji = getWeldingWarningLevel(weldingPercentScore);
+
+            // 차트2 : 경고로그 - 감지현상 메시지
+            String weldingSymptomText = weldingPercentScore >= 80 ? "기준치 미달" :
+                    weldingPercentScore >= 61 ? "기준치 접근 중" : "정상 범위";
+            List<WarningLogDto> weldingLogs = List.of(new WarningLogDto("용접 출력", weldingSymptomText, (int) Math.round(avg), "1공정 - 용접"));
+            weldingLogs.get(0).setWarningLevel(weldingLevelEmoji);
+
+            // 차트1+2 : 차트 상위 경고 메시지
+            String castingWarningMsg = castingScore >= 80 ? "공정에서 이상치 발견 (압력/온도 급감)"
+                    : castingScore >= 61 ? "공정 기준치 접근중 (주의)" : "";
+            String weldingWarningMsg = weldingPercentScore >= 80 ? "설비에서 이상치 발견 (출력 급감)" :
+                    weldingPercentScore >= 61 ? "용접 출력 기준치 접근 중 (주의)" : "";
+
+            // 최종 result 저장
+            result.put("castingScore", castingScore);
+            result.put("castingWarning", castingWarningMsg);
+            result.put("defectLogs", warningLogs);
+            result.put("weldingScore", weldingScore);
+            result.put("weldingWarning", weldingWarningMsg);
+            result.put("weldingLogs", weldingLogs);
+            result.put("weldingPercent", weldingPercentScore);
+
+        } catch (Exception e) {
+            // Flask 예외 발생 시 기본값 처리
+            System.err.println("🚨 Flask 연결 실패: " + e.getMessage());
+
+            result.put("castingScore", 0);
+            result.put("castingWarning", "");
+            result.put("defectLogs", Collections.emptyList());
+            result.put("weldingScore", 0);
+            result.put("weldingWarning", "");
+            result.put("weldingLogs", Collections.emptyList());
+            result.put("weldingPercent", 0);
+        }
 
         return result;
     }
@@ -282,7 +275,7 @@ public class DefectLogService {
     private String getSymptomLabel(String level) {
         switch (level) {
             case "🔴 위험":
-                return "기준 미달";      // 많이 낮음
+                return "기준치 미달";      // 많이 낮음
             case "🟡 주의":
                 return "기준 근접";      // 살짝 낮음
             case "🟢 안정":

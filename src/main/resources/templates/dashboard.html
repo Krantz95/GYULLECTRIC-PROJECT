@@ -135,48 +135,120 @@
                     </div>
 
 
-                    <!-- 하단 : 기계 이상 감지 -->
-                    <div class="row g-4 mt-4">
-                        <div class="col-lg-12">
-                            <div class="chart-card w-100">
+                <!-- 하단 : 기계 이상 감지 -->
+                <div class="row g-4 mt-4">
+                    <div class="col-lg-12">
+                        <div class="chart-card w-100">
+                            <!-- 제목 영역 -->
+                            <div class="chart-header d-flex align-items-center mb-2">
+                                <p class="chart-title fw-bold">
+                                    <i class="bi bi-exclamation-diamond-fill"></i> 기계 이상 감지
+                                </p>
+                            </div>
 
-                                <div class="chart-header d-flex align-items-center mb-2">
-                                    <p class="chart-title fw-bold">
-                                        <i class="bi bi-exclamation-diamond-fill"></i> 기계 이상 감지
-                                    </p>
-                                </div>
 
+                    <!-- 차트 1, 2 부분 -->
+                            <!-- 대시보드 차트 없는 상태 안내 -->
+                            <div id="chartDefaultMessage" style="text-align: center; padding: 2rem; font-weight: bold; color: #F37221;">
+                                <i class="bi bi-info-circle"></i> 현재까지 감지된 이상 데이터가 없습니다.<br>
+                                공정 예측이 시작되면 실시간 차트가 자동으로 표시됩니다.
+                            </div>
+                            <div id="chartContainer" style="display: none;">
                                 <div class="chart-body" style="padding: 20px 10px;">
-                                    <div class="row g-4 justify-content-center mx-0">
-                                        <!-- 왼쪽 -->
+                                    <div class="row justify-content-center">
+                                        <div class="row justify-content-center">
+
+                                        <!-- 🔶 차트 1: 도장 공정 -->
                                         <div class="col-lg-6 col-12 text-center">
-                                            <div id="castingWarning" class="warning-placeholder"></div>
+                                            <div id="castingWarning" class="warning-placeholder">
+                                                <div th:if="${castingWarningMsg != null and castingWarningMsg != ''}" class="alert alert-warning" style="font-weight: bold;">
+                                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                                    <span th:text="${castingWarningMsg}"></span>
+                                                </div>
+                                            </div>
+
                                             <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
-                                                <canvas id="castingChart" style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
-                                                <div id="castingStatus" class="d-flex justify-content-between align-items-center" style="margin-top: 0; padding-top: 0;">
+                                                <!-- 로딩 텍스트는 항상 표시 -->
+                                                <div id="castingChartLoading" class="chart-loading-text"
+                                                     style="text-align: center; padding: 2rem; font-weight: bold; color: #F37221;">
+                                                    실시간 차트를 불러오는 중입니다
+                                                </div>
+
+                                               <!-- 차트 -->
+                                                <canvas id="castingChart"
+                                                        role="img"
+                                                        aria-label="주조 공정 안정성 차트"
+                                                        style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
+                                                <!-- 상태 -->
+                                                <div id="castingStatus" class="d-flex justify-content-between align-items-center"
+                                                     style="margin-top: 0; padding-top: 0;">
                                                     <div class="defect-box">
-                                                        <span class="defect-label">압력/온도 감지 (80%)</span>
-                                                        <button type="button" class="defect-btn" style="background-color: #FF0004;" disabled>점검요청</button>
+                                                    <span class="defect-label defect-tooltip"
+                                                          data-bs-toggle="tooltip"
+                                                          data-bs-placement="top"
+                                                          data-bs-html="true"
+                                                          title="<b>2공정 (도장) 최적화 기준</b><br>
+                                                                - 압착 압력 299 이상<br>
+                                                                - 상단 금형 온도 94℃ 이상<br>
+                                                                - 하향 금형 온도 193℃ 이상">
+                                                                  압력/온도 감지
+                                                                </span>
+                                                                <button type="button"
+                                                                class="defect-btn"
+                                                                style="background-color: #FF5900; color: white;"
+                                                                onclick="requestInspection('압착 압력')">
+                                                            점검요청
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <!-- 오른쪽 -->
-                                        <div class="col-lg-6 col-12 text-center">
-                                            <div id="weldingWarning" class="warning-placeholder"></div>
-                                            <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
-                                                <canvas id="weldingChart" style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
-                                                <div id="weldingStatus" class="d-flex justify-content-between align-items-center" style="margin-top: 0; padding-top: 0;">
-                                                    <div class="defect-box">
-                                                        <span class="defect-label">용접 출력 감지 (0%)</span>
-                                                        <button type="button" class="defect-btn" style="background-color: #FF0004;" disabled>점검요청</button>
+                                            <!-- 🔶 차트 2: 용접 공정 -->
+                                            <div class="col-lg-6 col-12 text-center">
+                                                <div id="weldingWarning" class="warning-placeholder">
+                                                    <div th:if="${weldingWarningMsg != null and weldingWarningMsg != ''}"
+                                                         th:class="'alert ' +
+                                                         (${weldingWarningMsg.contains('점검')} ? 'custom-danger' :
+                                                          (${weldingWarningMsg.contains('주의')} ? 'custom-warning' : ''))"
+                                                         style="font-weight: bold;">
+                                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                                        <span th:text="${weldingWarningMsg}"></span>
+                                                    </div>
+                                                </div>
+
+                                                <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
+                                                    <!-- 로딩 텍스트는 항상 표시 -->
+                                                    <div id="weldingChartLoading" class="chart-loading-text"
+                                                         style="text-align: center; padding: 2rem; font-weight: bold; color: #F37221;">
+                                                        실시간 차트를 불러오는 중입니다
+                                                    </div>
+
+                                                    <!-- 차트 -->
+                                                    <canvas id="weldingChart"
+                                                            role="img"
+                                                            aria-label="용접 공정 안정성 차트"
+                                                            style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
+
+                                                    <!-- 상태 -->
+                                                    <div id="weldingStatus" class="d-flex justify-content-between align-items-center"
+                                                         style="margin-top: 0; padding-top: 0;">
+                                                        <div class="defect-box">
+                                                            <span class="defect-label">용접 출력 감지 (0%)</span>
+                                                            <button type="button"
+                                                                    class="defect-btn"
+                                                                    style="background-color: #FF5900; color: white;"
+                                                                    onclick="requestInspection('용접 출력')">
+                                                                점검요청
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div> <!-- 내부 row 끝 -->
-                                </div> <!-- chart-card 끝 -->
+                                        </div> <!-- inner row -->
+                                    </div> <!-- outer row -->
+                                </div> <!-- chart-body -->
+                            </div> <!-- chartContainer -->
                             </div>
                         </div>
                     </div>
@@ -206,6 +278,12 @@
             }
         });
     </script>
+
+<!--    <script> -->
+<!--        document.addEventListener("DOMContentLoaded", function () {-->
+<!--            initDefectWarningSocket();-->
+<!--        });-->
+<!--    </script>-->
 
     // 공정별 ok/ng 차트
     <script th:inline="javascript">
@@ -593,6 +671,39 @@
                 updateNgWarning();
             });
 
+            /* ─────────────────────────────── ④ 실시간 불량예측 차트 수신 ─────────────────────────────── */
+            stomp.subscribe("/topic/defect", (message) => {
+                const data = JSON.parse(message.body);
+                console.log("⚙️ 불량예측 데이터 수신:", data);
+
+                // 차트 보이기 전 기본안내 후 숨김
+                const defaultMsg = document.getElementById("chartDefaultMessage");
+                if (defaultMsg) defaultMsg.style.display = "none";
+
+                // 차트 영역 보이기
+                const chartArea = document.getElementById("chartContainer");
+                if (chartArea) chartArea.style.display = "block";
+
+                // 로딩 텍스트 숨기기
+                const castingLoading = document.getElementById("castingChartLoading");
+                const weldingLoading = document.getElementById("weldingChartLoading");
+                if (castingLoading) castingLoading.style.display = "none";
+                if (weldingLoading) weldingLoading.style.display = "none";
+
+                // 퍼센트 반영
+                const castingScore = Number.isFinite(data.castingScore) ? data.castingScore : 0;
+                const weldingScore = Number.isFinite(data.weldingScore) ? data.weldingScore : 0;
+
+                const castingLabel = document.querySelector("#castingStatus .defect-label");
+                const weldingLabel = document.querySelector("#weldingStatus .defect-label");
+
+                if (castingLabel) castingLabel.textContent = `압력/온도 감지 (${castingScore}%)`;
+                if (weldingLabel) weldingLabel.textContent = `용접 출력 감지 (${weldingScore}%)`;
+
+                // ✨ 실제 차트 렌더링이 필요하면 여기에 Chart.js 업데이트 함수 호출
+                // updateCastingChart(castingScore);
+                // updateWeldingChart(weldingScore);
+            });
         });
 
     </script>

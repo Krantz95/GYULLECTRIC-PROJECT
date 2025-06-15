@@ -4,11 +4,11 @@
         <!-- 서브타이틀 -->
         <div class="subtitle_css"><i class="bi bi-activity"></i> 생산지표관리_불량예측</div>
         <div class="fw-bold py-3">기계 이상 감지
-            <form th:action="@{/indicators/defect-predict/reset}" method="post" class="pt-3">
-                <button type="submit" style="background-color: #F37221; color: white; border: 1px solid #FF5900;">
-                    🔄 서버 초기화<!-- 테스트용 -->
+            <div class="pt-3">
+                <button id="startPredictionBtn" class="btn btn-warning fw-bold" style="background-color: #F37221; color: white;">
+                    🎯 불량 예측 실행
                 </button>
-            </form>
+            </div>
         </div>
 
         <!-- 차트1 / 도장(2공정) -->
@@ -16,7 +16,7 @@
             <div class="col-lg-6 col-12 text-center">
                 <!-- 경고 메시지 위치 (높이 고정) -->
                 <div id="castingWarning" class="warning-placeholder">
-                    <div th:if="${castingWarningMsg != ''}" class="alert alert-warning" style="font-weight: bold;">
+                    <div th:if="${castingWarningMsg != null and castingWarningMsg != ''}" class="alert alert-warning" style="font-weight: bold;">
                         <i class="bi bi-exclamation-triangle-fill"></i>
                         <span th:text="${castingWarningMsg}"></span>
                     </div>
@@ -30,7 +30,7 @@
                     <canvas id="castingChart"
                             role="img"
                             aria-label="주조 공정 안정성 차트"
-                            style="display: none; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
+                            style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
                     <div id="castingStatus" class="d-flex justify-content-between align-items-center"
                          style="margin-top: 0; padding-top: 0;">
                         <div class="defect-box">
@@ -59,10 +59,10 @@
             <div class="col-lg-6 col-12 text-center">
                 <!-- 경고 메시지 위치 (높이 고정) -->
                 <div id="weldingWarning" class="warning-placeholder">
-                    <div th:if="${weldingWarningMsg != ''}"
+                    <div th:if="${weldingWarningMsg != null and weldingWarningMsg != ''}"
                          th:class="'alert ' +
-                          (${weldingWarningMsg.contains('점검')} ? 'custom-danger' :
-                           ${weldingWarningMsg.contains('주의')} ? 'custom-warning' : '')"
+                         (${weldingWarningMsg.contains('점검')} ? 'custom-danger' :
+                          (${weldingWarningMsg.contains('주의')} ? 'custom-warning' : ''))"
                          style="font-weight: bold;">
                         <i class="bi bi-exclamation-triangle-fill"></i>
                         <span th:text="${weldingWarningMsg}"></span>
@@ -77,7 +77,7 @@
                     <canvas id="weldingChart"
                             role="img"
                             aria-label="용접 공정 안정성 차트"
-                            style="display: none; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
+                            style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
                     <div id="weldingStatus" class="d-flex justify-content-between align-items-center"
                          style="margin-top: 0; padding-top: 0;">
                         <div class="defect-box">
@@ -149,11 +149,74 @@
     <!-- 차트 2개 스크립트 -->
     <script th:inline="javascript" layout:fragment="script">
 
+        document.addEventListener("DOMContentLoaded", function () {
+            // 공통 함수 확인
+            if (typeof updateRealtimeCharts !== 'function' ||
+                typeof updateRealtimeWarnings !== 'function' ||
+                typeof updateStatusBoxes !== 'function') {
+                console.log("🔁 차트 업데이트 실행됨!", data);
+                console.error("⛔ 공통 함수가 존재하지 않습니다!");
+                return;
+            }
+
+            // WebSocket 연결 시도
+            let connected = false;
+            try {
+                const socket = new SockJS('/ws');
+                const stompClient = Stomp.over(socket);
+
+                stompClient.connect({}, () => {
+                    connected = true;
+                    console.log("✅ WebSocket 연결됨 (/topic/defect)");
+                    stompClient.subscribe('/topic/defect', function (message) {
+                        const data = JSON.parse(message.body);
+                        updateRealtimeCharts(data);
+                        updateRealtimeWarnings(data);
+                        updateStatusBoxes(data);
+                    });
+                });
+            } catch (e) {
+                console.warn("⚠ WebSocket 연결 실패 → 더미데이터로 대체합니다.");
+            }
+
+            // Flask연결 실패시 - 더미 데이터 주입
+            setInterval(() => {
+                if (!connected) {
+                    const dummyData = generateDummyPredictionData();
+                    updateRealtimeCharts(dummyData);
+                    updateRealtimeWarnings(dummyData);
+                    updateStatusBoxes(dummyData);
+                }
+            }, 5000);
+        });
+
         // 전역 변수 선언
         let selectedSymptomForDelete = null;
-
         const inspectedSymptoms = new Set();
         let datasets = [];
+
+        // 📌 datasets 자동 업데이트 함수 (Flask/WebSocket 공통 사용)
+        function updateDatasetsFromData(data) {
+            return [
+                {
+                    id: 'castingChart',
+                    statusId: 'castingStatus',
+                    warningId: 'castingWarning',
+                    msgKey: 'casting',
+                    label: '압력/온도 감지',
+                    value: data.castingScore
+                },
+                {
+                    id: 'weldingChart',
+                    statusId: 'weldingStatus',
+                    warningId: 'weldingWarning',
+                    msgKey: 'welding',
+                    label: '용접 출력 감지',
+                    value: data.weldingPercent
+                }
+            ];
+        }
+
 
         // 모달 열기 및 새로운 모달 열기 가능 (초기화)
         window.requestInspection = function(symptom) {
@@ -211,6 +274,36 @@
             casting: '[[${castingWarningMsg}]]',
             welding: '[[${weldingWarningMsg}]]'
         };
+
+        document.getElementById("startPredictionBtn").addEventListener("click", function () {
+            // 🔁 로딩 표시
+            document.getElementById("castingChartLoading").style.display = "block";
+            document.getElementById("weldingChartLoading").style.display = "block";
+
+            fetch("/indicators/defect-predict/start", {
+                method: "POST"
+            })
+                .then(async (res) => {
+                    if (!res.ok) {
+                        const error = await res.json(); // 오류 메시지 구조 확인
+                        throw new Error(error.message || "예측 실패");
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    datasets = updateDatasetsFromData(data);
+                    updateRealtimeCharts(data);
+                    updateRealtimeWarnings(data);
+                    appendDefectLogRows([...data.defectLogs || [], ...data.weldingLogs || []]);
+                    updateStatusBoxes(data);
+                })
+                .catch(err => {
+                    console.error("❌ 예측 실패:", err);
+                    alert("예측 중 오류가 발생했습니다: " + err.message);
+                });
+        });
+
+
 
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -349,7 +442,7 @@
                         }
                     },
                     // 차트 중앙에 점수 표시하는 커스텀 플러그인
-                    plugins: [{ // ❗❗❗❗ 퍼센트 표시 오류는 여기서
+                    plugins: [{ //
                         afterDraw: chart => {
                             const {ctx, chartArea: {width, height}} = chart;
                             const centerX = width / 2;
@@ -365,15 +458,13 @@
                             ctx.lineWidth = 1;
                             ctx.stroke();
                             ctx.closePath();
-
-                            ctx.font = '20px sans-serif';
+                            ctx.font = '25px sans-serif';
                             ctx.fillStyle = 'black';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
 
-                            // ❗❗❗❗ 퍼센트 표시 (castingPercent 변수 사용)
+                            // 퍼센트 표시 (castingPercent 변수 사용)
                             ctx.fillText(`${castingPercent}%`, centerX, centerY);
-
                             ctx.restore();
                         }
                     }]
@@ -417,7 +508,7 @@
                             ctx.stroke();
                             ctx.closePath();
 
-                            ctx.font = '20px sans-serif';
+                            ctx.font = '25px sans-serif';
                             ctx.fillStyle = 'black';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
