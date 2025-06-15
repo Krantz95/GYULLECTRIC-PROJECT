@@ -148,6 +148,51 @@ nav.d-lg-none {
 }
 
 
+/* 모바일 반응형 보완 */
+@media (max-width: 576px) {
+    /* 폼 컨테이너: 안쪽 여백 줄이고 높이 자동으로 */
+    .form_sm_css,
+    .form_lg_css {
+        padding: 30px 20px !important;    /* 세로 30px, 좌우 20px */
+        height: auto !important;          /* 고정 높이 해제 */
+    }
+    /* 라벨 폰트: 글자 크기 살짝 줄이기 */
+    .form-label {
+        font-size: 0.9rem;                /* 기본보다 살짝 작게 */
+    }
+    /* 버튼: 크기/폰트 줄이고 터치 영역 적당히 확보 */
+    .btn_orange,
+    .btn_black {
+        font-size: 0.9rem;
+        padding: 0.6rem 1rem;             /* 상하/좌우 여백 축소 */
+    }
+    /* 타이틀(GYULLECTRIC) 폰트: 비율 맞춰 축소 */
+    .responsive-title {
+        font-size: 30px !important;      /* 원래 55px → 모바일용 */
+    }
+    /* 소제목(예: 로그인, 회원가입 등): 크기 줄여서 헤더 영역 안정감 있게 */
+    .subtitle_css {
+        font-size: 1.1rem;
+    }
+    /* 경고 메시지(alert): 폰트와 패딩 줄여서 레이아웃 안정화 */
+    .alert {
+        font-size: 0.9rem;
+        padding: 0.6rem 1rem;
+    }
+    /* 버튼 간 gap이 너무 넓을 경우 보정 */
+    .gap-5 {
+        gap: 1rem !important;            /* 기본 3rem → 1rem로 축소 */
+    }
+    /* 푸터용 */
+    .footer-box {
+        font-size: 13.5px !important;
+        line-height: 1.4;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}
+
+
 /* ────────────────────────────  공통 : 폼/테이블  ──────────────────────────── */
 /* 폼 양식 sm, lg 구분 */
 .form_sm_css {
@@ -156,7 +201,7 @@ nav.d-lg-none {
     max-width: 600px;                /* 최대 너비 600px */
     width: 100%;                     /* 가로 100% */
     border-radius: 16px;             /* 둥근 테두리 */
-    padding: 60px 60px;              /* 안쪽 여백: 세로 80px, 가로 60px */
+    padding: 80px 60px 60px 60px;    /* 위 | 좌우 | 아래 */
 }
 .form_lg_css {
     background-color: #ffffff;        /* 흰색 배경 */
@@ -184,7 +229,6 @@ nav.d-lg-none {
     padding: 10px;                   /* 안쪽 여백 10px */
     border-radius: 0;                /* 각진 테두리 */
 }
-
 
 /* ────────────────────────────  공통 : 버튼  ──────────────────────────── */
 /* Home + Login */
