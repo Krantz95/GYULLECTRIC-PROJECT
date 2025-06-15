@@ -46,17 +46,17 @@ public class ProcessScheduler {
         int baseStep = step1.getProcessStep();
 
         /** ✅ Step 1: 프레임 용접 */
-        double frameOutput = 198 + (24 * random.nextDouble()); // 198~222V
-        boolean isOk1 = frameOutput >= 200 && frameOutput <= 220;
+        double frameOutput = 1200 + (600 * random.nextDouble()); // 1200~1800 범위
+        boolean isOk1 = frameOutput >= 1700;
         String errorCode1 = "_", errorMessage1 = "OK";
 
         if (!isOk1 && random.nextDouble() < 0.5) {
-            errorCode1 = (frameOutput < 200) ? "ERROR_102" : "ERROR_101";
+            errorCode1 = (frameOutput < 1300) ? "ERROR_102" : "ERROR_101";
             errorMessage1 = getErrorDescription(errorCode1, frameOutput);
         } else {
             isOk1 = true;
         }
-
+        log.info("현재공정단계: {}, 에러메시지: {}, 공정상태: {}",baseStep, errorMessage1, isOk1  );
         LocalDateTime start1 = LocalDateTime.now();
         LocalDateTime end1 = start1.plusSeconds(30 + random.nextInt(91));
 
@@ -97,7 +97,7 @@ public class ProcessScheduler {
         } else {
             isOk2 = true;
         }
-
+        log.info("현재공정단계: {},에러메시지 {}, 공정상태: {}",step2Num, errorMessage2,  isOk2  );
         LocalDateTime start2 = LocalDateTime.now();
         LocalDateTime end2 = start2.plusSeconds(30 + random.nextInt(91));
 
@@ -132,6 +132,7 @@ public class ProcessScheduler {
                     new String[]{"ERROR_103", "ERROR_110", "ERROR_111"}[random.nextInt(3)];
             errorMessage3 = getErrorDescription(errorCode3, null);
         }
+        log.info("현재공정단계: {},에러메시지: {}, 공정상태: {}",step3Num, errorMessage3,  isOk3  );
 
         LocalDateTime start3 = LocalDateTime.now();
         LocalDateTime end3 = start3.plusSeconds(30 + random.nextInt(91));
