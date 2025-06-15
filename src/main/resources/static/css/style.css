@@ -153,11 +153,46 @@ nav.d-lg-none {
 
 /* 모바일 반응형 보완 */
 @media (max-width: 576px) {
+    .chart-card {
+        padding: 12px !important;
+        border-radius: 12px !important;
+        box-shadow: none !important;
+    }
+
+    .chart-title {
+        font-size: 1.1rem;
+    }
+
+    .chart-baseline {
+        font-size: 0.9rem;
+    }
+
+    .bar-legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        font-size: 0.8rem;
+    }
+
+    .legend-item {
+        width: auto;
+        min-width: 40%;
+        text-align: center;
+    }
+
+    canvas#productAchievementChart {
+        height: 200px !important;
+    }
+
     /* 폼 컨테이너: 안쪽 여백 줄이고 높이 자동으로 */
     .form_sm_css,
     .form_lg_css {
-        padding: 30px 20px !important;    /* 세로 30px, 좌우 20px */
-        height: auto !important;          /* 고정 높이 해제 */
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15); /* 또는 shadow-lg 클래스 그대로 사용 */
+        padding: 30px 20px !important;
+        height: auto !important;
     }
     /* 라벨 폰트: 글자 크기 살짝 줄이기 */
     .form-label {
@@ -229,7 +264,6 @@ nav.d-lg-none {
         font-size: 15px;
         padding: 10px 0;
     }
-
 }
 
 

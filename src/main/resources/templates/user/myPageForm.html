@@ -13,9 +13,9 @@
             </div>
         </div>
 
-        <!-- 회원가입 폼 -->
+        <!-- 마이페이지 폼 -->
         <div class="d-flex justify-content-center">
-            <div class="form_lg_css mb-5 shadow-sm">
+            <div class="form_lg_css mb-5 shadow-sm shadow-lg">
                 <form th:object="${myPageForm}" method="post" >
                     <div class="alert alert-warning" role="alert" th:if="${#fields.hasAnyErrors()}">
                         <div th:each="err : ${#fields.allErrors()}" th:text="${err}"></div>
