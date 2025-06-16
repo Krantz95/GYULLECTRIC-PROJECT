@@ -13,7 +13,7 @@ import java.util.*;
 @Component
 public class PredictionClient {
 
-    private static final String API_URL = "http://localhost:5000/predict"; // Flask 서버 주소
+    private static final String API_URL = "http://127.0.0.1:8000/predict"; // Flask 서버 주소
     private final RestTemplate restTemplate;
 
     public PredictionClient(RestTemplateBuilder builder) {

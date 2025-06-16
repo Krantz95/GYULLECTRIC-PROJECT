@@ -17,7 +17,7 @@ import java.util.Map;
 public class DefectPredictionClient {
 
     // 통합된 Flask API 주소 (압력 + 금형온도 + 용접시퀀스 한 번에 보냄)
-    private static final String API_URL_DEFECT_ALL = "http://localhost:5000/predict/defect";
+    private static final String API_URL_DEFECT_ALL = "http://127.0.0.1:8000/predict/defect";
 
     private final RestTemplate restTemplate;
 
