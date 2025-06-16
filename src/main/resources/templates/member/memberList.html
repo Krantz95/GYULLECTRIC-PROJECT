@@ -43,8 +43,14 @@
                     <td th:text="${member.phone}">010-4444-5555</td>
                     <td th:text="${member.positionName}">admin</td>
                     <td>
-                        <a type="button" class="btn_sm_orange" th:href="@{/members/{id}/edit(id=${member.id})}">수정</a>
+                        <a type="button"
+                           class="btn_sm_orange"
+                           style="margin-left: auto; margin-right: auto; display: flex; justify-content: center;"
+                           th:href="@{/members/{id}/edit(id=${member.id})}">
+                            수정
+                        </a>
                     </td>
+
                     <td><button type="button" class="btn_sm_red" data-bs-toggle="modal" th:attr="data-bs-target='#cancelMember'+${member.id}">삭제</button>
                     </td>
                     <!-- 취소 모달창 -->

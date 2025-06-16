@@ -151,22 +151,42 @@ nav.d-lg-none {
 }
 
 
-/* 모바일 반응형 보완 */
+
+/* ────────────────────────────   576px 모바일 반응형  ──────────────────────────── */
+/* ──────────────── 576px 이하: 모바일 반응형 대응 ──────────────── */
 @media (max-width: 576px) {
-    .chart-card {
+
+    /* 공통 카드 레이아웃 */
+    .chart-card,
+    .product-card,
+    .modal-content {
         padding: 12px !important;
         border-radius: 12px !important;
         box-shadow: none !important;
+        box-sizing: border-box;
+        width: 100% !important;
     }
 
+    /* KPI 카드 */
+    .kpi-card .kpi-title {
+        font-size: 1.05rem !important;
+    }
+    .kpi-card .kpi-value {
+        font-size: 1.25rem !important;
+    }
+    .kpi-card .kpi-sub {
+        font-size: 0.95rem !important;
+    }
+
+    /* 차트 제목 및 기준선 */
     .chart-title {
         font-size: 1.1rem;
     }
-
     .chart-baseline {
         font-size: 0.9rem;
     }
 
+    /* 차트 범례 */
     .bar-legend {
         display: flex;
         flex-wrap: wrap;
@@ -174,54 +194,82 @@ nav.d-lg-none {
         gap: 8px;
         font-size: 0.8rem;
     }
-
     .legend-item {
         width: auto;
         min-width: 40%;
         text-align: center;
     }
 
+    /*!* 자전거 썸네일 *!*/
+    /*.thumbnail-img {*/
+    /*    width: 100% !important;*/
+    /*    max-width: 300px;*/
+    /*    margin: 0 auto 10px;*/
+    /*    display: block;*/
+    /*}*/
+
+    /* 생산지시 전체 폼 */
+    .order-card {
+        padding: 12px !important;
+    }
+
+    /* 제품 현황 리스트 */
+    .stats-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* 성과 차트 크기 */
     canvas#productAchievementChart {
         height: 200px !important;
     }
 
-    /* 폼 컨테이너: 안쪽 여백 줄이고 높이 자동으로 */
+    /* 로그인/폼 관련 스타일 */
     .form_sm_css,
     .form_lg_css {
-        background-color: white;
         border-radius: 12px;
-        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15); /* 또는 shadow-lg 클래스 그대로 사용 */
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
         padding: 30px 20px !important;
         height: auto !important;
     }
-    /* 라벨 폰트: 글자 크기 살짝 줄이기 */
     .form-label {
-        font-size: 0.9rem;                /* 기본보다 살짝 작게 */
+        font-size: 0.9rem;
     }
-    /* 버튼: 크기/폰트 줄이고 터치 영역 적당히 확보 */
+
+    /* sm 일때 버튼크기, a링크제거 */
     .btn_orange,
     .btn_black {
         font-size: 0.9rem;
-        padding: 0.6rem 1rem;             /* 상하/좌우 여백 축소 */
+        padding: 0.6rem 1rem;
+        text-decoration: none;
     }
-    /* 타이틀(GYULLECTRIC) 폰트: 비율 맞춰 축소 */
+    a.btn_black,
+    a.btn_black:hover,
+    a.btn_black:focus {
+        text-decoration: none !important;
+    }
+
+    /* 텍스트 크기 축소 (타이틀/서브타이틀 등) */
     .responsive-title {
-        font-size: 30px !important;      /* 원래 55px → 모바일용 */
+        font-size: 30px !important;
     }
-    /* 소제목(예: 로그인, 회원가입 등): 크기 줄여서 헤더 영역 안정감 있게 */
     .subtitle_css {
         font-size: 1.1rem;
     }
-    /* 경고 메시지(alert): 폰트와 패딩 줄여서 레이아웃 안정화 */
+
+    /* Alert/Notice 등 */
     .alert {
         font-size: 0.9rem;
         padding: 0.6rem 1rem;
     }
-    /* 버튼 간 gap이 너무 넓을 경우 보정 */
+
+    /* 간격 유틸 조정 */
     .gap-5 {
-        gap: 1rem !important;            /* 기본 3rem → 1rem로 축소 */
+        gap: 1rem !important;
     }
-    /* 푸터용 */
+
+    /* 푸터 */
     .footer-box {
         font-size: 13.5px !important;
         line-height: 1.4;
@@ -235,36 +283,53 @@ nav.d-lg-none {
         max-width: none;
         margin: 1.75rem auto;
     }
-
-    .modal-content {
-        border-radius: 12px;
-        padding: 1rem;
-    }
-
     .modal-header {
         border-bottom: none;
         padding-bottom: 0;
     }
-
     .modal-body {
         font-size: 15px;
         line-height: 1.5;
         padding: 1rem 1rem 0.5rem 1rem;
     }
-
     .modal-footer {
         padding: 1rem;
         display: flex;
         justify-content: space-between;
         gap: 10px;
     }
-
     .modal-footer .btn {
         flex: 1;
         font-size: 15px;
         padding: 10px 0;
     }
+
+    /* 불량예측 경고 상자 */
+    .defect-box {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 0 30px;
+    }
+    .defect-label {
+        font-size: 14px;
+        flex: 0 1 auto;
+        text-align: left;
+    }
+    .defect-btn {
+        font-size: 16px;
+        padding: 8px 20px;
+        width: 100px;
+        text-align: center;
+    }
 }
+
+
+/* ────────────────────────────  모바일 반응형 끝  ──────────────────────────── */
+
+
 
 
 /* ────────────────────────────  공통 : 폼/테이블  ──────────────────────────── */
@@ -331,6 +396,7 @@ nav.d-lg-none {
     display: flex;                  /* 가로 세로 딱 중앙에 텍스트 배치 */
     align-items: center;            /* 수직 방향으로 가운데 정렬 */
     justify-content: center;        /* 수평 방향으로 가운데 정렬 */
+    text-decoration: none;
 }
 
 /* 주황 ex.'검색' */
@@ -345,6 +411,7 @@ nav.d-lg-none {
     display: flex;                  /* 가로 세로 딱 중앙에 텍스트 배치 */
     align-items: center;            /* 수직 방향으로 가운데 정렬 */
     justify-content: center;        /* 수평 방향으로 가운데 정렬 */
+    text-decoration: none;
 }
 
 /* 검정+라운드 */
@@ -405,13 +472,14 @@ nav.d-lg-none {
     border: 1px solid #FF5900;       /* 빨간 테두리 */
     border-radius: 10px;             /* 모서리 둥글게 */
     padding: 6px 12px;              /* 여백 축소 */
-    margin: 0 auto;                 /* 가로 중앙 정렬 */
+    margin: 0;                 /* 중앙정렬X */
     align-items: center;            /* 수직 가운데 정렬 */
     justify-content: center;        /* 수평 가운데 정렬 */
     text-decoration: none;          /* 밑줄 제거 */
     white-space: nowrap;            /* 텍스트 줄바꿈 방지 */
     box-sizing: border-box;         /* padding 포함해서 사이즈 계산 */
     display: flex;                  /* flex로 가운데 정렬 활성화 */
+
 }
 
 /* 글쓰기 버튼 ex.에러리포트 내 */
@@ -427,6 +495,7 @@ nav.d-lg-none {
     display: flex;                        /* flex로 내용 정렬 */
     align-items: center;                  /* 수직 방향 중앙 */
     justify-content: center;              /* 수평 방향 중앙 */
+
 }
 
 /* 새로고침 버튼 ex.공정모니터링 내 */
@@ -652,6 +721,19 @@ nav.d-lg-none {
 
 
 /* ────────────────────────────  페이지별 (대시보드)  ──────────────────────────── */
+/* 차트 1 세로높이고정*/
+#productAchievementChart {
+    width: 100% !important;
+    max-height: 280px !important;
+    height: auto !important;
+}
+/* .chart-body에 최대 높이 지정해 overflow 방지 */
+.chart-body {
+    /* 이미 padding, margin이 있으니 높이만 고정 */
+    max-height: 400px; /* 필요에 따라 조정 */
+    overflow: hidden;
+}
+
 /* 대시보드 공지게시판 전용 : 체크박스선택시 공지 처리 */
 .notice-row {
     font-weight: bold;
@@ -716,7 +798,7 @@ nav.d-lg-none {
     border-radius: 12px;
     border: #cccccc 2px solid;
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
-    padding: 20px;
+    padding: 12px;
     height: 100%;
 }
 
@@ -808,65 +890,49 @@ nav.d-lg-none {
 }
 
 /* ────────────────────────────  페이지별 (생산지시)  ──────────────────────────── */
-/*!* 주문 컨테이너 *!*/
-/*.order-container {*/
-/*    height: auto;                            !* 높이 자동 *!*/
-/*    max-height: none;                       !* 최대 높이 제한 없음 *!*/
-/*    overflow: visible;                      !* 내용 잘림 방지 *!*/
-/*    border: 2px solid #F37221;             !* 주황 테두리 *!*/
-/*    border-radius: 10px;                   !* 둥근 모서리 *!*/
-/*    padding: 50px;                         !* 안쪽 여백 *!*/
-/*    margin: 50px;                          !* 바깥 여백 *!*/
-/*    background-color: white;               !* 배경색 흰색 *!*/
-/*    width: 100%;                           !* 전체 너비 *!*/
-/*    max-width: 1200px;                     !* 최대 너비 1200px *!*/
-/*    box-sizing: border-box;                !* 테두리, 패딩 포함 크기 계산 *!*/
+
+.product-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.product-combo {
+    border: 2px solid #FF6A00;
+    border-radius: 12px;
+    padding: 16px;
+    background-color: #FFF7ED;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    flex: 1 1 100%; /* 기본은 세로 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/*!* 이미지 *!*/
+/*.thumbnail-img {*/
+/*    width: 100%;*/
+/*    max-width: 180px;*/
+/*    height: auto;*/
+/*    margin-bottom: 10px;*/
 /*}*/
-/*!* 주문 폼 컬럼 *!*/
-/*.order-form-col {*/
-/*    padding: 0 30px;                       !* 좌우 여백 *!*/
+
+/*!* 썸네일 선택 효과 *!*/
+/*.thumbnail-img.active {*/
+/*    border: 3px solid #FF6A00;*/
+/*    border-radius: 10px;*/
 /*}*/
-/*!* 주문 이미지 컬럼 *!*/
-/*.order-image-col {*/
-/*    height: auto;                          !* 높이 자동 *!*/
-/*    max-height: none;                     !* 최대 높이 제한 없음 *!*/
-/*    display: flex;                        !* flexbox 사용 *!*/
-/*    flex-direction: column;               !* 세로 정렬 *!*/
-/*    align-items: center;                  !* 가로 중앙 정렬 *!*/
-/*    justify-content: flex-start;          !* 위쪽 정렬 *!*/
-/*}*/
-/*!* 주문 이미지 감싸는 박스 *!*/
-/*.order-image-wrapper {*/
-/*    flex: 1;                              !* 공간 채움 *!*/
-/*    display: flex;                        !* flexbox 사용 *!*/
-/*    justify-content: center;             !* 가로 중앙 정렬 *!*/
-/*    align-items: center;                 !* 세로 중앙 정렬 *!*/
-/*    width: 100%;                         !* 전체 너비 *!*/
-/*}*/
-/*!* 자전거 이미지 스타일 *!*/
-/*#bikeImage {*/
-/*    max-width: 100%;                     !* 최대 너비 100% *!*/
-/*    max-height: 100%;                    !* 최대 높이 100% *!*/
-/*    object-fit: contain;                 !* 비율 유지하며 맞춤 *!*/
-/*    border-radius: 20px;                 !* 둥근 모서리 *!*/
-/*}*/
-/*!* 일일 생산량 박스 *!*/
-/*.daily-output-box {*/
-/*    border: 2px solid #F37221;           !* 주황 테두리 *!*/
-/*    border-radius: 10px;                 !* 둥근 모서리 *!*/
-/*    background-color: #fff3e0;           !* 연한 주황 배경 *!*/
-/*    width: 100%;                         !* 전체 너비 *!*/
-/*    max-width: 100%;                     !* 최대 너비 100% *!*/
-/*    text-align: center;                  !* 텍스트 가운데 정렬 *!*/
-/*    word-break: break-word;              !* 긴 단어 줄바꿈 *!*/
-/*    overflow-wrap: break-word;           !* 긴 단어 줄바꿈 (대체) *!*/
-/*    padding: 10px;                       !* 안쪽 여백 *!*/
-/*    font-size: clamp(12px, 2.5vw, 16px); !* 반응형 글씨 크기 *!*/
-/*    box-sizing: border-box;              !* 테두리, 패딩 포함 크기 계산 *!*/
-/*    margin-bottom: 20px;                 !* 아래쪽 여백 *!*/
-/*    !*flex-shrink: 0;                      !* 크기 줄어들지 않게 *!*!*/
-/*    white-space: nowrap;                 !* 줄바꿈 안됨 *!*/
-/*}*/
+
+/* LG 이상에서는 기존 가로 정렬 유지 */
+@media (min-width: 992px) {
+    .product-combo {
+        flex: 1 1 30%; /* 가로 배치 */
+        flex-direction: column;
+    }
+}
+
+
 body {
     background-color: #FFF6EB;
 }
@@ -910,16 +976,49 @@ body {
     50% { opacity: 0.3; }
 }
 
+/* 전체 제품 생산 현황 상자 */
+.stats-box {
+    background-color: white;
+    /* border: 2px solid #FFA500; 오렌지 테두리 */
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 */
+    margin-bottom: 30px;
+}
+
+/* 카드 3개 그리드 정렬 */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, 1fr); /* 3개 한 줄 */
     gap: 20px;
 }
 
+/* 각 제품 카드 디자인 */
 .product-card {
-    background-color: #FFF3E0;
     border-radius: 12px;
     padding: 16px;
+    background-color: #FFF8E7; /* 연한 배경 추가하면 더 예쁠 수 있어요 (선택사항) */
+}
+
+/* ────────────────────────────  페이지별 (제품리스트)  ──────────────────────────── */
+/* 차트쪽 lg / sm 반응형 구분 */
+.chart-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0;
+    padding-left: 0;
+}
+@media (max-width: 576px) {
+    .chart-container {
+        padding: 0 10px;
+    }
+    canvas#achievementChart {
+        height: 150px !important;
+    }
+
+    .chartjs-title {
+        font-size: 12px !important;
+    }
 }
 
 /* ────────────────────────────  페이지별 (ORDER LIST)  ──────────────────────────── */
@@ -1161,30 +1260,5 @@ button[name="processButton"]:disabled {
     .tooltip-inner {
         font-size: 13px;
         max-width: 95vw; /* 모바일에선 거의 풀 너비 허용 */
-    }
-}
-
-/* sm사이즈에서 위치 정렬 지정 */
-@media (max-width: 600px) {
-    .defect-box {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        padding: 0 30px;    /* 좌우 여백 주기 → 버튼·글씨 둘 다 안쪽으로 밀림 */
-    }
-
-    .defect-label {
-        font-size: 14px;
-        flex: 0 1 auto;      /* 내용만큼만 너비 차지 */
-        text-align: left;
-    }
-
-    .defect-btn {
-        font-size: 16px;
-        padding: 8px 20px;
-        width: 100px;        /* 버튼 고정 너비 */
-        text-align: center;
     }
 }
