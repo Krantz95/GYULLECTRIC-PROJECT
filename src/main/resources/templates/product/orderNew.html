@@ -1,6 +1,8 @@
 <html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <th:block layout:fragment="content">
-    <div class="subtitle_css"><i class="bi-clipboard-check"></i> 생산지시서</div>
+
+<div class="py-4">
+        <div class="subtitle_css"><i class="bi-clipboard-check"></i> 생산지시서</div>
 
     <div class="order-card">
         <h2 style="color:#FF6A00; font-weight: bold;">🚲 생산지시서</h2>
@@ -66,19 +68,25 @@
         <!-- 전체 제품 생산 현황 -->
         <div class="stats-box mt-4">
             <h5 style="color: #FF6A00;">📊 전체 제품 생산 현황</h5>
-            <div class="stats-grid">
-                <div th:each="entry : ${dailyTargetMap}" class="product-card">
-                    <strong style="color:#FF6A00;" th:text="'🚲 ' + ${entry.key}"></strong><hr>
-                    <span style="color:#FF9800;">📦 목표수량 :</span>
-                    <span th:text="${entry.value} + '대'"></span><br>
-                    <span style="color:#4CAF50;">✅ 생산완료:</span>
-                    <span th:text="${orderedCountMap[entry.key] != null ? orderedCountMap[entry.key] : 0} + '대'"></span><br>
-                    <span style="color:#2196F3;">🛒 가능수량:</span>
-                    <span th:text="${entry.value - (orderedCountMap[entry.key] != null ? orderedCountMap[entry.key] : 0)} + '대'"></span>
+            <div class="row">
+                <div th:each="entry : ${dailyTargetMap}" class="col-12 col-lg-4 mb-4">
+                    <div class="product-card h-100 p-3 border rounded" style="background-color:#FFF7ED;">
+                        <strong style="color:#FF6A00;" th:text="'🚲 ' + ${entry.key}"></strong><hr>
+                        <span style="color:#FF9800;">📦 목표수량 :</span>
+                        <span th:text="${entry.value} + '대'"></span><br>
+                        <span style="color:#4CAF50;">✅ 생산완료:</span>
+                        <span th:text="${orderedCountMap[entry.key] != null ? orderedCountMap[entry.key] : 0} + '대'"></span><br>
+                        <span style="color:#2196F3;">🛒 가능수량:</span>
+                        <span th:text="${entry.value - (orderedCountMap[entry.key] != null ? orderedCountMap[entry.key] : 0)} + '대'"></span>
+                    </div>
                 </div>
             </div>
         </div>
+
+
+
     </div>
+</div>
 
     <script th:inline="javascript">
         function changeImage() {

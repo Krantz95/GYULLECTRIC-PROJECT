@@ -15,16 +15,18 @@
                     </div>
 
                     <div class="mb-3">
-                        <div class="row">
+                        <div class="row g-3">
+                            <!-- 발생일시 -->
                             <div class="col-6">
-                                <label class="form-label" th:for="*{createdAt}">
-                                </label>
-                                <input type="datetime-local" class="form-control line_css" th:field="*{createdAt}">
+                                <label class="form-label" th:for="*{createdAt}">발생일시</label>
+                                <input type="datetime-local" class="form-control line_css" th:field="*{createdAt}" readonly>
                             </div>
+
+                            <!-- 발생공정 -->
                             <div class="col-6">
                                 <label class="form-label" th:for="*{processStep}">발생공정</label>
                                 <select name="processStep" th:field="*{processStep}" class="form-select pointer_orange_round">
-                                    <option value="" disabled >선택</option>
+                                    <option value="" disabled>선택</option>
                                     <option value="1">1공정</option>
                                     <option value="2">2공정</option>
                                     <option value="3">3공정</option>
@@ -32,6 +34,7 @@
                             </div>
                         </div>
                     </div>
+
 
                     <div class="mb-3">
                         <div class="row">

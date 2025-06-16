@@ -1,7 +1,7 @@
 <html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <th:block layout:fragment="content">
     <div class="py-4">
-        <div class="subtitle_css">에러리포트(상세페이지)</div>
+        <div class="subtitle_css"><i class="bi bi-exclamation-triangle"></i> 에러리포트(상세페이지)</div>
 
         <div class="d-flex justify-content-center pt-3">
             <div class="form_lg_css mb-5 shadow-sm">
@@ -72,10 +72,15 @@
                             </div>
 
                             <!-- 버튼 -->
-                            <div class="mt-2 d-flex gap-2" th:if="${loginMember.loginId == answer.members.loginId}">
+                            <div class="mt-2 d-flex justify-content-end gap-2" th:if="${loginMember.loginId == answer.members.loginId}">
                                 <button type="button" class="btn_sm_orange" th:onclick="'toggleEdit(' + ${answer.id} + ')'">수정</button>
                                 <button type="button" class="btn_sm_orange" style="color:black; border-color:black" data-bs-toggle="modal" th:attr="data-bs-target='#deleteComment-' + ${answer.id}">삭제</button>
                             </div>
+
+                            <!--                            <div class="mt-2 d-flex gap-2" th:if="${loginMember.loginId == answer.members.loginId}">-->
+<!--                                <button type="button" class="btn_sm_orange" th:onclick="'toggleEdit(' + ${answer.id} + ')'">수정</button>-->
+<!--                                <button type="button" class="btn_sm_orange" style="color:black; border-color:black" data-bs-toggle="modal" th:attr="data-bs-target='#deleteComment-' + ${answer.id}">삭제</button>-->
+<!--                            </div>-->
                         </div>
                     </div>
                 </div>
@@ -126,9 +131,9 @@
                         <button type="submit" class="btn_orange btn-sm px-4 position-absolute" style="bottom:10px; right:10px; width:100px; height:40px">답글작성</button>
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2">
-                        <a href="/errors/report" class="btn_red" style="background:black; height:50px;">목록</a>
-                        <button type="button" class="btn_red" style="height:50px;" th:if="${loginMember.loginId == errorReport.members.loginId}" data-bs-toggle="modal" data-bs-target="#deleteReport">삭제</button>
+                    <div class="d-flex justify-content-end py-3">
+                        <a href="/errors/report" class="btn_orange" style="background:black; color: white;">목록</a>
+                        <button type="button" class="btn_black ms-3" style="background-color:red;" th:if="${loginMember.loginId == errorReport.members.loginId}" data-bs-toggle="modal" data-bs-target="#deleteReport">삭제</button>
                     </div>
                 </form>
             </div>
