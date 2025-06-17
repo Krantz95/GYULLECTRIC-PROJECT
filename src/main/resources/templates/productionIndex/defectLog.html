@@ -30,7 +30,7 @@
                     <canvas id="castingChart"
                             role="img"
                             aria-label="주조 공정 안정성 차트"
-                            style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
+                            style="display: block; width: 100%; max-height: 300px; margin: 0 auto;"></canvas>
                     <div id="castingStatus" class="d-flex justify-content-between align-items-center"
                          style="margin-top: 0; padding-top: 0;">
                         <div class="defect-box">
@@ -446,8 +446,12 @@
                         afterDraw: chart => {
                             const {ctx, chartArea: {width, height}} = chart;
                             const centerX = width / 2;
-                            const centerY = height / 1.3;
-                            const smallRadius = 50;
+                            const isMobile = window.innerWidth <= 768; // 모바일일때는
+
+                            // 👉 사이즈 조건 분기
+                            const centerY = isMobile ? height / 1.45 : height / 1.3;
+                            const smallRadius = isMobile ? 40 : 50;
+                            const fontSize = isMobile ? 18 : 25;
 
                             ctx.save();
                             ctx.beginPath();
@@ -458,12 +462,11 @@
                             ctx.lineWidth = 1;
                             ctx.stroke();
                             ctx.closePath();
-                            ctx.font = '25px sans-serif';
+
+                            ctx.font = `bold ${fontSize}px sans-serif`;
                             ctx.fillStyle = 'black';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
-
-                            // 퍼센트 표시 (castingPercent 변수 사용)
                             ctx.fillText(`${castingPercent}%`, centerX, centerY);
                             ctx.restore();
                         }
@@ -491,12 +494,17 @@
                             tooltip: {enabled: false}
                         }
                     },
-                    plugins: [{ // ❗❗❗❗ 퍼센트 표시 오류는 여기서
+
+                    plugins: [{ //
                         afterDraw: chart => {
                             const {ctx, chartArea: {width, height}} = chart;
                             const centerX = width / 2;
-                            const centerY = height / 1.3;
-                            const smallRadius = 50;
+                            const isMobile = window.innerWidth <= 768; // 모바일일때는
+
+                            // 👉 사이즈 조건 분기
+                            const centerY = isMobile ? height / 1.45 : height / 1.3;
+                            const smallRadius = isMobile ? 40 : 50;
+                            const fontSize = isMobile ? 18 : 25;
 
                             ctx.save();
                             ctx.beginPath();
@@ -508,11 +516,11 @@
                             ctx.stroke();
                             ctx.closePath();
 
-                            ctx.font = '25px sans-serif';
+                            ctx.font = `bold ${fontSize}px sans-serif`;
                             ctx.fillStyle = 'black';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
-                            ctx.fillText(`${weldingPercent}%`, centerX, centerY);  // 용접용
+                            ctx.fillText(`${castingPercent}%`, centerX, centerY);
                             ctx.restore();
                         }
                     }]
