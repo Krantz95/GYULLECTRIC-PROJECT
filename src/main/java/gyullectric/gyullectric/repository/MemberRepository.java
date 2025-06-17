@@ -26,4 +26,6 @@ public interface MemberRepository extends JpaRepository<Members, Long> {
     Page<Members> findByNameContaining(String name, Pageable pageable);
     Page<Members> findByLoginIdContaining(String loginId, Pageable pageable);
 
+    boolean existsByLoginId(String loginId);
+
 }

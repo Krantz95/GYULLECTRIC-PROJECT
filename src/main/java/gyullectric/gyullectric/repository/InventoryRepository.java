@@ -31,4 +31,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     /** ✅ 부품명별 재고 수량 합계 조회 */
     @Query("SELECT i.partName AS partName, SUM(i.quantity) AS totalQuantity FROM Inventory i GROUP BY i.partName")
     List<InventoryStockSummary> getTotalStockSummary();
+
+    boolean existsByPartNameAndSupplier(PartName partName, Supplier supplier);
+
 }

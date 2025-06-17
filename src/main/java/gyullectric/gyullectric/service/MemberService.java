@@ -46,6 +46,10 @@ public class MemberService {
         return members;
     }
 
+    public boolean existsByLoginId(String loginId) {
+        return memberRepository.existsByLoginId(loginId);
+    }
+
     //    전체회원조회
     public List<Members> allFindMembers() {
         return memberRepository.findAll();
