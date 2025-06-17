@@ -93,7 +93,6 @@ public class OrderService {
     public Page<Inventory> orderGetList(int page, String kw, String partName, String supplier) {
         Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Order.desc("orderAt")));
 
-        // 검색 조건 없으면 전체 조회
         if ((kw == null || kw.isBlank()) &&
                 (partName == null || partName.isBlank()) &&
                 (supplier == null || supplier.isBlank())) {
@@ -139,7 +138,7 @@ public class OrderService {
     /** 📄 발주 이력 페이지용 인벤토리 페이징 */
     public Page<Inventory> orderHistoryGetList(int page) {
         Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Order.desc("orderAt")));
-        return inventoryRepository.findAll(pageable);          // ← 변경 포인트
+        return inventoryRepository.findAll(pageable);
     }
 
     /** 마지막 페이지(취소 시)용 정렬 리스트 */
@@ -168,5 +167,10 @@ public class OrderService {
                 .filter(e -> current.getOrDefault(e.getKey(), 0L) < e.getValue() * orderQty)
                 .map(Map.Entry::getKey)
                 .toList();
+    }
+
+    /** ✅ 부품+공급업체 조합으로 재고 존재 여부 확인 (더미 생성 중복 방지용) */
+    public boolean existsInventoryByPartNameAndSupplier(PartName partName, Supplier supplier) {
+        return inventoryRepository.existsByPartNameAndSupplier(partName, supplier);
     }
 }

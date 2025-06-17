@@ -15,7 +15,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
-//@Component
+// ✅ 운영 시 자동 실행되도록 활성화
+@Component
 @AllArgsConstructor
 public class DummyDataLoader implements CommandLineRunner {
 
@@ -30,54 +31,35 @@ public class DummyDataLoader implements CommandLineRunner {
         Faker faker = new Faker(new Locale("ko"));
         Set<String> usedLoginIds = new HashSet<>();
 
-        // ✅ 고정 멤버 3명 생성
-        Members admin1 = Members.builder()
-                .loginId("1")
-                .password("1")
-                .name("장민정")
-                .phone("010-8760-6541")
-                .createDate(LocalDateTime.now())
-                .positionName(PositionName.ADMIN)
-                .build();
+        // ✅ 고정 관리자 계정들
+        List<Members> admins = List.of(
+                Members.builder()
+                        .loginId("1").password("1").name("장민정")
+                        .phone("010-8760-6541").createDate(LocalDateTime.now())
+                        .positionName(PositionName.ADMIN).build(),
+                Members.builder()
+                        .loginId("2").password("2").name("장아름")
+                        .phone("010-2222-2222").createDate(LocalDateTime.now())
+                        .positionName(PositionName.ADMIN).build(),
+                Members.builder()
+                        .loginId("3").password("3").name("김민수")
+                        .phone("010-3333-3333").createDate(LocalDateTime.now())
+                        .positionName(PositionName.ADMIN).build(),
+                Members.builder()
+                        .loginId("test").password("1111").name("test")
+                        .phone("010-0000-0000").createDate(LocalDateTime.now())
+                        .positionName(PositionName.ADMIN).build()
+        );
 
-        Members admin2 = Members.builder()
-                .loginId("2")
-                .password("2")
-                .name("장아름")
-                .phone("010-2222-2222")
-                .createDate(LocalDateTime.now())
-                .positionName(PositionName.ADMIN)
-                .build();
+        for (Members admin : admins) {
+            if (!memberService.existsByLoginId(admin.getLoginId())) {
+                admin.setCreateDate(LocalDateTime.now());
+                memberService.save(admin);
+            }
+            usedLoginIds.add(admin.getLoginId());
+        }
 
-        Members admin3 = Members.builder()
-                .loginId("3")
-                .password("3")
-                .name("김민수")
-                .phone("010-3333-3333")
-                .createDate(LocalDateTime.now())
-                .positionName(PositionName.ADMIN)
-                .build();
-
-        Members admin4 = Members.builder()
-                .loginId("test")
-                .password("1111")
-                .name("test")
-                .phone("010-0000-0000")
-                .createDate(LocalDateTime.now())
-                .positionName(PositionName.ADMIN)
-                .build();
-
-        memberService.save(admin1);
-        memberService.save(admin2);
-        memberService.save(admin3);
-        memberService.save(admin4);
-
-        usedLoginIds.add("1");
-        usedLoginIds.add("2");
-        usedLoginIds.add("3");
-        usedLoginIds.add("test");
-
-        // ✅ 더미 100명 생성 (ENGINEER)
+        // ✅ 더미 엔지니어 100명 생성 (중복 방지)
         for (int i = 0; i < 100; i++) {
             String name = faker.name().fullName();
             String phone = "010-" + faker.number().digits(4) + "-" + faker.number().digits(4);
@@ -90,22 +72,23 @@ public class DummyDataLoader implements CommandLineRunner {
 
             String password = "pass" + (i + 1);
 
-            Members member = Members.builder()
-                    .loginId(loginId)
-                    .password(password)
-                    .name(name)
-                    .phone(phone)
-                    .createDate(LocalDateTime.now())
-                    .positionName(PositionName.ENGINEER)
-                    .build();
-
-            memberService.save(member);
+            if (!memberService.existsByLoginId(loginId)) {
+                Members member = Members.builder()
+                        .loginId(loginId)
+                        .password(password)
+                        .name(name)
+                        .phone(phone)
+                        .createDate(LocalDateTime.now())
+                        .positionName(PositionName.ENGINEER)
+                        .build();
+                memberService.save(member);
+            }
         }
     }
 
     @Override
-    public void run(String... args) throws Exception {
-        // ✅ admin1을 DB에서 조회해서 사용
+    public void run(String... args) {
+        // ✅ 관리자 계정 조회
         Members fixedAdmin = memberService.findByLoginId("1")
                 .orElseThrow(() -> new IllegalStateException("고정 관리자 계정(loginId=1)을 찾을 수 없습니다."));
 
@@ -118,17 +101,20 @@ public class DummyDataLoader implements CommandLineRunner {
                 PartName.BATTERY_PACK
         );
 
-        // ✅ 공급업체 2종 반복
+        // ✅ 재고 생성 (중복 방지)
         for (PartName partName : partNames) {
             for (Supplier supplier : List.of(Supplier.NEOCONTROL, Supplier.ECO_POWER_CELL)) {
-                Inventory inventory = Inventory.builder()
-                        .members(fixedAdmin)
-                        .orderAt(LocalDateTime.now())
-                        .supplier(supplier)
-                        .quantity(400)
-                        .partName(partName)
-                        .build();
-                orderService.saveInventory(inventory);
+                boolean exists = orderService.existsInventoryByPartNameAndSupplier(partName, supplier);
+                if (!exists) {
+                    Inventory inventory = Inventory.builder()
+                            .members(fixedAdmin)
+                            .orderAt(LocalDateTime.now())
+                            .supplier(supplier)
+                            .quantity(400)
+                            .partName(partName)
+                            .build();
+                    orderService.saveInventory(inventory);
+                }
             }
         }
 
@@ -136,7 +122,7 @@ public class DummyDataLoader implements CommandLineRunner {
         initDailyTargetProduction();
     }
 
-    // ✅ 생산 목표량 더미 데이터 생성
+    // ✅ 생산 목표량 생성 (중복 방지 있음)
     private void initDailyTargetProduction() {
         LocalDate today = LocalDate.now();
         boolean exists = bikeProductionRepository.existsByProductionDate(today);
