@@ -1,13 +1,706 @@
-<th:block layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
-    <th:block layout:fragment="alert">
-        <div class="dashboard_error">
-            <p style="margin: 0;">제 2공정 : 101 ERROR</p>
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<th:block layout:fragment="alert">
+    <div class="dashboard_error" >
+        <div id="dashboard-alert-bar">
         </div>
-        <div style="background-color: #FFC373; padding: 8px 0; text-align: start; vertical-align: middle;">
-            <a href="/errors/report" class="btn_black ms-3" style="display: inline-flex; width: 120px; height: 40px; border-radius: 10px; background-color: #E2E2E2; color: #000000">REPORT</a>
-            <a href="/dashboard/notice" class="btn_black ms-2" style="display: inline-flex; width: 120px; height: 40px; border-radius: 10px; background-color: #E2E2E2; color: #000000">공지사항</a>
+        <p style="margin: 0;"></p>
+    </div>
+
+    <div style="background-color: #FFC373; padding: 8px 0;">
+        <div class="d-flex align-items-center px-3 gap-3">
+            <a href="/errors/report" class="btn_black" style="width: 120px; height: 40px; border-radius: 10px; background-color: #E2E2E2; color: #000000; display: inline-flex; justify-content: center; align-items: center;">REPORT</a>
+            <a href="/dashboard/notice" class="btn_black" style="width: 120px; height: 40px; border-radius: 10px; background-color: #E2E2E2; color: #000000; display: inline-flex; justify-content: center; align-items: center;">공지사항</a>
+            <!--  공지 미리보기 표시 -->
+            <a href="/dashboard/notice" id="noticePreview"
+               class="text-dark fw-bold text-decoration-none d-none d-sm-block">
+            </a>
         </div>
-    </th:block>
+    </div>
+</th:block>
+
+<th:block layout:fragment="content">
+    <div class="py-4">
+
+        <!-- 상단 왼쪽 : 시간대별 제품 생산 현황 + 현재 시간 -->
+        <div class="container-fluid px-4" style="max-width: 1200px; margin: 0 auto;">
+            <div class="row g-4">
+                <div class="col-lg-6 col-12">
+                    <div class="chart-card">
+                        <div class="chart-header d-flex justify-content-between align-items-center">
+                            <p class="chart-title mt-3">
+                                <i class="bi bi-clipboard-data"></i>
+                                현재 시간 목표량
+                            </p>
+                        </div>
+                        <div class="chart-body" style="margin-top: 20px;">
+                            <p class="chart-baseline text-center text-muted fw-semibold" style="font-size: 16px; margin-bottom: 12px;">
+                                REAL TIME  : <span id="timeRange">--시 ~ --시 59분</span>
+                            </p>
+                            <canvas id="productAchievementChart" style="width: 100%; height: 280px; min-height: 280px;"></canvas>
+                        </div>
+                        <div class="bar-legend mt-3">
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #D7263D;"></span> 낮음 <br> (0% ~ 39%)
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #FFB627;"></span> 보통  <br> (40% ~ 69%)
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #219EBC;"></span> 양호  <br> (70% ~ 99%)
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #06D6A0;"></span> 달성 완료  <br> (100%)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 상단 오른쪽 : 공정별 상태 -->
+                <div class="col-lg-6 col-12"><!-- [수정] chart-card 위치 수정 -->
+                    <div class="chart-card h-100"><!-- [수정] 기존에 col에 있었던 chart-card를 안쪽으로 이동 -->
+                        <!-- 공정 상태 헤더: lg는 가로, sm은 세로 -->
+                        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center mb-2" style="min-height: 24px;">
+                            <!-- 타이틀 -->
+                            <div class="mb-2 mb-lg-0 w-100 w-lg-auto">
+                                <p class="fw-bold mb-0 d-flex align-items-center">
+                                    <i class="bi bi-gear" style="color: #fd7e14;"></i> 공정별 현재 상태
+                                </p>
+                            </div>
+                            <!-- 경고 메시지 -->
+                            <div id="ngWarningMessage" class="w-100 w-lg-auto d-flex align-items-center"></div>
+                        </div>
+
+                        <!-- 테두리 라인 맞추기 용 wrapper -->
+                        <div class="chart-body" style="padding: 20px 10px;">
+                            <div class="row text-center"><!-- sm 사이즈에서는 차트 1개씩-->
+                                <!-- 프레임 -->
+                                <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
+                                    <div style="width: 100%; max-width: 320px;">
+                                        <p class="text-center">1공정 - 프레임</p>
+                                        <canvas id="myChart1" class="w-100" style="height: 240px;" height="240"></canvas>
+                                        <div id="text1" class="pt-2 text-center"></div>
+                                    </div>
+                                </div>
+                                <!-- 도장 -->
+                                <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
+                                    <div style="width: 100%; max-width: 320px;">
+                                        <p class="text-center">2공정 - 도장</p>
+                                        <canvas id="myChart2" class="w-100" style="height: 240px;" height="240"></canvas>
+                                        <div id="text2" class="pt-2 text-center"></div>
+                                    </div>
+                                </div>
+                                <!-- 검수 -->
+                                <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
+                                    <div style="width: 100%; max-width: 320px;">
+                                        <p class="text-center">3공정 - 검수</p>
+                                        <canvas id="myChart3" class="w-100" style="height: 240px;" height="240"></canvas>
+                                        <div id="text3" class="pt-2 text-center"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 중간 KPI 요약 카드 (오직 첫 줄만 .kpi-card 사용) -->
+                <div class="container-fluid px-4">
+                    <div class="row g-4 mt-2 text-center">
+                        <!-- 1. 금일 목표 달성 현황 -->
+                        <div class="col-lg-4 col-12">
+                            <div class="kpi-card">
+                                <p class="kpi-title"><i class="bi bi-bar-chart-fill"></i> 금일 목표 달성 현황</p>
+                                <div class="kpi-value" id="kpi-completed" th:text="'300대 중 ' + ${kpi.completed} + '대 완료'"></div>
+                                <div class="kpi-sub text-muted">달성률: <strong class="text-primary" id="kpi-rate" th:text="${kpi.achievementRate + '%'}"></strong></div>
+                            </div>
+                        </div>
+                        <!-- 2. 현재 속도 -->
+                        <div class="col-lg-4 col-12">
+                            <div class="kpi-card">
+                                <p class="kpi-title"><i class="bi bi-clock-fill"></i> 현재 속도</p>
+                                <div class="kpi-value" id="kpi-speed" th:text="${currentSpeed} + '대/분'"></div>
+                                <div class="kpi-sub text-muted" id="kpi-speed-status" th:text="${onTime ? '납기 내 달성 예상' : '지연 예상'}"></div>
+                            </div>
+                        </div>
+                        <!-- 3. 납기 예측 -->
+                        <div class="col-lg-4 col-12">
+                            <div class="kpi-card">
+                                <p class="kpi-title"><i class="bi bi-calendar-check-fill"></i> 납기 예측</p>
+                                <div class="kpi-value text-success" id="kpi-expected-rate" th:text="${expectedRate + '%'}"></div>
+                                <div class="kpi-sub text-muted">
+                                    <span id="kpi-on-time-msg" th:text="${onTime ? '납기 내 완료 가능' : '지연 예상'}"></span><br>
+                                    남은 예상시간: <strong id="kpi-estimated-time" th:text="${estimatedTime}"></strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                <!-- 하단 : 기계 이상 감지 -->
+                <div class="row g-4 mt-4">
+                    <div class="col-lg-12">
+                        <div class="chart-card w-100">
+                            <!-- 제목 영역 -->
+                            <div class="chart-header d-flex align-items-center mb-2">
+                                <p class="chart-title fw-bold">
+                                    <i class="bi bi-exclamation-diamond-fill"></i> 기계 이상 감지
+                                </p>
+                            </div>
+
+                    <!-- 차트 1, 2 부분 -->
+                            <!-- 대시보드 차트 없는 상태 안내 -->
+                            <div id="chartDefaultMessage" style="text-align: center; padding: 2rem; font-weight: bold; color: #F37221;">
+                                <i class="bi bi-info-circle"></i> 현재까지 감지된 이상 데이터가 없습니다.<br>
+                                공정 예측이 시작되면 실시간 차트가 자동으로 표시됩니다.
+                            </div>
+                            <div id="chartContainer" style="display: none;">
+                                <div class="chart-body" style="padding: 20px 10px;">
+                                    <div class="row justify-content-center">
+                                            <!-- 🔶 차트 1: 도장 공정 -->
+                                            <div class="col-lg-6 col-12 text-center">
+                                                <div id="castingWarning" class="warning-placeholder">
+                                                    <div th:if="${castingWarningMsg != null and castingWarningMsg != ''}" class="alert alert-warning" style="font-weight: bold;">
+                                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                                        <span th:text="${castingWarningMsg}"></span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- 🛠 차트 + 상태 고정 wrapper -->
+                                                <div style="display: block; width: 70%; margin: 0 auto; padding: 0; max-height: 340px; overflow: hidden;">
+                                                    <!-- 로딩 텍스트 -->
+                                                    <div id="castingChartLoading" class="chart-loading-text"
+                                                         style="text-align: center; padding: 2rem; font-weight: bold; color: #F37221;">
+                                                        실시간 차트를 불러오는 중입니다
+                                                    </div>
+
+                                                    <!-- 차트 -->
+                                                    <canvas id="castingChart"
+                                                            role="img"
+                                                            aria-label="주조 공정 안정성 차트"
+                                                            style="display: block; width: 100%; height: 240px; max-height: 280px; margin-bottom: 0;"></canvas>
+
+                                                    <!-- 상태 -->
+                                                    <div id="castingStatus" class="d-flex justify-content-between align-items-center mt-2">
+                                                        <div class="defect-box">
+                                                            <span class="defect-label defect-tooltip"
+                                                                  data-bs-toggle="tooltip"
+                                                                  data-bs-placement="top"
+                                                                  data-bs-html="true"
+                                                                  title="<b>2공정 (도장) 최적화 기준</b><br>
+                                                                        - 압착 압력 299 이상<br>
+                                                                        - 상단 금형 온도 94℃ 이상<br>
+                                                                        - 하향 금형 온도 193℃ 이상">
+                                                                압력/온도 감지
+                                                            </span>
+                                                            <button type="button"
+                                                                    class="defect-btn"
+                                                                    style="background-color: #FF5900; color: white;"
+                                                                    onclick="requestInspection('압착 압력')">
+                                                                점검요청
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- 🔶 차트 2: 용접 공정 -->
+                                            <div class="col-lg-6 col-12 text-center">
+                                                <div id="weldingWarning" class="warning-placeholder">
+                                                    <div th:if="${weldingWarningMsg != null and weldingWarningMsg != ''}"
+                                                         th:class="'alert ' +
+                                                             (${weldingWarningMsg.contains('점검')} ? 'custom-danger' :
+                                                              (${weldingWarningMsg.contains('주의')} ? 'custom-warning' : ''))"
+                                                         style="font-weight: bold;">
+                                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                                        <span th:text="${weldingWarningMsg}"></span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- 🛠 차트 + 상태 고정 wrapper -->
+                                                <div style="display: block; width: 70%; margin: 0 auto; padding: 0; max-height: 340px; overflow: hidden;">
+                                                    <!-- 로딩 텍스트 -->
+                                                    <div id="weldingChartLoading" class="chart-loading-text"
+                                                         style="text-align: center; padding: 2rem; font-weight: bold; color: #F37221;">
+                                                        실시간 차트를 불러오는 중입니다
+                                                    </div>
+                                                    <!-- 차트 -->
+                                                    <canvas id="weldingChart"
+                                                            role="img"
+                                                            aria-label="용접 공정 안정성 차트"
+                                                            style="display: block; width: 100%; height: 240px; max-height: 280px; margin-bottom: 0;"></canvas>
+                                                    <!-- 상태 -->
+                                                    <div id="weldingStatus" class="d-flex justify-content-between align-items-center mt-2">
+                                                        <div class="defect-box">
+                                                            <span class="defect-label">용접 출력 감지 (0%)</span>
+                                                            <button type="button"
+                                                                    class="defect-btn"
+                                                                    style="background-color: #FF5900; color: white;"
+                                                                    onclick="requestInspection('용접 출력')">
+                                                                점검요청
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            </div>
+                                        </div> <!-- inner row -->
+                                    </div> <!-- outer row -->
+                                </div> <!-- chart-body -->
+                            </div> <!-- chartContainer -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </th:block>
 
 
+<!-- ============ 데이터연동(타임리프)는 html 내부에서 직접 스크립트 구성 =============-->
+<th:block layout:fragment="script">
+
+    <script src="/js/dashboard-charts.js"></script>
+
+    <!-- ============ 공지사항 배너 스크립트 =============-->
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', () => {
+            const notice = localStorage.getItem("noticePost");
+            const noticeSpan = document.getElementById("noticePreview");
+
+            if (notice && notice.trim() !== "") {
+                noticeSpan.textContent = `📢 ${notice}`;
+                noticeSpan.href = `/dashboard/notice?id=${encodeURIComponent(notice)}`;
+            } else {
+                noticeSpan.innerHTML = '<span class="text-muted">새로운 공지가 없습니다</span>';
+            }
+        });
+    </script>
+
+<!--    <script> -->
+<!--        document.addEventListener("DOMContentLoaded", function () {-->
+<!--            initDefectWarningSocket();-->
+<!--        });-->
+<!--    </script>-->
+
+    <!-- 공정별 ok/ng 차트 -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var ng1 = [[${ngCountByStep[1] ?: 0}]];
+        var ok1 = [[${okCountByStep[1] ?: 0}]];
+        var ng2 = [[${ngCountByStep[2] ?: 0}]];
+        var ok2 = [[${okCountByStep[2] ?: 0}]];
+        var ng3 = [[${ngCountByStep[3] ?: 0}]];
+        var ok3 = [[${okCountByStep[3] ?: 0}]];
+
+        window.okCounts = {1: ok1, 2: ok2, 3: ok3};
+        window.ngCounts = {1: ng1, 2: ng2, 3: ng3};
+        /*]]>*/
+
+        // 상단 에러 알람
+        function showNgAlert(data) {
+            const productName = data.productName;
+            const processStep = data.processStep;
+            const errorDescription = data.errorDescription || '에러 발생';
+            const errorValue = data.errorValue;
+
+            const alertBar = document.getElementById('dashboard-alert-bar');
+            if (!alertBar) {
+                console.warn('알림 표시 영역(dashboard-alert-bar)이 없습니다.');
+                return;
+            }
+
+            const roundedErrorValue =
+                (errorValue !== null && errorValue !== undefined)
+                    ? ` (${Math.round(errorValue * 10) / 10})`
+                    : '';
+
+            alertBar.innerHTML = `🔔 [${productName}] ${processStep}공정 ERROR: ${errorDescription}${roundedErrorValue}`;
+            alertBar.style.display = 'block';
+
+            // 5초 후 자동 숨김
+            setTimeout(() => {
+                alertBar.style.display = 'none';
+            }, 20000);
+        }
+
+        function updateNgWarning() {
+            const ngRates = [
+                (ng1 / (ok1 + ng1)) * 100,
+                (ng2 / (ok2 + ng2)) * 100,
+                (ng3 / (ok3 + ng3)) * 100
+            ];
+            const warningDiv = document.getElementById('ngWarningMessage');
+
+            // 1. ngRates 배열 숫자 필터링 (예: 문자열, NaN 제거)
+            const validNgRates = ngRates.filter(v => typeof v === 'number' && !isNaN(v));
+
+// 2. 평균 계산
+            let avgNg = 0;
+            if (validNgRates.length > 0) {
+                avgNg = validNgRates.reduce((a, b) => a + b, 0) / validNgRates.length;
+            }
+            avgNg = parseFloat(avgNg.toFixed(1));  // 소수점 1자리 반올림 + 숫자로 변환
+
+            let message = '', style = '', icon = '';
+            if (avgNg < 10) {
+                icon = '✅';
+                message = `${icon} 전체 공정 NG율 ${avgNg.toFixed(1)}% 미만 (양호)`;
+                style = 'background-color: #e0f5e9; color: #28a745;';
+                warningDiv.className = 'warning-box';  // 깜박임 제거
+            } else if (avgNg < 15) {
+                icon = '🔔';
+                message = `${icon} NG율 ${avgNg.toFixed(1)}% (주의 필요)`;
+                style = 'background-color: #fff9e6; color: #ffc107;';
+                warningDiv.className = 'warning-box blinking'; // 깜박임 효과 추가
+            } else {
+                icon = '🚨';
+                message = `${icon} 비상! NG율 ${avgNg.toFixed(1)}% 초과`;
+                style = 'background-color: #ffe6e6; color: #dc3545;';
+                warningDiv.className = 'warning-box blinking'; // 깜박임 효과 추가
+            }
+            warningDiv.setAttribute('style', `${style} padding: 5px 10px; border-radius: 10px; font-weight: bold;`);
+            warningDiv.textContent = message;
+
+            console.log("ngRates =", ngRates);
+            console.log("avgNg =", avgNg);
+            console.log("typeof avgNg =", typeof avgNg);
+        }
+
+        updateNgWarning();
+        const centerTextPlugin = {
+            id: 'centerTextPlugin',
+            beforeDraw: (chart) => {
+                const {width, height, ctx} = chart;
+                const dataset = chart.data.datasets[0];
+                const total = dataset.data.reduce((a, b) => a + b, 0);
+                const ok = dataset.data[0];
+                const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
+
+                const centerX = width / 2;
+                const centerY = height / 2;
+
+                //  Draw orange circle
+                const innerRadius = chart._metasets[0].data[0].innerRadius;
+                ctx.save();
+                ctx.beginPath();
+                ctx.strokeStyle = 'orange';
+                ctx.lineWidth = 4;
+                ctx.arc(centerX, centerY, innerRadius - 5, 0, 2 * Math.PI); // -5 to fit inside nicely
+                ctx.stroke();
+                ctx.closePath();
+                ctx.restore();
+
+                //  Draw center percentage text
+                ctx.save();
+                ctx.font = 'bold 20px sans-serif';
+                ctx.fillStyle = '#000';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`${okPercent}%`, centerX, centerY);
+                ctx.restore();
+            }
+        };
+
+        // 도넛 차트 그리기 함수
+        // drawChart 함수 정의
+        function drawChart(canvas, ok, ng, textElementId, okLabel, ngLabel) {
+            if (!canvas) {
+                console.error(`Canvas element not found for chart.`);
+                return null;
+            }
+
+            // 기존 차트가 있으면 destroy
+            if (canvas.chart) {
+                canvas.chart.destroy();
+            }
+
+            const ctx = canvas.getContext('2d');
+            const total = ok + ng;
+            const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
+            const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
+
+            const chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['OK', 'NG'],
+                    datasets: [{
+                        data: [ok, ng],
+                        backgroundColor: ['#009913', '#ea2402'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    cutout: '40%',
+                    plugins: {
+
+                        legend: { display: false }
+
+                    }
+                },
+                plugins: [centerTextPlugin]
+            });
+
+            // 차트 인스턴스 저장 (canvas 요소에 저장)
+            canvas.chart = chart;
+
+            // 텍스트 표시 업데이트
+            const textDiv = document.getElementById(textElementId);
+            if (textDiv) {
+                textDiv.innerHTML =
+                    `<div style="margin-bottom: 6px;">
+                        <span style="display: inline-block; width: 20px; height: 10px; background-color: #4caf50; margin-right: 5px;"></span>
+                        <span style="font-weight:bold; font-size: 15px;">${okLabel}</span><br>
+                        <span style="font-size: 15px;">${ok}건 / ${okPercent}%</span>
+                    </div>
+                    <div>
+                        <span style="display: inline-block; width: 20px; height: 10px; background-color: #f44336; margin-right: 5px;"></span>
+                        <span style="font-weight:bold; font-size: 15px;">${ngLabel}</span><br>
+                        <span style="font-size: 15px;">${ng}건 / ${ngPercent}%</span>
+                    </div>`;
+            }
+
+            return chart;
+        }
+
+        const lotStepStatusMap = {};
+
+        // 차트 업데이트 함수 (기존 차트 데이터만 바꾸고 update 호출)
+        function updateChart(chart, ok, ng, textElementId, okLabel, ngLabel) {
+            if (!chart) return;
+
+            const total = ok + ng;
+            const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
+            const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
+
+            chart.data.datasets[0].data = [ok, ng];
+            chart.update();
+
+            const textDiv = document.getElementById(textElementId);
+            if (textDiv) {
+                textDiv.innerHTML =
+                    `<div style="margin-bottom: 6px;">
+                        <span style="display: inline-block; width: 20px; height: 10px; background-color: #4caf50; margin-right: 5px;"></span>
+                        <span style="font-weight:bold; font-size: 15px;">${okLabel}</span><br>
+                        <span style="font-size: 15px;">${ok}건 / ${okPercent}%</span>
+                    </div>
+                    <div>
+                        <span style="display: inline-block; width: 20px; height: 10px; background-color: #f44336; margin-right: 5px;"></span>
+                        <span style="font-weight:bold; font-size: 15px;">${ngLabel}</span><br>
+                        <span style="font-size: 15px;">${ng}건 / ${ngPercent}%</span>
+                    </div>`;
+            }
+        }
+
+        // 페이지 로드 후 차트 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            window.chart1 = drawChart(document.getElementById('myChart1'), ok1, ng1, 'text1', '용접 출력 통과', '용접 출력 이상');
+            window.chart2 = drawChart(document.getElementById('myChart2'), ok2, ng2, 'text2', '도장 온도 정상', '도장 온도 이상');
+            window.chart3 = drawChart(document.getElementById('myChart3'), ok3, ng3, 'text3', '검수 통과', '검수 불량');
+        });
+
+        // 시간대별 목표달성량 가로바 차트
+        const rawData      = /*[[${chartData}]]*/ '{}';
+        const prodStats    = JSON.parse(rawData);
+        const PRODUCT_LIST = ["GyulRide","InteliBike","PedalAt4"];
+
+        let labels       = PRODUCT_LIST;
+        let targetCounts = prodStats.targetCounts ?? [0, 0, 0];
+
+        // 🟢 서버에서 받은 완제품 수량 (완성된 product 기준)
+        let completeByProduct = prodStats.totalCompleteByProduct ?? {};
+        let actualCounts = PRODUCT_LIST.map(p => completeByProduct[p] ?? 0);
+
+        // 🧠 달성률 계산
+        let achievementRates = PRODUCT_LIST.map((_, i) => {
+            const target = targetCounts[i];
+            const actual = actualCounts[i];
+            return target === 0 ? 0.0 : Math.round((actual * 1000.0 / target)) / 10.0;
+        });
+
+        /* ---------- 차트 함수 ---------- */
+        let productAchievementChart;
+        const getBarColor = p => p<40?"#D7263D":p<70?"#FFB627":p<100?"#219EBC":"#005805";
+
+        function drawProductChart(){
+            const ctx = document.getElementById("productAchievementChart").getContext("2d");
+            if(productAchievementChart) productAchievementChart.destroy();
+
+            productAchievementChart = new Chart(ctx,{
+                type:"bar",
+                data:{labels,datasets:[{
+                        label:"현재 달성률(%)",
+                        data:achievementRates,
+                        backgroundColor:achievementRates.map(getBarColor)
+                    }]},
+                options:{
+                    indexAxis:"y",responsive:true, layout:{padding:{right:120}},
+                    scales:{
+                        x:{beginAtZero:true,max:100,ticks:{callback:v=>`${v}%`,font:{size:14}}},
+                        y:{ticks:{font:{size:16}}}
+                    },
+                    plugins:{
+                        legend:{display:false},
+                        tooltip:{callbacks:{label:ctx=>{
+                                    const i=ctx.dataIndex;
+                                    return `${actualCounts[i]}/${targetCounts[i]}대 (${achievementRates[i].toFixed(1)}%)`;
+                                }}}
+                    }
+                },
+                plugins:[{
+                    id:"barLabelPlugin",
+                    afterDatasetsDraw(chart){
+                        const {ctx,scales:{x,y}} = chart;
+                        chart.data.datasets[0].data.forEach((rate,i)=>{
+                            ctx.save();
+                            ctx.font = "bold 16px sans-serif";
+                            ctx.fillStyle = rate<60?"#F44336":"#333";
+                            ctx.textAlign="left";
+                            ctx.fillText(`${actualCounts[i]}/${targetCounts[i]}대`,
+                                x.getPixelForValue(100)+10,
+                                y.getPixelForValue(i));
+                            ctx.restore();
+                        });
+                    }
+                }]
+            });
+        }
+        document.addEventListener("DOMContentLoaded",drawProductChart);
+
+        // ▸ WebSocket + STOMP 초기화
+        const socket = new SockJS("/ws");
+        const stomp  = Stomp.over(socket);
+
+        stomp.connect({}, () => {
+
+            /** KPI 카드 실시간 갱신 */
+            stomp.subscribe('/topic/analysis', (msg) => {
+                const { kpi } = JSON.parse(msg.body);
+                if (!kpi) return;
+
+                const completed    = kpi.completed       ?? 0;
+                const rate         = kpi.achievementRate ?? 0;
+                const speed        = kpi.currentSpeed    ?? 0;
+                const expectedRate = kpi.expectedRate    ?? 0;
+                const estTime      = kpi.estimatedTime   ?? '-';
+                const onTimeMsg    = kpi.onTime ? '납기 내 완료 가능' : '지연 예상';
+                const speedMsg     = kpi.onTime ? '납기 내 달성 예상' : '지연 예상';
+
+                document.getElementById('kpi-completed').innerText     = `300대 중 ${completed}대 완료`;
+                document.getElementById('kpi-rate').innerText          = `${rate}%`;
+                document.getElementById('kpi-speed').innerText         = `${speed}대/분`;
+                document.getElementById('kpi-expected-rate').innerText = `${expectedRate}%`;
+                document.getElementById('kpi-estimated-time').innerText= estTime;
+                document.getElementById('kpi-speed-status').innerText  = speedMsg;
+                document.getElementById('kpi-on-time-msg').innerText   = onTimeMsg;
+            });
+
+            /* ─────────────────────────────── ② 제품 달성률 실시간 ─────────────────────────────── */
+            stomp.subscribe("/topic/product-achievement", (message) => {
+                const data = JSON.parse(message.body);
+                console.log("🛰️ product-achievement 수신:", data);
+
+                // 목표/실적/달성률 재계산
+                targetCounts = PRODUCT_LIST.map(label => data.targetCounts?.[label] ?? 0);
+                actualCounts = PRODUCT_LIST.map(label => data.totalCompleteByProduct?.[label] ?? 0);
+                achievementRates = PRODUCT_LIST.map((_, i) => {
+                    const t = targetCounts[i], a = actualCounts[i];
+                    return t === 0 ? 0 : Math.round(a * 1000 / t) / 10;
+                });
+
+                // 시간 범위 표시
+                document.getElementById("timeRange").textContent =
+                    `${data.fakeHour}시 ~ ${data.fakeHour}시 59분`;
+
+                // 차트 리렌더
+                drawProductChart();
+            });
+
+            /* ─────────────────────────────── ③ 공정 OK/NG 실시간 ─────────────────────────────── */
+            stomp.subscribe("/topic/process", (msg) => {
+                const p = JSON.parse(msg.body);
+
+                const {
+                    productName,
+                    processStep,
+                    processResultStatus,
+                    lotNumber,
+                    errorDescription,
+                    errorCode
+                } = p;
+
+                const step   = Number(processStep);
+                const status = processResultStatus;
+
+                // ① 로트별 상태 Map 관리
+                const baseLot = lotNumber ? lotNumber.split("_").slice(0, 3).join("_") : "";
+                if (!lotStepStatusMap[baseLot]) lotStepStatusMap[baseLot] = {};
+                lotStepStatusMap[baseLot][step] = status;
+
+                // ② 공정별 OK/NG 누적 카운터
+                window.okCounts ??= {};
+                window.ngCounts ??= {};
+                window.okCounts[step] ??= 0;
+                window.ngCounts[step] ??= 0;
+
+                if (status === "OK") {
+                    window.okCounts[step]++;
+                } else if (status === "NG") {
+                    window.ngCounts[step]++;
+                    showNgAlert({
+                        productName,
+                        processStep,
+                        errorDescription: errorDescription || errorCode || "에러 발생",
+                    });
+                }
+
+                // ③ 해당 공정 차트 즉시 반영
+                updateChart(
+                    window["chart" + step],
+                    window.okCounts[step],
+                    window.ngCounts[step],
+                    "text" + step,
+                    step === 1 ? "용접 출력 통과" : step === 2 ? "도장 온도 정상" : "검수 통과",
+                    step === 1 ? "용접 출력 이상" : step === 2 ? "도장 온도 이상" : "검수 불량"
+                );
+
+                // ④ 평균 NG 경고 업데이트
+                updateNgWarning();
+            });
+
+            /* ─────────────────────────────── ④ 실시간 불량예측 차트 수신 ─────────────────────────────── */
+            stomp.subscribe("/topic/defect", (message) => {
+                const data = JSON.parse(message.body);
+                console.log("⚙️ 불량예측 데이터 수신:", data);
+
+                // 차트 보이기 전 기본안내 후 숨김
+                const defaultMsg = document.getElementById("chartDefaultMessage");
+                if (defaultMsg) defaultMsg.style.display = "none";
+
+                // 차트 영역 보이기
+                const chartArea = document.getElementById("chartContainer");
+                if (chartArea) chartArea.style.display = "block";
+
+                // 로딩 텍스트 숨기기
+                const castingLoading = document.getElementById("castingChartLoading");
+                const weldingLoading = document.getElementById("weldingChartLoading");
+                if (castingLoading) castingLoading.style.display = "none";
+                if (weldingLoading) weldingLoading.style.display = "none";
+
+                // 퍼센트 반영
+                const castingScore = Number.isFinite(data.castingScore) ? data.castingScore : 0;
+                const weldingScore = Number.isFinite(data.weldingScore) ? data.weldingScore : 0;
+
+                const castingLabel = document.querySelector("#castingStatus .defect-label");
+                const weldingLabel = document.querySelector("#weldingStatus .defect-label");
+
+                if (castingLabel) castingLabel.textContent = `압력/온도 감지 (${castingScore}%)`;
+                if (weldingLabel) weldingLabel.textContent = `용접 출력 감지 (${weldingScore}%)`;
+
+                // ✨ 실제 차트 렌더링이 필요하면 여기에 Chart.js 업데이트 함수 호출
+                // updateCastingChart(castingScore);
+                // updateWeldingChart(weldingScore);
+            });
+        });
+
+    </script>
+</th:block>
+</html>

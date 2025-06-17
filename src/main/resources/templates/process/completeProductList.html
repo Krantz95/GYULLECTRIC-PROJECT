@@ -3,16 +3,16 @@
 
     <div class="py-4">
         <!-- 서브타이틀 -->
-        <div class="subtitle_css">제품리스트</div>
+        <div class="subtitle_css"><i class="bi bi-lightning-charge"></i> 제품리스트</div>
 
         <!-- 테이블 -->
-        <div style="width: 800px;">
-            <p class="pt-3">제품별 생산 달성률(%)</p>
-            <canvas id="achievementChart" style="max-width: 100%; height: 60px;"></canvas>
+        <div class="chart-container">
+            <p class="pt-3 fw-bold mb-1" style="margin-left: 0; text-align: left;">제품별 생산 달성률(%)</p>
+            <canvas id="achievementChart" style="max-width: 100%; height: 200px;"></canvas>
         </div>
 
-        <!-- 그래프 -->
-        <p class="pt-5">제품 리스트</p>
+        <!-- 임시 구현 그래프  -->
+        <p class="pt-5 ms-2 fw-bold">제품 리스트</p>
         <div class="table-responsive pt-2" style="overflow-x: auto;">
             <table class="table table-bordered text-center align-middle table2_css">
                 <thead>
@@ -28,98 +28,76 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>A타입</td>
-                    <td>30</td>
-                    <td>백현장</td>
-                    <td>2025-05-12 08:10</td>
-                    <td>1</td>
-                    <td>29</td>
-                    <td>96.7%</td>
+                <tr th:each="orderList : ${orderLists}">
+                    <td th:text="${orderList.id}">주문번호</td>
+                    <td th:text="${orderList.productName}">제품명</td>
+                    <td th:text="${orderList.quantity}">주문수량</td>
+                    <td th:text="${orderList.members.name}">담당직원</td>
+                    <td th:text="${#temporals.format(orderList.orderDate, 'yyyy-MM-dd HH:mm')}">주문날짜</td>
+                    <td th:text="${orderNgCountMap[orderList.id]} ?: 0">불량 수</td>
+                    <td th:text="${orderCompleteCountMap[orderList.id]} ?: 0">완제품 수</td>
+                    <td th:text="${orderAchievementRateMap[orderList.id]} + '%' ?: 0">달성률</td>
                 </tr>
-                <tr>
-                    <td>2</td>
-                    <td>B타입</td>
-                    <td>50</td>
-                    <td>홍길동</td>
-                    <td>2025-05-13 09:00</td>
-                    <td>0</td>
-                    <td>50</td>
-                    <td>100.0%</td>
-                </tr>
-                <tr>
-                    <td>3</td>
-                    <td>C타입</td>
-                    <td>40</td>
-                    <td>김철수</td>
-                    <td>2025-05-14 11:20</td>
-                    <td>3</td>
-                    <td>12</td>
-                    <td>30.0%</td>
-                </tr>
-                <!--                <tr th:each = "product : ${jobOrders}">-->
-                <!--                    <th th:text = "${product.id}"></th>-->
-                <!--                    <td th:text = "${product.productName}"></td>-->
-                <!--                    <td th:text = "${product.orderQuantity}"></td>-->
-                <!--                    <td th:text = "${product.employee.loginId}"></td>-->
-                <!--                    <td th:text = "${#temporals.format(product.orderDate, 'yyyy-MM-dd HH:mm')}"></td>-->
-                <!--                    <td th:text ="${ngCountByJobOrder.get(product.id)}"></td>-->
-                <!--                    <td th:text ="${productCountByJobOrder.get(product.id)}"></td>-->
-                <!--                    <td th:text ="${#numbers.formatDecimal((productCountByJobOrder.get(product.id) * 100.0) / product.orderQuantity, 1, 1)} + '%'"></td>-->
-                <!--                </tr>-->
                 </tbody>
             </table>
         </div>
     </div>
+</th:block>
 
-    <!-- 열어서 안에 주석 참고 // 임시 구현 가로 막대 차트 -->
-    <script layout:fragment="script">
-        document.addEventListener('DOMContentLoaded', function () {
-            const ctx = document.getElementById('achievementChart').getContext('2d');
+<script th:inline="javascript" layout:fragment="script">
+    /*<![CDATA[*/
+    const chartData = /*[[${chartData}]]*/ '{}';
 
-            const data = {
-                labels: ['A타입', 'B타입', 'C타입'],
-                datasets: [{
-                    label: '달성률 (%)',
-                    data: [96.7, 100.0, 30.0],
-                    // 타임리프 쓴 다음에는 label과 data를 아래걸로 바꾸면 됌
-                    // 제품 이름 (labels)
-                    // labels: [ <th:block th:each="p, stat : ${jobOrders}">'[[${p.productName}]]'<th:block th:if="${!stat.last}">,</th:block></th:block> ]
-                    // 달성률 계산해서 넣기 (완제품 수 / 주문 수량 * 100)
-                    // data: [ <th:block th:each="p, stat : ${jobOrders}">[[${#numbers.formatDecimal((productCountByJobOrder.get(p.id) * 100.0) / p.orderQuantity, 1, 1)}]]<th:block th:if="${!stat.last}">,</th:block></th:block> ]
+    const parsedChartData = JSON.parse(chartData);
+    const labels = parsedChartData.labels;
+    const orderQty = parsedChartData.orderQuantity;
+    const completeQty = parsedChartData.productCount;
 
-                    backgroundColor: ['#FFCC00', '#02AD16', '#FF5900'],
-                    borderWidth: 1
-                }]
-            };
+    const achievementRates = completeQty.map((complete, idx) => {
+        const ordered = orderQty[idx] || 1;
+        return ((complete / ordered) * 100).toFixed(1);
+    });
 
-            const options = {
-                indexAxis: 'y',
-                scales: {
-                    x: {
-                        min: 0,
-                        max: 100,
-                        ticks: {
-                            stepSize: 25,
-                            callback: function (value) {
-                                return value + '%';
-                            }
+    const ctx = document.getElementById('achievementChart').getContext('2d');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '달성률 (%)',
+                data: achievementRates,
+                backgroundColor: labels.map((_, i) => {
+                    const colors = ['#FFCC00', '#02AD16', '#FF5900', '#007bff', '#ff33cc'];
+                    return colors[i % colors.length];
+                }),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            scales: {
+                x: {
+                    min: 0,
+                    max: 100,
+                    ticks: {
+                        stepSize: 25,
+                        callback: function (value) {
+                            return value + '%';
                         }
                     }
-                },
-                plugins: {
-                    legend: { display: false },
-                    title: { display: false }
                 }
-            };
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: data,
-                options: options
-            });
-        });
-    </script>
-</th:block>
+            },
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: '제품별 수율 (%)',
+                    font: { size: 16 }
+                }
+            }
+        }
+    });
+    /*]]>*/
+</script>
 </html>

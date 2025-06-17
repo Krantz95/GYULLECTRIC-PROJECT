@@ -1,10 +1,177 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<th:block layout:fragment="content">
 
-</body>
+    <div class="py-4">
+        <div class="subtitle_css"><i class="bi bi-info-circle"></i> 에러 대처가이드</div>
+
+        <div class="table-responsive pt-2" style="overflow-x: auto;">
+            <table class="table table-bordered text-center align-middle table1_css error-guide-table">
+                <thead>
+                <tr>
+                    <th>에러코드</th>
+                    <th>제목</th>
+                    <th>작성자</th>
+                    <th>작성일시</th>
+                    <th>조회수</th>
+                    <th style="text-align: center;">
+                        <input type="checkbox" onchange="toggleAllCheckboxes(this)" /> 중요도
+                    </th>
+                </tr>
+                </thead>
+                <tbody id="errorTableBody">
+
+                <tr onclick="location.href='/errors/errorGuideDetail?id=101'" style="cursor: pointer;">
+                    <td>101 ERROR</td>
+                    <td>프레임 정렬 불량</td>
+                    <td>윤팀장</td>
+                    <td>2025-06-01</td>
+                    <td>12</td>
+                    <td style="text-align: center;" onclick="event.stopPropagation();">
+                        <input type="checkbox" class="row-checkbox"
+                               onchange="markAsNotice(this)"
+                               onclick="event.stopPropagation();" />
+                    </td>
+                </tr>
+                <tr onclick="location.href='/errors/errorGuideDetail?id=102'" style="cursor: pointer;">
+                    <td>102 ERROR</td>
+                    <td>용접 불량</td>
+                    <td>윤팀장</td>
+                    <td>2025-06-01</td>
+                    <td>8</td>
+                    <td style="text-align: center;" onclick="event.stopPropagation();">
+                        <input type="checkbox" class="row-checkbox"
+                               onchange="markAsNotice(this)"
+                               onclick="event.stopPropagation();" />
+                    </td>
+                </tr>
+                <tr onclick="location.href='/errors/errorGuideDetail?id=103'" style="cursor: pointer;">
+                    <td>103 ERROR</td>
+                    <td>모터 배선 불량</td>
+                    <td>윤팀장</td>
+                    <td>2025-06-01</td>
+                    <td>5</td>
+                    <td style="text-align: center;" onclick="event.stopPropagation();">
+                        <input type="checkbox" class="row-checkbox"
+                               onchange="markAsNotice(this)"
+                               onclick="event.stopPropagation();" />
+                    </td>
+                </tr>
+                <tr onclick="location.href='/errors/errorGuideDetail?id=104'" style="cursor: pointer;">
+                    <td>104 ERROR</td>
+                    <td>컨트롤러 펌웨어 불일치</td>
+                    <td>윤팀장</td>
+                    <td>2025-06-01</td>
+                    <td>10</td>
+                    <td style="text-align: center;" onclick="event.stopPropagation();">
+                        <input type="checkbox" class="row-checkbox"
+                               onchange="markAsNotice(this)"
+                               onclick="event.stopPropagation();" />
+                    </td>
+                </tr>
+                <tr onclick="location.href='/errors/errorGuideDetail?id=105'" style="cursor: pointer;">
+                    <td>105 ERROR</td>
+                    <td>배터리팩 충전 불량</td>
+                    <td>윤팀장</td>
+                    <td>2025-06-01</td>
+                    <td>7</td>
+                    <td style="text-align: center;" onclick="event.stopPropagation();">
+                        <input type="checkbox" class="row-checkbox"
+                               onchange="markAsNotice(this)"
+                               onclick="event.stopPropagation();" />
+                    </td>
+                </tr>
+                <tr onclick="location.href='/errors/errorGuideDetail?id=106'" style="cursor: pointer;">
+                    <td>106 ERROR</td>
+                    <td>휠 장착 오차</td>
+                    <td>윤팀장</td>
+                    <td>2025-06-01</td>
+                    <td>9</td>
+                    <td style="text-align: center;" onclick="event.stopPropagation();">
+                        <input type="checkbox" class="row-checkbox"
+                               onchange="markAsNotice(this)"
+                               onclick="event.stopPropagation();" />
+                    </td>
+                </tr>
+                <tr onclick="location.href='/errors/errorGuideDetail?id=201'" style="cursor: pointer;">
+                    <td>201 ERROR</td>
+                    <td>자재 재고 부족</td>
+                    <td>윤팀장</td>
+                    <td>2025-06-01</td>
+                    <td>4</td>
+                    <td style="text-align: center;" onclick="event.stopPropagation();">
+                        <input type="checkbox" class="row-checkbox"
+                               onchange="markAsNotice(this)"
+                               onclick="event.stopPropagation();" />
+                    </td>
+                </tr>
+                <tr onclick="location.href='/errors/errorGuideDetail?id=202'" style="cursor: pointer;">
+                    <td>202 ERROR</td>
+                    <td>설비 센서 경고</td>
+                    <td>윤팀장</td>
+                    <td>2025-06-01</td>
+                    <td>3</td>
+                    <td style="text-align: center;" onclick="event.stopPropagation();">
+                        <input type="checkbox" class="row-checkbox"
+                               onchange="markAsNotice(this)"
+                               onclick="event.stopPropagation();" />
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script th:inline="javascript" layout:fragment="script">
+        function markAsNotice(checkbox) {
+            const tbody = document.getElementById("errorTableBody");
+            const allCheckboxes = tbody.querySelectorAll(".row-checkbox");
+
+            // 모든 체크박스를 돌면서 현재 클릭한 것 외에는 해제
+            allCheckboxes.forEach(cb => {
+                if (cb !== checkbox) {
+                    cb.checked = false;
+                    cb.closest("tr").classList.remove("notice-row");
+                }
+            });
+            const row = checkbox.closest("tr");
+            const errorId = row.querySelector("td").textContent.trim(); //  선택된 에러코드 읽기
+
+            if (checkbox.checked) {
+                row.classList.add("notice-row");
+                tbody.insertBefore(row, tbody.firstChild);
+
+                // localStorage에 선택된 id 저장
+                localStorage.setItem("noticeRow", errorId);
+            } else {
+                row.classList.remove("notice-row");
+                tbody.appendChild(row);
+
+                //  localStorage 값 제거
+                localStorage.removeItem("noticeRow");
+            }
+        }
+        //  페이지 새로고침해도 체크상태 유지
+        window.addEventListener('load', () => {
+            const savedId = localStorage.getItem("noticeRow");
+            if (savedId) {
+                const tbody = document.getElementById("errorTableBody");
+                const rows = Array.from(tbody.querySelectorAll("tr"));
+
+                rows.forEach(row => {
+                    const errorId = row.querySelector("td").textContent.trim();
+                    const checkbox = row.querySelector(".row-checkbox");
+
+                    if (errorId === savedId) {
+                        row.classList.add("notice-row");
+                        checkbox.checked = true;
+                        tbody.insertBefore(row, tbody.firstChild);
+                    } else {
+                        checkbox.checked = false;
+                        row.classList.remove("notice-row");
+                    }
+                });
+            }
+        });
+    </script>
+</th:block>
 </html>

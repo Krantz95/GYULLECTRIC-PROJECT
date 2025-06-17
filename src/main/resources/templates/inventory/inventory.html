@@ -3,69 +3,112 @@
 
     <div class="py-4">
         <!-- 서브타이틀 -->
-        <div class="subtitle_css"><span class="en-font">ORDER</span>_재고관리</div>
-
-        <!-- 재고 주문 제목 -->
-        <div class="d-flex justify-content-center">
-            <div style="width: 100%; max-width: 480px;">
-                <h5 class="text-start pt-4 pb-2">재고 주문</h5>
-            </div>
-        </div>
+        <div class="subtitle_css"><i class="bi bi-box-seam"></i><span class="en-font"> ORDER</span>_재고관리</div>
 
         <!-- 재고 주문 폼 -->
-        <div class="d-flex justify-content-center pb-4">
-            <div class="form_sm_css shadow-sm">
-                <form>
+        <div class="d-flex justify-content-center py-5">
+            <div class="form_sm_css shadow-lg">
+                <div class="h4 pb-2 mb-4 text-dark border-bottom border-danger-subtle">
+                   재고주문
+                </div>
+                <form id="orderForm" role="form" th:object="${inventoryForm}" method="post">
                     <div class="mb-3">
-                        <label class="form-label">자재명</label>
-                        <select class="form-select pointer_orange_round">
-                            <option selected disabled>자재 선택</option>
-                            <option>배터리팩</option>
-                            <option>모터</option>
-                            <option>컨트롤러</option>
-                            <option>휠</option>
-                            <option>프레임</option>
+                        <label th:for="*{partName}" class="form-label">자재명</label>
+                        <select class="form-select pointer_orange_round" th:field="*{partName}">
+                            <option value="">자재 선택</option>
+                            <option th:each="partName : ${T(gyullectric.gyullectric.domain.PartName).values()}"
+                                    th:text="${partName}" th:value="${partName}"></option>
                         </select>
+                        <div class="text-danger mt-1" th:errors="*{partName}"></div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">주문수량</label>
-                        <input type="number" class="form-control line_css" placeholder="수량 입력">
+                        <label class="form-label" th:for="*{quantity}">주문수량</label>
+                        <input type="text" class="form-control line_css" placeholder="수량 입력" th:field="*{quantity}" required>
+                        <div class="text-danger mt-1" th:errors="*{quantity}"></div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">공급업체</label>
-                        <select class="form-select pointer_orange_round">
-                            <option selected disabled>공급업체 선택</option>
-                            <option>A전자</option>
-                            <option>B전기</option>
-                            <option>C파워</option>
+                        <label class="form-label" th:for="*{supplier}">공급업체</label>
+                        <select class="form-select pointer_orange_round" th:field="*{supplier}">
+                            <option value="">공급업체 선택</option>
+                            <option th:each="supplier : ${T(gyullectric.gyullectric.domain.Supplier).values()}"
+                                    th:text="${supplier}" th:value="${supplier}"></option>
                         </select>
+                        <div class="text-danger mt-1" th:errors="*{supplier}"></div>
                     </div>
 
-                    <div class="d-flex justify-content-center">
-                        <button type="submit" class="btn_orange">주문</button>
-                        <a href="/order/history" class="btn_black ms-3">발주이력</a>
+                    <div class="d-flex justify-content-center pt-4">
+                        <button type="button" class="btn_orange" onclick="handleValidationBeforeModal()">주문</button>
+                        <a th:href="@{/order/history}" class="btn_black ms-3">발주이력</a>
+                    </div>
+                    <!--모달-->
+                    <div class="modal fade" id="orderConfirmModal" tabindex="-1" aria-labelledby="orderConfirmLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+                            <div class="modal-content" style="min-height: 600px;">
+                                <div class="modal-header" style="background-color: #fd7e14;">
+                                    <h5 class="modal-title text-white fw-bold" id="orderConfirmLabel">주문 확인</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body text-center p-0">
+                                    <img id="partImage" src="" alt="자재 이미지" class="img-fluid w-100 rounded-top" style="max-height: 300px; width: auto;" />
+                                    <hr class="my-3">
+                                    <div class="p-4">
+                                        <p id="confirmText" class="mb-0 fw-semibold fs-5">자재 주문을 진행하시겠습니까?</p>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary btn-lg" data-bs-dismiss="modal">취소</button>
+                                    <button type="button" class="btn btn-lg text-white fw-bold" style="background-color: #fd7e14;" onclick="submitOrderForm()">확인</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
 
         <!-- 검색 필터 -->
-        <div class="d-flex justify-content-end align-items-center mb-3 gap-2">
-            <select class="pointer_orange form-select" style="width: 200px;">
-                <option selected disabled>자재명</option>
-                <option>배터리팩</option>
-                <option>모터</option>
-                <option>컨트롤러</option>
-                <option>휠</option>
-                <option>프레임</option>
-            </select>
-            <input type="text" class="form-control line2_css" placeholder="검색어 입력" style="width: 200px;">
-            <button class="btn_search">검색</button>
+        <!-- 검색 필터 -->
+        <div class="my-3">
+            <form id="searchForm"
+                  role="form"
+                  method="get"
+                  th:action="@{/order/inventory}"
+                  class="d-flex flex-column flex-sm-row align-items-end align-items-sm-center justify-content-end gap-2">
+
+                <!-- 자재명 -->
+                <select name="partName"
+                        class="pointer_orange form-select responsive-select">
+                    <option value="">자재명</option>
+                    <option th:each="partName : ${partNames}"
+                            th:value="${partName}"
+                            th:text="${partName}"
+                            th:selected="${partName} == ${param.partName}"></option>
+                </select>
+
+                <!-- 공급업체 -->
+                <select name="supplier"
+                        class="pointer_orange form-select responsive-select">
+                    <option value="">공급업체</option>
+                    <option th:each="supplier : ${suppliers}"
+                            th:value="${supplier}"
+                            th:text="${supplier}"
+                            th:selected="${supplier} == ${param.supplier}"></option>
+                </select>
+
+                <!-- 버튼 -->
+                <button type="submit" class="btn_search">검색</button>
+
+                <input type="hidden" id="page" name="page"
+                       th:value="${paging != null ? paging.number : 0}">
+            </form>
         </div>
 
+
+
         <!-- 테이블 -->
+        <div class="subtitle_css py-3"><i class="bi bi-box-seam"></i><span class="en-font"> ORDER</span>_재고목록</div>
         <div class="table-responsive">
             <table class="table table-bordered text-center align-middle table1_css">
                 <thead>
@@ -77,25 +120,127 @@
                     <th>상태</th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody th:if="${paging != null}" th:each="inventoryLists : ${paging.content}">
                 <tr>
-                    <td>모터</td>
-                    <td>A전자</td>
-                    <td>25</td>
-                    <td>부족</td>
-                    <td><span class="badge bg-danger rounded-circle" style="width: 12px; height: 12px;"></span></td>
-                </tr>
-                <tr>
-                    <td>배터리팩</td>
-                    <td>B전기</td>
-                    <td>80</td>
-                    <td>충분</td>
-                    <td><span class="badge bg-success rounded-circle" style="width: 12px; height: 12px;"></span></td>
+                    <td th:text="${inventoryLists.partName}"></td>
+                    <td th:text="${inventoryLists.supplier}"></td>
+                    <td th:text="${inventoryLists.quantity}"></td>
+                    <td th:text="${inventoryLists.getQuantity() <= 100} ? '부족' : '충분'"
+                        th:class="${inventoryLists.getQuantity() <= 100} ? 'text-danger fw-bold' : 'text-success fw-bold'"></td>
+                    <td>
+                        <i th:classappend="${inventoryLists.getQuantity() <= 100} ? 'bi bi-circle-fill text-danger' : 'bi bi-circle-fill text-success'"></i>
+                    </td>
                 </tr>
                 </tbody>
             </table>
         </div>
-    </div>
-</th:block>
-</html>
 
+        <!--페이징 처리-->
+        <div th:if="${!paging.isEmpty()}" class="py-3 d-flex justify-content-center">
+            <nav aria-label="Page navigation example">
+                <ul class="pagination">
+                    <li class="page-item" th:classappend="${!paging.hasPrevious()} ? 'disabled'">
+                        <a class="page-link" href="#" th:data-page="${paging.number - 1}">&laquo;</a>
+                    </li>
+                    <li class="page-item" th:each="page : ${#numbers.sequence(0, paging.totalPages - 1)}"
+                        th:if="${page >= paging.number - 5 and page <= paging.number + 5}"
+                        th:classappend="${page == paging.number} ? 'active'">
+                        <a class="page-link" href="#" th:text="${page + 1}" th:data-page="${page}">1</a>
+                    </li>
+                    <li class="page-item" th:classappend="${!paging.hasNext()} ? 'disabled'">
+                        <a class="page-link" href="#" th:data-page="${paging.number + 1}">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+    </div>
+
+</th:block>
+
+<!--  JS: 품목별 합계 집계 -->
+<script th:inline="javascript" layout:fragment="script">
+    function handleValidationBeforeModal() {
+        const partName = document.getElementById('partName').value;
+        const quantity = document.getElementById('quantity').value;
+        const supplier = document.getElementById('supplier').value;
+
+        if (!partName || !supplier || !quantity || isNaN(quantity) || parseInt(quantity) < 1) {
+            document.getElementById('orderForm').submit(); // 서버 유효성 검사
+            return;
+        }
+
+        // 모달 텍스트 및 이미지 설정
+        const partNameMap = {
+            'BATTERY_PACK': { name: '배터리팩', img: '/images/battery.png' },
+            'MOTOR': { name: '모터', img: '/images/motor.png' },
+            'CONTROLLER': { name: '컨트롤러', img: '/images/controller.png' },
+            'WHEEL': { name: '바퀴', img: '/images/wheel.png' },
+            'FRAME': { name: '프레임', img: '/images/frame.png' }
+        };
+
+        const confirmText = document.getElementById('confirmText');
+        const partImage = document.getElementById('partImage');
+
+        if (partNameMap[partName]) {
+            confirmText.textContent = `${partNameMap[partName].name} 부품을 주문하시겠습니까?`;
+            partImage.src = partNameMap[partName].img;
+            partImage.style.display = 'block';
+        } else {
+            confirmText.textContent = '자재 주문을 진행하시겠습니까?';
+            partImage.style.display = 'none';
+        }
+
+        // 모달 띄우기
+        const modal = new bootstrap.Modal(document.getElementById('orderConfirmModal'));
+        modal.show();
+    }
+
+    function submitOrderForm() {
+        document.getElementById('orderForm').submit();
+    }
+
+
+
+    $(function () {
+        // 페이지 번호 클릭
+        $(".page-link").on('click', function (e) {
+            e.preventDefault();
+            let page = $(this).data('page');
+            if (page !== undefined) {
+                $('#page').val(page);
+                $('#searchForm').submit();
+            }
+        });
+
+        // 합계 계산
+        const counts = {
+            BatteryPack: 0,
+            Motor: 0,
+            Controller: 0,
+            Wheel: 0,
+            Frame: 0
+        };
+
+        $('tbody tr').each(function () {
+            let partName = $(this).find('td:nth-child(1)').text().trim();
+            let quantity = parseInt($(this).find('td:nth-child(3)').text().trim());
+
+            if (!isNaN(quantity)) {
+                Object.keys(counts).forEach(key => {
+                    if (partName.toLowerCase().includes(key.toLowerCase())) {
+                        counts[key] += quantity;
+                    }
+                });
+            }
+        });
+
+        // 결과 출력
+        $('#BatteryPackCount').text(counts.BatteryPack);
+        $('#MotorCount').text(counts.Motor);
+        $('#ControllerCount').text(counts.Controller);
+        $('#WheelCount').text(counts.Wheel);
+        $('#FrameCount').text(counts.Frame);
+    });
+</script>
+</html>

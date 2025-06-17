@@ -30,6 +30,10 @@ public class MemberService {
         memberRepository.save(members);
         return members.getId();
     }
+    @Transactional
+    public void save(Members members){
+        memberRepository.save(members);
+    }
 
     //중복회원검증
     public Members validateDuplicateMember(String loginId) {
@@ -63,6 +67,10 @@ public class MemberService {
         this.memberRepository.deleteById(id);
     }
 
+    public Optional<Members> findByLoginId(String loginId) {
+        return memberRepository.findByLoginId(loginId);
+    }
+
 
     public Page<Members> getList(int page, String kw, String type){
         List<Sort.Order> sorts = new ArrayList<>();
@@ -88,14 +96,14 @@ public class MemberService {
                 query.distinct(true);
 
                 if ("name".equals(type)) {
-                    return cb.like(q.get("name"), "%" + kw + "%");
+                    return cb.like(q.get("name"), "%" + kw + "%" );
                 } else if ("loginId".equals(type)) {
-                    return cb.like(q.get("loginId"), "%" + kw + "%");
+                    return cb.like(q.get("loginId"),"%" +  kw + "%");
                 } else {
                     // 기본: 이름 + 아이디 둘 다 검색
                     return cb.or(
-                            cb.like(q.get("loginId"), "%" + kw + "%"),
-                            cb.like(q.get("name"), "%" + kw + "%")
+                            cb.like(q.get("loginId"),"%" +  kw + "%" ),
+                            cb.like(q.get("name"),"%" +  kw + "%")
                     );
                 }
             }

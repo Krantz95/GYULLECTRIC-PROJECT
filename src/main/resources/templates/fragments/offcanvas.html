@@ -1,61 +1,65 @@
-<!-- sm~md 사이즈 전용 / 오프캔버스 상단 바 부터 -->
+<!-- sm~md 사이즈 전용 / 오프캔버스 상단 바 -->
 <nav class="d-lg-none" th:fragment="offcanvas"
      style="background-color: #F37221; padding: 0.75rem 1rem; display: flex; align-items: flex-end; gap: 0.5rem;">
 
-    <!-- 햄버거 버튼 (테두리 제거, 높이 꽉차게) -->
+    <!-- 햄버거 버튼 -->
     <button type="button"
             class="border-0 bg-transparent p-0 d-flex align-items-center justify-content-center"
             style="width: 56px; height: 56px;"
             data-bs-toggle="offcanvas"
             data-bs-target="#offcanvasMenu">
-        <i class="bi bi-list" style="font-size: 55px; color: #09244B;"></i>
+        <i class="bi bi-list" style="font-size: 45px; color: #09244B;"></i>
     </button>
+
     <!-- 로고 + 텍스트 -->
-    <div class="d-flex align-items-center" style="height: 56px;">
-        <a href="/" class="d-inline-block me-2">
-            <img src="/images/logo.png" alt="귤렉트릭로고" style="height: 40px;">
+    <div class="d-flex align-items-center" style="height: 50px; color: white;">
+        <a href="/" class="me-2">
+            <img src="/images/logo2.png" alt="귤렉트릭로고" style="height: 40px;">
         </a>
-        <h5 class="fw-bold text-uppercase mb-0"
-            style="color: white; font-size: 18px; line-height: 1;">
-            GYULLECTRIC
-        </h5>
+        <h5 class="fw-bold text-uppercase mb-0 en-font">GYULLECTRIC</h5>
     </div>
 
     <!-- 오프캔버스 메뉴 -->
-    <div class="offcanvas offcanvas-start navbar_css text-white" tabindex="-1" id="offcanvasMenu">
-        <div class="offcanvas-header bg-transparent text-white">
-            <div class="d-flex align-items-end gap-2">
-                <a href="/" class="d-inline-block">
-                    <img src="/images/logo.png" alt="귤렉트릭로고" style="height: 40px;" />
+    <div class="offcanvas offcanvas-start navbar_css text-white d-flex flex-column" tabindex="-1" id="offcanvasMenu">
+
+        <!-- 검정 배경 헤더 -->
+        <div class="navbar-top position-relative px-3">
+            <div class="d-flex flex-column align-items-center">
+                <a href="/" class="mb-2">
+                    <img src="/images/logo2.png" alt="귤렉트릭로고" style="height: 65px; margin-bottom: 15px;">
                 </a>
-                <h5 class="fw-bold text-uppercase mb-0">GYULLECTRIC</h5>
+                <h5 class="fw-bold text-uppercase mb-0 en-font">GYULLECTRIC</h5>
             </div>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="닫기"></button>
+            <button type="button" class="btn-close btn-close-white position-absolute end-0 top-0 m-3" data-bs-dismiss="offcanvas" aria-label="닫기"></button>
         </div>
 
+        <!-- 주황 배경 바디 -->
         <div class="offcanvas-body">
+
+            <!-- 로그인 상태 텍스트 -->
             <div class="d-flex justify-content-between align-items-center small mx-auto" style="width: fit-content;">
-                  <span th:if="${loginMember == null}">
-                <a class="text-white" th:href="@{/signup}">SIGN UP</a>
-            </span>
-                <span th:if="${loginMember != null}">
-                <span th:text="${loginMember.name} + '님'"></span>
-            </span>
                 <span th:if="${loginMember == null}">
-            <a href="/login" class="text-decoration-none text-white ms-4">LOGIN</a>
-            </span>
+                    <a class="text-white" th:href="@{/signup}" style="text-decoration: none;">SIGN UP</a>
+                </span>
                 <span th:if="${loginMember != null}">
-            <a href="/logout" class="text-decoration-none text-white ms-4">LOGOUT</a>
-            </span>
+                    <span th:text="${loginMember.name} + '님'"></span>
+                </span>
+                <span th:if="${loginMember == null}">
+                    <a href="/login" class="text-decoration-none text-white ms-4">LOGIN</a>
+                </span>
+                <span th:if="${loginMember != null}">
+                    <a href="/logout" class="text-decoration-none text-white ms-4">LOGOUT</a>
+                </span>
             </div>
 
-            <!-- 상위 메뉴 -->
-            <ul class="nav flex-column">
-                <li class="nav-item"><a href="/user/edit" class="nav-link text-white px-0">MY PAGE</a></li>
-                <li class="nav-item"><a href="/members/list" class="nav-link text-white px-0">사용자 관리</a></li>
+            <!-- 메뉴 리스트 -->
+            <ul class="nav flex-column mt-3">
+                <li class="nav-item" th:if="${loginMember != null}">
+                    <a th:href="@{/user/{id}/edit(id=${loginMember.id})}" class="nav-link text-white px-0">MY PAGE</a>
+                <li class="nav-item" th:if="${loginMember != null and loginMember.positionName.name() == 'ADMIN'}">
+                    <a href="/members/list" class="nav-link text-white px-0">사용자 관리</a>
                 <li class="nav-item"><a href="/dashboard/main" class="nav-link text-white px-0">
                     <i class="bi bi-easel"></i> 대시보드</a></li>
-
 
                 <!-- ORDER -->
                 <li class="nav-item">
@@ -65,16 +69,21 @@
                     </a>
                     <div class="collapse show" id="orderMenuM">
                         <ul class="nav flex-column ms-3">
-                            <li><a href="/order/inventory" class="nav-link text-white px-2">재고관리</a></li>
+                            <li><a th:href="@{/order/inventory}" class="nav-link text-white px-2">재고관리</a></li>
                             <li><a href="/order/history" class="nav-link text-white px-2">발주조회</a></li>
-                            <li><a href="/order/list" class="nav-link text-white px-2">ORDER LIST</a></li>
+                            <li><a href="/product/create" class="nav-link text-white px-2">생산지시</a></li>
+                            <li><a href="/product/list" class="nav-link text-white px-2">ORDER LIST</a></li>
                         </ul>
                     </div>
                 </li>
 
                 <!-- 공정 모니터링 -->
-                <li class="nav-item"><a href="/monitoring" class="nav-link text-white px-0">
-                    <i class="bi bi-easel"></i> 공정 모니터링 </a></li>
+                <li class="nav-item pt-2">
+                    <a th:href="@{/monitoring/list}" class="n
+                    av-link text-white px-0" style="text-decoration: none">
+                        <i class="bi bi-easel"></i> 공정 모니터링
+                    </a>
+                </li>
 
                 <!-- 에러관리 -->
                 <li class="nav-item mt-2">
@@ -98,7 +107,6 @@
                     </a>
                     <div class="collapse show" id="prodMenuM">
                         <ul class="nav flex-column ms-3">
-                            <li><a href="/indicators/statistics" class="nav-link text-white px-2">생산통계</a></li>
                             <li><a href="/indicators/analysis" class="nav-link text-white px-2">생산분석</a></li>
                             <li><a href="/indicators/order-predict" class="nav-link text-white px-2">발주예측</a></li>
                             <li><a href="/indicators/defect-predict" class="nav-link text-white px-2">불량예측</a></li>

@@ -1,10 +1,757 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<th:block layout:fragment="content">
+    <div class="py-4">
+        <!-- 서브타이틀 -->
+        <div class="subtitle_css"><i class="bi bi-activity"></i> 생산지표관리_불량예측</div>
+        <div class="fw-bold py-3">기계 이상 감지
+            <div class="pt-3">
+                <button id="startPredictionBtn" class="btn btn-warning fw-bold" style="background-color: #F37221; color: white;">
+                    🎯 불량 예측 실행
+                </button>
+            </div>
+        </div>
 
-</body>
+        <!-- 차트1 / 도장(2공정) -->
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-12 text-center">
+                <!-- 경고 메시지 위치 (높이 고정) -->
+                <div id="castingWarning" class="warning-placeholder">
+                    <div th:if="${castingWarningMsg != null and castingWarningMsg != ''}" class="alert alert-warning" style="font-weight: bold;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span th:text="${castingWarningMsg}"></span>
+                    </div>
+                </div>
+                <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
+                    <!-- 🔄 로딩 메시지 (처음에만 표시, JS에서 숨김 처리됨) -->
+                    <div id="castingChartLoading" class="chart-loading-text"
+                         style="text-align: center; padding: 2rem; font-weight: bold; color: #F37221;">
+                        실시간 차트를 불러오는 중입니다
+                    </div>
+                    <canvas id="castingChart"
+                            role="img"
+                            aria-label="주조 공정 안정성 차트"
+                            style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
+                    <div id="castingStatus" class="d-flex justify-content-between align-items-center"
+                         style="margin-top: 0; padding-top: 0;">
+                        <div class="defect-box">
+                            <span class="defect-label defect-tooltip"
+                                  data-bs-toggle="tooltip"
+                                  data-bs-placement="top"
+                                  data-bs-html="true"
+                                  title="<b>2공정 (도장) 최적화 기준</b><br>
+                                        - 압착 압력 299 이상
+                                        - 상단 금형 온도 94℃ 이상
+                                        - 하향 금형 온도 193℃ 이상">
+                                          압력/온도 감지
+                                        </span>
+                            <button type="button"
+                                    class="defect-btn"
+                                    style="background-color: #FF5900; color: white;"
+                                    onclick="requestInspection('압착 압력')">
+                                점검요청
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 차트2 : 1공정(용접) -->
+            <div class="col-lg-6 col-12 text-center">
+                <!-- 경고 메시지 위치 (높이 고정) -->
+                <div id="weldingWarning" class="warning-placeholder">
+                    <div th:if="${weldingWarningMsg != null and weldingWarningMsg != ''}"
+                         th:class="'alert ' +
+                         (${weldingWarningMsg.contains('점검')} ? 'custom-danger' :
+                          (${weldingWarningMsg.contains('주의')} ? 'custom-warning' : ''))"
+                         style="font-weight: bold;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span th:text="${weldingWarningMsg}"></span>
+                    </div>
+                </div>
+                <div style="display: block; width: 70%; margin: 0 auto; padding: 0;">
+                    <!-- 🔄 로딩 메시지 (처음에만 표시, JS에서 숨김 처리됨) -->
+                    <div id="weldingChartLoading" class="chart-loading-text"
+                         style="text-align: center; padding: 2rem; font-weight: bold; color: #F37221;">
+                        실시간 차트를 불러오는 중입니다
+                    </div>
+                    <canvas id="weldingChart"
+                            role="img"
+                            aria-label="용접 공정 안정성 차트"
+                            style="display: block; width: 100%; max-height: 300px; margin-bottom: 0;"></canvas>
+                    <div id="weldingStatus" class="d-flex justify-content-between align-items-center"
+                         style="margin-top: 0; padding-top: 0;">
+                        <div class="defect-box">
+                            <span class="defect-label">용접 출력 감지 (0%)</span>
+                            <button type="button"
+                                    class="defect-btn"
+                                    style="background-color: #FF5900; color: white;"
+                                    onclick="requestInspection('용접 출력')">
+                                점검요청
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 경고 로그 테이블-->
+        <div class="py-3 fw-bold">경고 로그</div>
+        <div class="table-responsive">
+            <table class="table table-bordered text-center align-middle table1_css">
+                <thead>
+                <tr> <!-- WarningDto와 연결 -->
+                    <th class="col-small">발생일시</th>      <!-- timestamp -->
+                    <th class="col-small">공정단계</th>      <!-- processStep -->
+                    <th>증상 항목</th>                      <!-- symptomItem -->
+                    <th>감지현상</th>                        <!-- warningText -->
+                    <th class="col-small">출력값</th>          <!-- score -->
+                    <th class="col-small">심각도</th>        <!-- warningLevel -->
+                    <th>확인</th>
+                </tr>
+                </thead>
+                <tbody id="defectLogBody">
+                <!-- 실시간 로그가 여기에 추가됨 (JS에서 append) -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 삭제 확인 모달 / confirmDelete 함수와 연동 -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmModalLabel">점검 요청 확인</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmModalSymptom" class="fw-bold text-center mb-2">용접 출력</p>
+                    <p class="text-center">해당 감지 현상에 대해 점검 요청을 하시겠습니까?</p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-danger" style="background-color: red; color: white"
+                            onclick="confirmDelete()">요청
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <style> /* 이 페이지에서만 .table1_css의 행(td) 배경을 흰색으로 강제 설정 */
+    .table1_css tbody tr td {
+        background-color: white !important;
+    }
+    </style>
+
+
+    <!-- 차트 2개 스크립트 -->
+    <script th:inline="javascript" layout:fragment="script">
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // 공통 함수 확인
+            if (typeof updateRealtimeCharts !== 'function' ||
+                typeof updateRealtimeWarnings !== 'function' ||
+                typeof updateStatusBoxes !== 'function') {
+                console.log("🔁 차트 업데이트 실행됨!", data);
+                console.error("⛔ 공통 함수가 존재하지 않습니다!");
+                return;
+            }
+
+            // WebSocket 연결 시도
+            let connected = false;
+            try {
+                const socket = new SockJS('/ws');
+                const stompClient = Stomp.over(socket);
+
+                stompClient.connect({}, () => {
+                    connected = true;
+                    console.log("✅ WebSocket 연결됨 (/topic/defect)");
+                    stompClient.subscribe('/topic/defect', function (message) {
+                        const data = JSON.parse(message.body);
+                        updateRealtimeCharts(data);
+                        updateRealtimeWarnings(data);
+                        updateStatusBoxes(data);
+                    });
+                });
+            } catch (e) {
+                console.warn("⚠ WebSocket 연결 실패 → 더미데이터로 대체합니다.");
+            }
+
+            // Flask연결 실패시 - 더미 데이터 주입
+            setInterval(() => {
+                if (!connected) {
+                    const dummyData = generateDummyPredictionData();
+                    updateRealtimeCharts(dummyData);
+                    updateRealtimeWarnings(dummyData);
+                    updateStatusBoxes(dummyData);
+                }
+            }, 5000);
+        });
+
+        // 전역 변수 선언
+        let selectedSymptomForDelete = null;
+        const inspectedSymptoms = new Set();
+        let datasets = [];
+
+        // 📌 datasets 자동 업데이트 함수 (Flask/WebSocket 공통 사용)
+        function updateDatasetsFromData(data) {
+            return [
+                {
+                    id: 'castingChart',
+                    statusId: 'castingStatus',
+                    warningId: 'castingWarning',
+                    msgKey: 'casting',
+                    label: '압력/온도 감지',
+                    value: data.castingScore
+                },
+                {
+                    id: 'weldingChart',
+                    statusId: 'weldingStatus',
+                    warningId: 'weldingWarning',
+                    msgKey: 'welding',
+                    label: '용접 출력 감지',
+                    value: data.weldingPercent
+                }
+            ];
+        }
+
+
+        // 모달 열기 및 새로운 모달 열기 가능 (초기화)
+        window.requestInspection = function(symptom) {
+            const modalBody = document.querySelector("#confirmModal .modal-body");
+            const modalFooter = document.querySelector("#confirmModal .modal-footer");
+
+            //  모달 내용 초기화 (요청 전 상태로)
+            modalBody.innerHTML = `
+                <p id="confirmModalSymptom" class="fw-bold text-center mb-2">${symptom}</p>
+                <p class="text-center">해당 감지 현상에 대해 점검 요청을 하시겠습니까?</p>
+            `;
+            modalFooter.innerHTML = `
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-danger" style="background-color: red; color: white;"
+                        onclick="confirmDelete()">요청</button>
+            `;
+
+            selectedSymptomForDelete = symptom;
+
+            // 모달 열기
+            const modalEl = document.getElementById("confirmModal");
+            let modal = bootstrap.Modal.getInstance(modalEl);
+            if (!modal) modal = new bootstrap.Modal(modalEl);
+            modal.show();
+             };
+
+        window.confirmOnlyUiUpdate = function () {
+            if (!selectedSymptomForDelete) return;
+
+            const rows = document.querySelectorAll("#defectLogBody tr");
+            rows.forEach(row => {
+                const symptomText = row.children[2]?.textContent?.trim();
+                if (symptomText === selectedSymptomForDelete) {
+                    const button = row.querySelector("button.status-btn");
+                    if (button) {
+                        button.disabled = true;
+                        button.innerText = "점검완료";
+                        button.style.backgroundColor = "#ccc";
+                        button.classList.remove("status-btn");
+                        button.classList.add("disabled");
+                    }
+                }
+            });
+            const modalEl = document.getElementById("confirmModal");
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) {
+                modalInstance.hide();
+            }
+
+            selectedSymptomForDelete = null;
+        };
+
+        // 🛑 경고 메시지 부분 (타임리프에서 받은 경고 메시지 바인딩)
+        const warningMessages = {
+            casting: '[[${castingWarningMsg}]]',
+            welding: '[[${weldingWarningMsg}]]'
+        };
+
+        document.getElementById("startPredictionBtn").addEventListener("click", function () {
+            // 🔁 로딩 표시
+            document.getElementById("castingChartLoading").style.display = "block";
+            document.getElementById("weldingChartLoading").style.display = "block";
+
+            fetch("/indicators/defect-predict/start", {
+                method: "POST"
+            })
+                .then(async (res) => {
+                    if (!res.ok) {
+                        const error = await res.json(); // 오류 메시지 구조 확인
+                        throw new Error(error.message || "예측 실패");
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    datasets = updateDatasetsFromData(data);
+                    updateRealtimeCharts(data);
+                    updateRealtimeWarnings(data);
+                    appendDefectLogRows([...data.defectLogs || [], ...data.weldingLogs || []]);
+                    updateStatusBoxes(data);
+                })
+                .catch(err => {
+                    console.error("❌ 예측 실패:", err);
+                    alert("예측 중 오류가 발생했습니다: " + err.message);
+                });
+        });
+
+
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // 🕒 WebSocket 수신 추가
+            const socket = new SockJS('/ws');
+            const stompClient = Stomp.over(socket);
+
+            let castingChartInstance = null; // 1번차트 인스턴스
+            let weldingChartInstance = null; // 2번차트 인스턴스
+
+            // 연결 후 /topic/defect 구독 시작
+            stompClient.connect({}, () => {
+                stompClient.subscribe('/topic/defect', function (message) {
+                    const data = JSON.parse(message.body); // JSON 문자열을 JS 객체로 변환
+                    // 각 점수 추출 (도장 castingScore, 용접 weldingScore)
+                    const castingScore = Number.isFinite(data.castingScore) ? data.castingScore : 0;
+                    const weldingScore = Number.isFinite(data.weldingScore) ? data.weldingScore : 0;
+
+                    // 디버깅용 메시지
+                    console.log("📢 실시간 예측 도착:", data);
+                    console.log("Casting Score:", data.castingScore);  // 0~100 인지 확인
+                    console.log("Casting Data 배열:", [data.castingScore, 100 - data.castingScore]);
+                    console.log("Flask 응답 defectLogs: ", data.defectLogs);
+
+                    // 🛑 경고 메시지 부분 / 최신 메시지로 warningMessages 업데이트!
+                    warningMessages.casting = data.castingWarning || "";
+                    warningMessages.welding = data.weldingWarning || "";
+
+                    // 데이터가 유효한지 체크 후 업데이트
+                    if (typeof data.castingScore !== 'number' || isNaN(data.castingScore)) {
+                        data.castingScore = 0;
+                    }
+                    if (!data.weldingScore || isNaN(data.weldingScore)) {
+                        data.weldingScore = 0;  // 기본값 설정
+                    }
+
+                    // 전역 변수 datasets 업데이트 (차트/경고박스/상태박스용 정보)
+                    setTimeout(() => {
+                        datasets = [  // 전역변수에 값을 "재할당"만 함!
+                            {
+                                id: 'castingChart',
+                                statusId: 'castingStatus',
+                                warningId: 'castingWarning',
+                                msgKey: 'casting',
+                                label: '압력/온도 감지',
+                                value: castingScore
+                            },
+                            {
+                                id: 'weldingChart',
+                                statusId: 'weldingStatus',
+                                warningId: 'weldingWarning',
+                                msgKey: 'welding',
+                                label: '용접 출력 감지',
+                                value: weldingScore
+                            },
+                        ];
+
+                        const combinedLogs = [...(data.defectLogs || []), ...(data.weldingLogs || [])];  // 도장+용접 로그 합치기
+                        updateRealtimeCharts(data); // 퍼센트 차트 업데이트
+                        updateRealtimeWarnings(data); // 상단 알림창 업데이트
+                        appendDefectLogRows(combinedLogs); // 실시간 경고 로그 (도장+용접)
+                        updateStatusBoxes(data); // 점검 버튼/상태 텍스트 업데이트!
+                    }, 0);
+                });  //
+            });  //
+
+            // 실시간 데이터로 차트 재생성
+            function updateRealtimeCharts(data) {
+                const 기준값 = 1700;  // 용접 퍼센트 계산용
+
+            //  페이지시작 시 로딩 메시지 제거 & 차트 보여주기
+                const castingLoading = document.getElementById('castingChartLoading');
+                const castingChart = document.getElementById('castingChart');
+                const weldingLoading = document.getElementById('weldingChartLoading');
+                const weldingChart = document.getElementById('weldingChart');
+
+                if (castingLoading) castingLoading.style.display = 'none';
+                if (castingChart) castingChart.style.display = 'block';
+                if (weldingLoading) weldingLoading.style.display = 'none';
+                if (weldingChart) weldingChart.style.display = 'block';
+
+
+                // 기존 차트가 있으면 삭제 (차트1+2)
+                if (castingChartInstance) {
+                    castingChartInstance.destroy();
+                    castingChartInstance = null;  // 차트 인스턴스를 null로 초기화
+                }if (weldingChartInstance) {
+                    weldingChartInstance.destroy();
+                    weldingChartInstance = null;  // 차트 인스턴스를 null로 초기화
+                }
+                // 그릴 준비
+                const castingCanvas = document.getElementById('castingChart');
+                const weldingCanvas = document.getElementById('weldingChart');
+                if (!castingCanvas || !weldingCanvas) return;
+                const castingCtx = castingCanvas.getContext('2d');
+                const weldingCtx = weldingCanvas.getContext('2d');
+
+                // 데이터 값이 유효한지 확인하고, 값이 없으면 null, undefined, NaN일 경우를 대비해서 기본값 0으로 처리
+                const castingScore = data.castingScore || 0;
+                const weldingScore = data.weldingScore || 0;
+
+                // 차트2 - 차트 가운데값 게이지 % 표시방식
+                const weldingPercent = data.weldingPercent || 0;
+
+                // 1번차트 차트색상
+                const bgColorCasting = castingScore <= 60 ? '#4CAF50' : // 1번차트
+                    castingScore <= 79 ? '#FFD700' : '#F44336';
+                // 2번차트 차트색상
+                const bgColorWelding = weldingPercent >= 80 ? '#F44336' :   // 🔴 위험
+                    weldingPercent >= 61 ? '#FFD700' :   // 🟡 주의
+                        '#4CAF50';                            // 🟢 안정
+
+
+                // --------------------------차트 그리기----------------------------
+                // 차트1 점수 퍼센트로 환산 (최대 100)
+                const castingPercent = Math.min(100, Math.round(data.castingScore || 0)); // 퍼센트
+                // 차트1 그리기
+                castingChartInstance = new Chart(castingCtx, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [castingPercent, 100 - castingPercent], // 채운부분, 빈부분
+                            backgroundColor: [bgColorCasting, '#878787'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        circumference: 180,
+                        rotation: 270,
+                        cutout: '50%',
+                        plugins: {
+                            legend: {display: false},
+                            tooltip: {enabled: false}
+                        }
+                    },
+                    // 차트 중앙에 점수 표시하는 커스텀 플러그인
+                    plugins: [{ //
+                        afterDraw: chart => {
+                            const {ctx, chartArea: {width, height}} = chart;
+                            const centerX = width / 2;
+                            const centerY = height / 1.3;
+                            const smallRadius = 50;
+
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.arc(centerX, centerY, smallRadius, 0, 2 * Math.PI);
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fill();
+                            ctx.strokeStyle = '#F37221';
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                            ctx.closePath();
+                            ctx.font = '25px sans-serif';
+                            ctx.fillStyle = 'black';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+
+                            // 퍼센트 표시 (castingPercent 변수 사용)
+                            ctx.fillText(`${castingPercent}%`, centerX, centerY);
+                            ctx.restore();
+                        }
+                    }]
+                });
+
+                // 차트 2 그리기
+                weldingChartInstance = new Chart(weldingCtx, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [weldingPercent, 100 - weldingPercent],
+                            backgroundColor: [bgColorWelding, '#878787'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        circumference: 180,
+                        rotation: 270,
+                        cutout: '50%',
+                        plugins: {
+                            legend: {display: false},
+                            tooltip: {enabled: false}
+                        }
+                    },
+                    plugins: [{ // ❗❗❗❗ 퍼센트 표시 오류는 여기서
+                        afterDraw: chart => {
+                            const {ctx, chartArea: {width, height}} = chart;
+                            const centerX = width / 2;
+                            const centerY = height / 1.3;
+                            const smallRadius = 50;
+
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.arc(centerX, centerY, smallRadius, 0, 2 * Math.PI);
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fill();
+                            ctx.strokeStyle = '#F37221';
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                            ctx.closePath();
+
+                            ctx.font = '25px sans-serif';
+                            ctx.fillStyle = 'black';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(`${weldingPercent}%`, centerX, centerY);  // 용접용
+                            ctx.restore();
+                        }
+                    }]
+                });
+            }
+
+            // 업데이트!
+            function updateStatusBoxes(data) {
+                //  castingScore와 weldingPercent를 안전하게 꺼내기
+                const castingScore = Number.isFinite(data.castingScore) ? data.castingScore : 0;
+                const weldingScore = Number.isFinite(data.weldingPercent) ? data.weldingPercent : 0;
+
+                // [2] datasets 배열을 순회하면서 각 공정별 처리
+                datasets.forEach(ds => {
+                    const statusDiv = document.getElementById(ds.statusId);
+                    if (!statusDiv) return;
+
+                    const statusLabel = statusDiv.querySelector('.defect-label'); // 점수 표시 텍스트
+                    const statusButton = statusDiv.querySelector('.defect-btn');  // 점검 요청 버튼
+
+                    //  ❗❗❗❗❗❗ 차트2는 Percent가 없기 때문에 따로 처리! 이상한데
+                    const value = ds.msgKey === 'casting'
+                        ? castingScore  // 차트1은 castingScore  직접 사용
+                        : weldingScore; // 차트2는 퍼센트 그대로 사용
+
+                    const percent = Math.round(value);  // 점수는 0~100 정수로
+
+                    // 상태 텍스트 갱신 (ex: 압력/온도 감지 (75%))
+                    statusLabel.textContent = `${ds.label} (${percent}%)`;
+
+                    // 점검 버튼 활성화 조건: 61% 이상만 가능
+                    const shouldEnable = percent >= 61;
+                    statusButton.disabled = !shouldEnable;
+
+                    // ❗❗❗ 경고알림창 % 설정 (경고 메시지가 있고, 10% 이상일 때만 표시)
+                    const warningDiv = document.getElementById(ds.warningId);
+                    if (percent >= 60 && warningMessages[ds.msgKey]) {
+                        warningDiv.className = 'warning-box blinking warning-placeholder';
+                        warningDiv.innerHTML = `⚠ ${warningMessages[ds.msgKey]}`;
+                    } else {
+                        warningDiv.className = 'warning-placeholder';
+                        warningDiv.innerHTML = '';
+                    }
+                });
+            }
+
+            // 공정 최적화 기준 툴팁 추가
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            // 실시간 경고 메시지용
+            const warningDatasets = [
+                {warningId: "pressure-warning", msgKey: "pressure"},
+                {warningId: "upperTemp-warning", msgKey: "upperTemp"},
+                {warningId: "lowerTemp-warning", msgKey: "lowerTemp"},
+                {warningId: "welding-warning", msgKey: "welding"}
+            ];
+
+            // ----------------------경고 로그 테이블 업데이트------------------------------
+            function appendDefectLogRows(defectLogs) {
+                const tbody = document.getElementById("defectLogBody");
+                if (!tbody) return;
+                // 기존 행을 모두 제거하고 새로 채워 넣는 구조
+                tbody.innerHTML = "";
+                // 점검완료(inspectionRequested=true)는 필터링해서 제외
+                const filteredLogs = defectLogs.filter(log => !log.inspectionRequested);
+                // 최신 10개의 데이터를 반복 추가
+                filteredLogs.slice(-10).reverse().forEach(log => {
+                    addLogToTable(log, tbody);
+                });
+            }
+
+            // 최근 로그를 가져와 테이블에 뿌리는 용도
+            window.addEventListener("DOMContentLoaded", () => {
+                fetch("/api/recent-logs")
+                    .then(res => res.json())
+                    .then(data => {
+                        const notInspectedLogs = data.filter(log => !log.inspectionRequested);  // 점검 완료 제외
+                        notInspectedLogs.forEach(log => addLogToTable(log));
+                    })
+                    .catch(err => console.error("불러오기 실패:", err));
+            });
+            // 등급 우선순위 정의
+            const SEVERITY_ORDER = {
+                "🟢 안정": 0,
+                "🟡 주의": 1,
+                "🟠 경고": 2,
+                "🔴 위험": 3
+            };
+
+            //  경고로그 업데이트 조건 / 중복되는 증상 항목이 이미 있는지 확인
+            function addLogToTable(log) {
+                const tbody = document.querySelector("table tbody");
+                const rows = tbody.querySelectorAll("tr");
+
+                const severityRank = SEVERITY_ORDER[log.warningLevel] || 0;
+
+                let existingRow = null;
+
+                // 1. 같은 증상항목과 공정단계 조합이 이미 테이블에 있으면 중복 처리
+                for (let row of rows) {
+                    const rowKey = row.getAttribute("data-log-key");  // ex: "압착 압력_2공정 - 도장"
+                    const logKey = `${log.symptomItem}_${log.processStep}`; // 지금 들어온 log의 키
+                    // 🔍 콘솔에 찍어서 직접 비교
+                    console.log("🔍 비교 중:", {rowKey, logKey});
+                    console.log("🔥 추가 확인", {
+                        symptomItem: log.symptomItem,
+                        processStep: log.processStep,
+                        warningLevel: log.warningLevel,
+                    });
+                    console.log("🔥 받은 로그:", log);
+                    if (rowKey === logKey) {
+                        existingRow = row;
+                        break; // 이미 존재하면 멈추기
+                    }
+                }
+
+                // 2. 아직 점검 요청 안 했고, 새 로그가 덜 위험하다면 무시
+                if (existingRow) {
+                    const existingSeverityLabel = existingRow.getAttribute("data-warning-level");
+                    const existingInspection = existingRow.getAttribute("data-inspection-requested") === "true";
+                    const existingRank = SEVERITY_ORDER[existingSeverityLabel] || 0;
+
+                    // 점검 전이고, 기존보다 경고 레벨이 낮으면 → 무시
+                    if (!existingInspection && severityRank <= existingRank) {
+                        console.log(`⚠ 무시: 기존보다 심각도 낮음 (${log.symptomItem})`);
+                        return;
+                    }
+                    // 등급 상승이거나 점검 완료 후라면 → 기존 행 제거하고 새로 추가
+                    tbody.removeChild(existingRow);
+                }
+
+                // 3. 새 행 생성 및 추가 tr.innerHTML 부분
+                const isNormal = log.warningLevel.includes("안정");
+
+                const tr = document.createElement("tr");
+                tr.setAttribute("data-symptom-item", log.symptomItem);
+                tr.setAttribute("data-warning-level", log.warningLevel);
+                tr.setAttribute("data-inspection-requested", log.inspectionRequested);
+                tr.setAttribute("data-log-key", `${log.symptomItem}_${log.processStep}`); // 2번차트
+                tr.innerHTML = `
+                <td>${log.timestamp}</td>
+                <td>${log.processStep}</td>
+                <td>${log.symptomItem}</td>
+                <td>${log.symptom}</td>
+                <td>${log.score}</td>
+                <td>${log.warningLevel}</td>
+                <td>
+                    ${log.inspectionRequested
+                    ? "점검완료"
+                    : isNormal
+                        ? `<button class="status-btn" disabled style="background-color:#ccc; color:white;">점검요청</button>`
+                        : `<button class="status-btn"
+                   onclick="requestInspection('${log.symptomItem}')"
+                   style="background-color:#FF5900; color:white;">점검요청</button>`}
+                </td>
+                    `;
+                tbody.prepend(tr);  // 최신 항목을 맨 위로!
+            }
+
+            // 점검요청버튼 -> 모달열기 전용
+            function requestInspection(symptom) {
+                document.getElementById("confirmModalSymptom").innerText = symptom;
+                selectedSymptomForDelete = symptom;
+
+                const modalEl = document.getElementById("confirmModal");
+                let modal = bootstrap.Modal.getInstance(modalEl);
+                if (!modal) {
+                    modal = new bootstrap.Modal(modalEl);
+                }
+                modal.show();
+            }
+
+            // 점검요청버튼 -> 모달닫기 전용
+            window.confirmDelete = function () {
+                const symptomText = document.getElementById("confirmModalSymptom").innerText;
+                const modalBody = document.querySelector("#confirmModal .modal-body");
+                const modalFooter = document.querySelector("#confirmModal .modal-footer");
+
+                // 바디 교체
+                modalBody.innerHTML = `
+                <p class="fw-bold text-center mb-2">${symptomText}</p>
+                <p class="text-center" style="color: #FF6A00">점검 요청이 완료되었습니다.</p>
+            `;
+                // [확인] 버튼만 남기기
+                modalFooter.innerHTML = `
+                <button type="button"
+                        class="btn btn-danger"
+                        style="background-color: #FF6A00; color: white;"
+                        data-bs-dismiss="modal">확인
+                </button>
+            `;
+            };
+
+            function openDeleteModal(symptom) {
+                selectedSymptomForDelete = symptom;
+                const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+                modal.show();
+            }
+
+            //  실시간 데이터를 받아서 DOM을 업데이트 (차트 경고 표시용)
+            function updateRealtimeWarnings(data) {
+
+                // 1. 차트 상단 경고창 갱신 ( 경고메시지 부분)
+                datasets.forEach(ds => {
+                    const elem = document.getElementById(ds.warningId); // 경고 메시지 위치 div
+                    const warning = data[`${ds.msgKey}Warning`];        // Flask에서 받은 경고 메시지
+                    const score = data[`${ds.msgKey}Score`] || 0;       // 점수: 퍼센트 단위로 받은 수치
+
+                    //  점수가 61 이상이고, 경고 메시지가 있을 때만 경고 표시!
+                    if (warning === "안정" || !warning) {
+                        // 👉 안정 메시지거나 경고 메시지 자체가 없을 경우
+                        elem.innerHTML = '';  // 메시지 비우기
+                        elem.classList.remove('warning-box', 'blinking');  // 경고 스타일 제거
+                    } else if (score >= 61) {
+                        // 👉 경고 메시지가 있고, 점수도 61 이상일 때만!
+                        elem.innerHTML = `⚠ ${warning}`;  // 경고 표시
+                        elem.classList.add('warning-box', 'blinking');  // 스타일 적용
+                    }
+                });
+
+                // 2. 세부 항목(압력/온도/용접)별 경고 메시지 처리
+                warningDatasets.forEach(ds => {
+                    const elem = document.getElementById(ds.warningId);
+                    const warning = data[`${ds.msgKey}Warning`];
+                    const score = data[`${ds.msgKey}Score`] || 0;
+
+                    // ⚠️ 세부항목도 동일하게: 61 이상 + 경고 메시지 있을 때만 표시
+                    if (elem && score >= 61 && warning && warning !== "안정") {
+                        elem.innerHTML = `⚠ ${warning}`;
+                        elem.classList.add('warning-box', 'blinking');
+                    } else if (elem) {
+                        elem.innerHTML = '';
+                        elem.classList.remove('warning-box', 'blinking');
+                    }
+                });
+            }
+        });
+    </script>
+</th:block>
 </html>

@@ -1,10 +1,193 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<th:block layout:fragment="content">
+    <div class="py-4">
+        <!-- 서브타이틀 -->
+        <div class="subtitle_css"><i class="bi bi-graph-up-arrow"></i> 생산지표관리_생산분석</div>
 
-</body>
+        <!-- ✅ KPI 요약 -->
+        <p class="fw-bold mt-3 mb-1">인사이트 요약</p>
+        <div class="row g-3 mt-1 text-center d-flex justify-content-center">
+            <div class="col-lg-6 col-12">
+                <div class="kpi-card" id="kpi-completed-card">
+                    <p class="kpi-title"><i class="bi bi-bar-chart-fill"></i> 금일 목표 달성 현황</p>
+                    <div class="kpi-value" id="kpi-completed" th:text="'300대 중 ' + ${kpi.completed} + '대 완료'"></div>
+                    <div class="kpi-sub text-muted">달성률: <strong class="text-primary" id="kpi-rate" th:text="${kpi.achievementRate + '%'}"></strong></div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-12">
+                <div class="kpi-card">
+                    <p class="kpi-title"><i class="bi bi-clock-fill"></i> 현재 속도</p>
+                    <div class="kpi-value" id="kpi-speed" th:text="${currentSpeed} + '대/분'"></div>
+                    <div class="kpi-sub text-muted" id="kpi-speed-status" th:text="${onTime ? '납기 내 달성 예상' : '지연 예상'}"></div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-3 mt-1 text-center d-flex justify-content-center">
+            <div class="col-lg-6 col-12">
+                <div class="kpi-card">
+                    <p class="kpi-title"><i class="bi bi-calendar-check-fill"></i> 납기 예측</p>
+                    <div class="kpi-value text-success" id="kpi-expected-rate" th:text="${expectedRate + '%'}"></div>
+                    <div class="kpi-sub text-muted">
+                        <span id="kpi-on-time-msg" th:text="${onTime ? '납기 내 완료 가능' : '지연 예상'}"></span><br>
+                        남은 예상시간: <strong id="kpi-estimated-time" th:text="${estimatedTime}"></strong>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-12">
+                <div class="kpi-card">
+                    <p class="kpi-title text-danger"><i class="bi bi-exclamation-triangle-fill"></i> 병목 원인 분석</p>
+                    <div class="kpi-value" th:text="${bottleneck != null ? bottleneck.processName : '분석 불가'}"></div>
+                    <div class="kpi-sub text-muted" th:text="${bottleneck != null ? bottleneck.mainCause : '원인 정보를 불러올 수 없습니다'}"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ✅ 공정 분석 차트 1~3 -->
+        <div class="row mt-4 text-center d-flex justify-content-center">
+            <div class="col-lg-6 col-12">
+                <p class="fw-bold py-3 text-start">공정별 생산효율 분석</p>
+                <div class="d-flex justify-content-center">
+                    <canvas id="analysisChart1" class="chart-lg"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-6 col-12">
+                <p class="fw-bold py-3 text-start mt-md-0 mt-mobile-gap">병목 분석 (에러 발생 건수 기준)</p>
+                <div class="d-flex justify-content-center">
+                    <div>
+                        <canvas id="analysisChart2" style="min-width: 380px; height: 260px;"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <p class="fw-bold py-3 text-start">전력량에 따른 불량률 상관관계 분석</p>
+                <div class="d-flex justify-content-center">
+                    <canvas id="analysisChart3" class="chart-lg"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ Script: WebSocket + Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <script th:inline="javascript" layout:fragment="script">
+        document.addEventListener('DOMContentLoaded', function () {
+            // WebSocket 연결
+            const socket = new SockJS('/ws');
+            const stompClient = Stomp.over(socket);
+
+            // 차트 인스턴스 정의
+            const chart1 = new Chart(document.getElementById('analysisChart1'), {
+                type: 'line',
+                data: {
+                    labels: ['프레임공정', '도장공정', '조립공정'],
+                    datasets: [{
+                        label: '평균처리시간(분)',
+                        data: [0, 0, 0],
+                        borderColor: '#FFA500',
+                        borderWidth: 3,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'top', labels: { font: { size: 15 } } } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 10 } } }
+                }
+            });
+
+            const chart2 = new Chart(document.getElementById('analysisChart2'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['프레임공정', '도장공정', '조립공정'],
+                    datasets: [{
+                        data: [0, 0, 0],
+                        backgroundColor: ['#FFA500', '#FF4C4C', '#36A2EB'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { size: 15 },
+                                boxWidth: 20,   // ✔ 범례 아이콘 넉넉하게
+                                padding: 15,    // ✔ 글자 간격 확보
+                            }
+                        },
+                        tooltip: { callbacks: { label: ctx => `${ctx.label}: 에러 ${ctx.raw}건` } }
+                    }
+                }
+            });
+
+            const chart3 = new Chart(document.getElementById('analysisChart3'), {
+                type: 'bar',
+                data: {
+                    labels: ['프레임공정', '도장공정', '조립공정'],
+                    datasets: [
+                        { label: '전력량(kWh)', data: [0, 0, 0], backgroundColor: '#FFA500', yAxisID: 'y' },
+                        { label: '불량률(%)', data: [0, 0, 0], backgroundColor: '#808080', yAxisID: 'y1' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'top', labels: { font: { size: 15 } } } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: 1.5,
+                            ticks: { stepSize: 0.5 },
+                            title: { display: true, text: '전력량(kWh)' }
+                        },
+                        y1: {
+                            beginAtZero: true,
+                            suggestedMax: 100,
+                            grid: { drawOnChartArea: false },
+                            ticks: { stepSize: 25 },
+                            title: { display: true, text: '불량률(%)' }
+                        }
+                    }
+                }
+            });
+
+            // WebSocket 구독 및 데이터 처리
+            stompClient.connect({}, function () {
+                stompClient.subscribe('/topic/analysis', function (message) {
+                    const data = JSON.parse(message.body);
+                    console.log('KPI 수신', data.kpi);
+
+                    if (data.kpi) {
+                        document.getElementById('kpi-completed').innerText = `300대 중 ${data.kpi.completed}대 완료`;
+                        document.getElementById('kpi-rate').innerText = `${data.kpi.achievementRate}%`;
+                        document.getElementById('kpi-speed').innerText = `${data.kpi.currentSpeed}대/분`;
+                        document.getElementById('kpi-expected-rate').innerText = `${data.kpi.expectedRate}%`;
+                        document.getElementById('kpi-estimated-time').innerText = data.kpi.estimatedTime;
+                        const msg = data.kpi.expectedRate >= 100 ? '납기 내 완료 가능' : '지연 예상';
+                        document.getElementById('kpi-speed-status').innerText = msg;
+                        document.getElementById('kpi-on-time-msg').innerText = msg;
+
+                    }
+
+                    if (data.avgProcessingTime) {
+                        chart1.data.datasets[0].data = [data.avgProcessingTime[1], data.avgProcessingTime[2], data.avgProcessingTime[3]].map(v => (v / 60).toFixed(1));
+                        chart1.update();
+                    }
+
+                    if (data.errorCounts) {
+                        chart2.data.datasets[0].data = [data.errorCounts[1], data.errorCounts[2], data.errorCounts[3]];
+                        chart2.update();
+                    }
+
+                    if (data.powerDefect) {
+                        chart3.data.datasets[0].data = [data.powerDefect[1]?.power || 0, data.powerDefect[2]?.power || 0, data.powerDefect[3]?.power || 0];
+                        chart3.data.datasets[1].data = [data.powerDefect[1]?.defect || 0, data.powerDefect[2]?.defect || 0, data.powerDefect[3]?.defect || 0];
+                        chart3.update();
+                    }
+                });
+            });
+        });
+    </script>
+</th:block>
 </html>

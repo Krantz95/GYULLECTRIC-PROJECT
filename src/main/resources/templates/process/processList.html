@@ -3,142 +3,121 @@
 
     <div class="py-4">
         <!-- 서브타이틀 -->
-        <div class="subtitle_css">공정 모니터링</div>
+        <div class="subtitle_css ">공정 모니터링</div>
+        <div class="py-3"></div>
+        <div class="chart-card text-center py-5 mb-4"
+             style="background:#FFF7EC;border:2px solid #FFA94D;border-radius:20px;box-shadow:0 2px 8px rgba(255,165,0,0.2);">
+            <div class="d-flex justify-content-center align-items-center mb-3">
+                <i class="bi bi-play-fill" style="font-size:2.5rem;color:#FF6B00;margin-right:10px;"></i>
+                <h2 class="fw-bold m-0">공정을 시작합니다</h2>
+            </div>
+            <p class="text-muted fs-5 mb-0">각 공정별 상태와 실시간 로그가 아래 표시됩니다.</p>
+            <button type="button" th:onclick="|location.href='@{/monitoring/list}'|"
+                    class="btn btn-dark btn-lg px-4 py-2 mt-3" style="border-radius: 12px;">실시간 모니터링 보기</button>
 
-        <!-- 새로고침 버튼 / 새로고침 시간 구현 전 -->
-        <div class="py-3 d-flex align-items-center gap-3">
-            <button type="button" class="refreshTime_css" onclick="location.reload();">
-                새로고침
-            </button>
-            <span>최근 업데이트: (시간 구현 전) </span>
+            <div class="row px-3 py-5">
+                <!-- 1·2·3 공정 카드 반복 -->
+                <div class="col-lg-4 col-12 mb-3" th:each="step : ${#numbers.sequence(1,3)}">
+                    <div class="card p-3 shadow-sm" style="border-radius: 20px;
+                            border: 2px dashed #FFA94D;
+                            background: linear-gradient(135deg, #FFF7EC 0%, #FFF1D6 100%);
+                            transition: transform 0.3s ease;">
+                        <h6 class="fw-bold mb-2" th:text="|${step}공정|"></h6>
+
+                        <!-- 막대 -->
+                        <div class="progressMoni" th:id="'bar-step-' + ${step}"
+                             style="display:flex;width:100%;height:24px;border:1px solid #ccc;border-radius:8px;overflow:hidden;">
+                            <div class="progressMoni-bar progressMoni-bar-animate" role="progressbar" style="width: 70%"></div>
+                        </div>
+
+                        <!-- 텍스트 -->
+                        <div th:id="'text-step-' + ${step}" class="text-center mt-2" style="font-size:14px;">
+                            <p style="font-size:1.2rem;">🔧 진행중</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <!-- 공정 로그 테이블 헤더 -->
+        <div class="d-flex justify-content-between align-items-center mt-2">
+            <p class="fw-bold mb-0">공정 로그</p>
+            <a href="/monitoring/product/list" class="refreshTime_css" style="text-decoration: none;">제품리스트</a>
         </div>
 
-        <!-- 공정별 OK/NG율 -->
-        <p class="fw-bold">공정별 OK/NG율</p>
-
-        <div class="row force-one-column g-4 text-start">
-            <div class="col text-center">
-                <p class="fs-5">1공정</p>
-                <div class="d-flex justify-content-center">
-                    <canvas id="myChart1" class="chart-canvas"></canvas>
-                </div>
-                <div id="chartText1" class="pt-2"></div>
-            </div>
-            <div class="col text-center">
-                <p class="fs-5">2공정</p>
-                <div class="d-flex justify-content-center">
-                    <canvas id="myChart2" class="chart-canvas"></canvas>
-                </div>
-                <div id="chartText2" class="pt-2"></div>
-            </div>
-            <div class="col text-center">
-                <p class="fs-5">3공정</p>
-                <div class="d-flex justify-content-center">
-                    <canvas id="myChart3" class="chart-canvas"></canvas>
-                </div>
-                <div id="chartText3" class="pt-2"></div>
-            </div>
-
-            <!-- 테이블 -->
-            <div class="d-flex justify-content-between align-items-center">
-                <p class="fw-bold mb-0">공정 로그</p>
-                <a href="/productList" class="refreshTime_css" style="text-decoration: none;">제품리스트</a>
-            </div>
-
-            <div class="table-responsive pt-2" style="overflow-x: auto;">
-                <table class="table table-bordered text-center align-middle table2_css">
-                    <thead>
-                    <tr>
-                        <th>제품명</th>
-                        <th>로트넘버</th>
-                        <th>공정No.</th>
-                        <th>공정상태</th>
-                        <th>공정생성일</th>
-                        <th>에러코드</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>A타입</td>
-                        <td>LOT123</td>
-                        <td>1공정</td>
-                        <td>OK</td>
-                        <td>2025-05-12 08:10</td>
-                        <td>-</td>
-                    </tr>
-                    <tr>
-                        <td>A타입</td>
-                        <td>LOT124</td>
-                        <td>2공정</td>
-                        <td>NG</td>
-                        <td>2025-05-12 08:20</td>
-                        <td>204</td>
-                    </tr>
-                    <tr>
-                        <td>B타입</td>
-                        <td>LOT125</td>
-                        <td>3공정</td>
-                        <td>OK</td>
-                        <td>2025-05-12 08:30</td>
-                        <td>-</td>
-                    </tr>
-                    <!--                    <tr th:each="process : ${processes}">-->
-                    <!--                        <td th:text="${process.jobOrder.productName}"></td>-->
-                    <!--                        <td th:text="${process.lotNumber}"></td>-->
-                    <!--                        <td th:text="${process.step}"></td>-->
-                    <!--                        <td th:text="${process.status}"></td>-->
-                    <!--                        <td th:text="${#temporals.format(process.processDate,'yyyy-MM-dd hh-mm')}"></td>-->
-                    <!--                        <td th:text="${process.errorㅋCode}"></td>-->
-                    <!--                    </tr>-->
-                    </tbody>
-                </table>
-            </div>
+        <!-- 공정 로그 테이블 -->
+        <div class="table-responsive pt-2" style="overflow-x: auto;">
+            <table class="table table-bordered text-center align-middle table2_css">
+                <thead>
+                <tr>
+                    <th>제품명</th>
+                    <th>로트넘버</th>
+                    <th>공정No.</th>
+                    <th>공정상태</th>
+                    <th>공정생성일</th>
+                    <th>에러코드</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="processForm : ${processes}">
+                    <td th:text="${processForm.productName}"></td>
+                    <td th:text="${processForm.lotNumber}"></td>
+                    <td th:text="${processForm.processStep}"></td>
+                    <td th:text="${processForm.processResultStatus}"></td>
+                    <td th:text="${#temporals.format(processForm.createAt,'yyyy-MM-dd HH:mm')}"></td>
+<!--                    <td th:text="${processForm.errorCode}"></td>-->
+                    <td style="color: darkred;" th:id="'errorDesc-' + ${processFormStat.index}"
+                        th:data-code="${processForm.errorCode}"
+                        th:data-value="${processForm.errorValue}"
+                        th:classappend="${processForm.errorCode == 'EXCEPTION_ERROR'} ? 'fw-bold' : ''">
+                    </td>
+                </tr>
+                </tbody>
+            </table>
         </div>
+    </div>
+    </div>
 
 
-        <!-- 열어서 안에 주석 참고 // 임시 구현 파이차트 -->
-        <script layout:fragment="script">
-            function drawChart(ctx, ok, ng, textElementId) {
-                const total = ok + ng;
-                const okPercent = total > 0 ? ((ok / total) * 100).toFixed(0) : 0;
-                const ngPercent = total > 0 ? ((ng / total) * 100).toFixed(0) : 0;
+<!-- 공정별 파이차트 스크립트 -->
+<script th:inline="javascript" layout:fragment="script">
+    /*<![CDATA[*/
+    const okCounts = {
+        1: /*[[${okCountByStep[1] ?: 0}]]*/,
+        2: /*[[${okCountByStep[2] ?: 0}]]*/,
+        3: /*[[${okCountByStep[3] ?: 0}]]*/
+    };
+    const ngCounts = {
+        1: /*[[${ngCountByStep[1] ?: 0}]]*/,
+        2: /*[[${ngCountByStep[2] ?: 0}]]*/,
+        3: /*[[${ngCountByStep[3] ?: 0}]]*/
+    };
 
-                new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['OK', 'NG'],
-                        datasets: [{
-                            data: [ok, ng],
-                            backgroundColor: ['#4CAF50', '#F44336'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true, // 차트 반응형
-                        maintainAspectRatio: false,
-                        cutout: '40%', // 파이차트 내부 원 크기 줄이기
-                        plugins: {
-                            legend: { display: false }
-                        }
-                    }
-                });
+    function render(step){
+        const ok = okCounts[step] ?? 0;
+        const ng = ngCounts[step] ?? 0;
+        const total = ok + ng;
+        const okPct = total ? Math.round(ok * 100 / total) : 0;
+        const ngPct = 100 - okPct;
 
-                // ⬇퍼센트/수치 텍스트 자동 삽입
-                const textDiv = document.getElementById(textElementId);
-                textDiv.innerHTML =
-                    `<span style="font-weight:bold;">OK </span><span>${ok}건 / ${okPercent}%</span><br>` +
-                    `<span style="font-weight:bold;">NG </span><span>${ng}건 / ${ngPercent}%</span>`;
-            }
+        // 막대
+        document.getElementById(`bar-step-${step}`).innerHTML = `
+      <div style="width:${okPct}%;background:#4CAF50;"></div>
+      <div style="width:${ngPct}%;background:#F44336;"></div>
+  `;
 
-            document.addEventListener('DOMContentLoaded', function () {
-                drawChart(document.getElementById('myChart1'), 70, 30, 'chartText1');
-                drawChart(document.getElementById('myChart2'), 30, 70, 'chartText2');
-                drawChart(document.getElementById('myChart3'), 45, 55, 'chartText3');
-            });
-        </script>
+        // 텍스트
+        document.getElementById(`text-step-${step}`).textContent =
+            `🟩 OK ${ok}건 / 🟥 NG ${ng}건 (${okPct}%)`;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => [1,2,3].forEach(render));
+
+
+</script>
+    <script>
+        setInterval(() => {
+            location.reload();
+        }, 6000); // 3초마다 새로고침
+    </script>
 </th:block>
 </html>
-
-
-
-
