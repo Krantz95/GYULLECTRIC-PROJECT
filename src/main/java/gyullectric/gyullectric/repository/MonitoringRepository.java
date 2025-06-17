@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -79,6 +80,7 @@ public interface MonitoringRepository extends JpaRepository<ProcessLog, Long> {
     List<Object[]> countErrorsByProcessStepToday(@Param("start") LocalDateTime start,
                                                  @Param("end") LocalDateTime end);
 
+    /** ✅ 공정별 전체 로그 수 (금일 기준) */
     @Query("SELECT p.processStep, COUNT(p) " +
             "FROM ProcessLog p " +
             "WHERE p.createAt BETWEEN :start AND :end " +
@@ -86,4 +88,13 @@ public interface MonitoringRepository extends JpaRepository<ProcessLog, Long> {
     List<Object[]> countTotalLogsByProcessStepToday(@Param("start") LocalDateTime start,
                                                     @Param("end") LocalDateTime end);
 
+    /** ✅ 금일 첫 공정 로그 시각 조회 (범위 기반, H2 대응) */
+    @Query("SELECT MIN(p.createAt) FROM ProcessLog p WHERE p.createAt BETWEEN :start AND :end")
+    Optional<LocalDateTime> findFirstLogTimeOfToday(@Param("start") LocalDateTime start,
+                                                    @Param("end") LocalDateTime end);
+
+    default Optional<LocalDateTime> findFirstLogTimeOfToday() {
+        LocalDate today = LocalDate.now();
+        return findFirstLogTimeOfToday(today.atStartOfDay(), today.plusDays(1).atStartOfDay());
+    }
 }

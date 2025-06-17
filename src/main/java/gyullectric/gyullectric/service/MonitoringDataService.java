@@ -1,8 +1,6 @@
 package gyullectric.gyullectric.service;
 
-import gyullectric.gyullectric.domain.OrderList;
-import gyullectric.gyullectric.domain.ProcessLog;
-import gyullectric.gyullectric.domain.ProcessResultStatus;
+import gyullectric.gyullectric.domain.*;
 import gyullectric.gyullectric.dto.OrderSummaryDto;
 import gyullectric.gyullectric.dto.ProcessDataDto;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +11,15 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * 생산 모니터링 및 분석 전용 서비스
+ * <p>
+ * ◆ 핵심 규칙
+ *   1. "완제품" = 동일 LOT 에 대해 공정 1·2·3 모두가 OK 일 때 <br/>
+ *   2. LOT 규격 : <code>제품명_주문PK_순번_공정단계_YYYYMMDD</code>  (MonitoringService.processSave 참고) <br/>
+ *   3. 실시간 KPI, 공정 달성률, 주문 요약 등 모든 지표가 동일 완제품 판정 로직을 공유하도록 구현
+ * </p>
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -20,153 +27,140 @@ public class MonitoringDataService {
 
     private final MonitoringService monitoringService;
 
-
-    //오더기준
+    /* ------------------------------------------------------
+     * 📊 1) 주문(ID) 단위 공정 데이터 분석
+     * ------------------------------------------------------ */
     public ProcessDataDto getProcessData(Long orderId) {
         List<ProcessLog> processes = monitoringService.allFindProcess(orderId);
         return analyzeProcesses(processes);
     }
 
-    //    날짜기준
+    /* ------------------------------------------------------
+     * 📊 2) 날짜 단위 공정 데이터 분석
+     * ------------------------------------------------------ */
     public ProcessDataDto getProcessDataByDate(LocalDate date) {
         List<ProcessLog> processes = monitoringService.findAllByDate(date);
         return analyzeProcesses(processes);
     }
 
+    /* ------------------------------------------------------
+     * 🔍 공정 로그 리스트 분석 (공통 내부 메서드)
+     * ------------------------------------------------------ */
     public ProcessDataDto analyzeProcesses(List<ProcessLog> processes) {
-        // 차트를 위한 추가
-//        공정별 통계. Map<Integer, Long>형태로 저장됨
+
+        /* 1) 공정별 전체 로그 수 */
         Map<Integer, Long> countByStep = processes.stream()
                 .collect(Collectors.groupingBy(ProcessLog::getProcessStep, Collectors.counting()));
-        log.info("공정별 개수 :{}", countByStep);
+        log.debug("공정별 총 로그 건수 = {}", countByStep);
 
-//        공정별 에러
+        /* 2) 공정별 NG, OK 로그 수 */
         Map<Integer, Long> ngCountByStep = processes.stream()
-                .filter(p -> ProcessResultStatus.NG.equals(p.getProcessResultStatus()))
+                .filter(p -> p.getProcessResultStatus() == ProcessResultStatus.NG)
                 .collect(Collectors.groupingBy(ProcessLog::getProcessStep, Collectors.counting()));
-        log.info("공정별 에러개수 : {}", ngCountByStep);
 
-//        공정별 OK
         Map<Integer, Long> okCountByStep = processes.stream()
-                .filter(p -> ProcessResultStatus.OK.equals(p.getProcessResultStatus()))
+                .filter(p -> p.getProcessResultStatus() == ProcessResultStatus.OK)
                 .collect(Collectors.groupingBy(ProcessLog::getProcessStep, Collectors.counting()));
-        log.info("공정별 오케이개수 : {}", okCountByStep);
-//lot넘버별로 모든 공정상태를 Set<Stream>으로 저장
-        Map<String, Set<ProcessResultStatus>> lotSatusMap =
-                processes.stream()
-                        .collect(Collectors.groupingBy(p -> lotNumberGroup(p.getLotNumber()),
-                                Collectors.mapping(ProcessLog::getProcessResultStatus, Collectors.toSet())));
-        log.info("lot별 :{}", lotSatusMap);
-// lot 아이디 : 제품이름_오더아이디_순서_공정순서_생성일
-//        로트번호에서 공통부분만 추출하는 함수,
 
-//        모든 상태가 ok인 lot만 선택하여 개수계산
-//        Set<String>의 크기가 1이고 그값이 ok라면 해당 lot는 완제품
-        long productCount = lotSatusMap.values().stream()
-                .filter(statuses -> statuses.size() == 1 && statuses.contains(ProcessResultStatus.OK)).count();
-        log.info("lot별 모두 ok인 완제품 개수 :{}", productCount);
+        /* 3) LOT 단위 완제품·NG 판정 */
+        Map<String, Set<ProcessResultStatus>> lotStatusMap = processes.stream()
+                .collect(Collectors.groupingBy(
+                        p -> lotKey(p.getLotNumber()),
+                        Collectors.mapping(ProcessLog::getProcessResultStatus, Collectors.toSet())));
 
-//        공정 전체개수, 주문수
-        int totalCount = (processes.size() / 3);
-        log.info("주문수 :{}", totalCount);
+        long finishedLots = lotStatusMap.values().stream()
+                .filter(statuses -> statuses.size() == 1 && statuses.contains(ProcessResultStatus.OK))
+                .count();
 
-        return new ProcessDataDto(processes, countByStep, ngCountByStep, okCountByStep, productCount, totalCount);
+        long totalLots = lotStatusMap.size(); // (= 주문 수량)
+
+        log.debug("완제품 {} / 총 LOT {}  (NG = {})", finishedLots, totalLots, (totalLots - finishedLots));
+
+        return new ProcessDataDto(
+                processes,
+                countByStep,
+                ngCountByStep,
+                okCountByStep,
+                finishedLots,
+                (int) totalLots);
     }
 
-    private String lotNumberGroup(String lotNumber) {
+    /* ------------------------------------------------------
+     * 🧩  Helper – LOT 키 추출 (제품_주문PK_순번)
+     * ------------------------------------------------------ */
+    private String lotKey(String lotNumber) {
         String[] parts = lotNumber.split("_");
         if (parts.length >= 3) {
             return parts[0] + "_" + parts[1] + "_" + parts[2];
         }
-        return lotNumber;
+        return lotNumber; // fallback (형식 불일치 시 그대로 사용)
     }
 
-
-    private Map<Long, Map<String, Set<ProcessResultStatus>>> groupStatusesByOrderAndLot(List<ProcessLog> processes) {
-        // 주문번호(Long) -> 로트번호(String) -> 공정상태 Set<ProcessResultStatus>
+    /* ------------------------------------------------------
+     * 📦 3) 주문별 LOT 요약
+     * ------------------------------------------------------ */
+    private Map<Long, Map<String, Set<ProcessResultStatus>>> groupByOrderAndLot(List<ProcessLog> processes) {
         return processes.stream()
                 .collect(Collectors.groupingBy(
-                        p -> p.getOrderList().getId(),       // 주문번호로 그룹핑
+                        p -> p.getOrderList().getId(),
                         Collectors.groupingBy(
-                                p -> lotNumberGroup(p.getLotNumber()), // 로트번호 기준 그룹핑
-                                Collectors.mapping(ProcessLog::getProcessResultStatus, Collectors.toSet())
-                        )
-                ));
+                                p -> lotKey(p.getLotNumber()),
+                                Collectors.mapping(ProcessLog::getProcessResultStatus, Collectors.toSet()))));
     }
-    public Map<Long, OrderSummaryDto> getOrderSummaryByOrderId(List<ProcessLog> processes) {
-        Map<Long, Map<String, Set<ProcessResultStatus>>> orderLotStatusMap = groupStatusesByOrderAndLot(processes);
 
+    public Map<Long, OrderSummaryDto> getOrderSummaryByOrderId(List<ProcessLog> processes) {
+        Map<Long, Map<String, Set<ProcessResultStatus>>> map = groupByOrderAndLot(processes);
         Map<Long, OrderSummaryDto> result = new HashMap<>();
 
-        for (Map.Entry<Long, Map<String, Set<ProcessResultStatus>>> orderEntry : orderLotStatusMap.entrySet()) {
-            Long orderId = orderEntry.getKey();
-            Map<String, Set<ProcessResultStatus>> lotStatusMap = orderEntry.getValue();
-
-            int totalLots = lotStatusMap.size();
-            int finishedLots = 0;
-            int ngLots = 0;
-
-            for (Set<ProcessResultStatus> statuses : lotStatusMap.values()) {
-                if (statuses.size() == 1 && statuses.contains(ProcessResultStatus.OK)) {
-                    finishedLots++;
-                } else {
-                    ngLots++;
-                }
+        for (var entry : map.entrySet()) {
+            int finished = 0, ng = 0;
+            for (Set<ProcessResultStatus> statuses : entry.getValue().values()) {
+                if (statuses.size() == 1 && statuses.contains(ProcessResultStatus.OK)) finished++;
+                else ng++;
             }
-
-            result.put(orderId, new OrderSummaryDto(totalLots, finishedLots, ngLots));
+            result.put(entry.getKey(), new OrderSummaryDto(entry.getValue().size(), finished, ng));
         }
-
         return result;
     }
 
-    // 제품명 기준 달성률 계산
-    public Map<String, Object> calculateProductAchievementAndCounts(List<OrderList> productOrderList, List<ProcessLog> processLogs) {
-        Map<Long, OrderSummaryDto> orderSummaryMap = getOrderSummaryByOrderId(processLogs);
+    /* ------------------------------------------------------
+     * 📈 4) 제품명별 달성률 계산 (대시보드)
+     * ------------------------------------------------------ */
+    public Map<String, Object> calculateProductAchievementAndCounts(List<OrderList> orders, List<ProcessLog> logs) {
+        Map<Long, OrderSummaryDto> summaryByOrder = getOrderSummaryByOrderId(logs);
 
-        Map<String, Long> totalOrderQtyByProduct = new HashMap<>();
-        Map<String, Long> totalCompleteByProduct = new HashMap<>();
-        Map<String, Long> totalNgByProduct = new HashMap<>();
-        List<String> labels = new ArrayList<>();
-        List<Double> achievementRates = new ArrayList<>();
+        Map<String, Long> orderQtyByProduct   = new HashMap<>();
+        Map<String, Long> completeByProduct   = new HashMap<>();
+        Map<String, Long> ngByProduct         = new HashMap<>();
 
-        for (OrderList order : productOrderList) {
-            Long orderId = order.getId();
-            int orderQty = order.getQuantity();
-            String productName = order.getProductName().name();
+        for (OrderList order : orders) {
+            String product = order.getProductName().name();
+            int qty        = order.getQuantity();
 
-            OrderSummaryDto summary = orderSummaryMap.getOrDefault(orderId, new OrderSummaryDto(0, 0, 0));
-            int completeCount = summary.getFinishedLots();
-            int ngCount = summary.getNgLots();
+            OrderSummaryDto s = summaryByOrder.getOrDefault(order.getId(), new OrderSummaryDto(0,0,0));
 
-            totalOrderQtyByProduct.put(productName,
-                    totalOrderQtyByProduct.getOrDefault(productName, 0L) + orderQty);
-            totalCompleteByProduct.put(productName,
-                    totalCompleteByProduct.getOrDefault(productName, 0L) + completeCount);
-            totalNgByProduct.put(productName,
-                    totalNgByProduct.getOrDefault(productName, 0L) + ngCount);
+            orderQtyByProduct.merge(product, (long) qty, Long::sum);
+            completeByProduct.merge(product, (long) s.getFinishedLots(), Long::sum);
+            ngByProduct.merge(product, (long) s.getNgLots(), Long::sum);
         }
 
-        for (String productName : totalOrderQtyByProduct.keySet()) {
-            long totalOrder = totalOrderQtyByProduct.get(productName);
-            long totalComplete = totalCompleteByProduct.getOrDefault(productName, 0L);
-            double rate = (totalOrder == 0) ? 0.0 : Math.round((totalComplete * 1000.0 / totalOrder)) / 10.0;
-
-            labels.add(productName);
-            achievementRates.add(rate);
-        }
+        /* 달성률(%) = 완제품 / 주문수량 */
+        List<String> labels = new ArrayList<>(orderQtyByProduct.keySet());
+        List<Double> achievementRates = labels.stream()
+                .map(p -> {
+                    long ordered = orderQtyByProduct.get(p);
+                    long done    = completeByProduct.getOrDefault(p, 0L);
+                    return ordered == 0 ? 0.0 : Math.round(done * 1000.0 / ordered) / 10.0; // 0.1% 단위 반올림
+                })
+                .collect(Collectors.toList());
 
         Map<String, Object> result = new HashMap<>();
         result.put("labels", labels);
-        result.put("totalOrderQtyByProduct", totalOrderQtyByProduct);
-        result.put("totalCompleteByProduct", totalCompleteByProduct);
-        result.put("totalNgByProduct", totalNgByProduct);
+        result.put("totalOrderQtyByProduct", orderQtyByProduct);
+        result.put("totalCompleteByProduct", completeByProduct);
+        result.put("totalNgByProduct", ngByProduct);
         result.put("achievementRates", achievementRates);
-        for (OrderList order : productOrderList) {
-            System.out.println("OrderList ID=" + order.getId()
-                    + ", productName=" + order.getProductName().name());
-        }
+
         return result;
     }
-
 }

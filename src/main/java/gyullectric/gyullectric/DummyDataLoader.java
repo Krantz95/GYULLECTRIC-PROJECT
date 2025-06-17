@@ -58,13 +58,24 @@ public class DummyDataLoader implements CommandLineRunner {
                 .positionName(PositionName.ADMIN)
                 .build();
 
+        Members admin4 = Members.builder()
+                .loginId("test")
+                .password("1111")
+                .name("test")
+                .phone("010-0000-0000")
+                .createDate(LocalDateTime.now())
+                .positionName(PositionName.ADMIN)
+                .build();
+
         memberService.save(admin1);
         memberService.save(admin2);
         memberService.save(admin3);
+        memberService.save(admin4);
 
         usedLoginIds.add("1");
         usedLoginIds.add("2");
         usedLoginIds.add("3");
+        usedLoginIds.add("test");
 
         // ✅ 더미 100명 생성 (ENGINEER)
         for (int i = 0; i < 100; i++) {
@@ -114,7 +125,7 @@ public class DummyDataLoader implements CommandLineRunner {
                         .members(fixedAdmin)
                         .orderAt(LocalDateTime.now())
                         .supplier(supplier)
-                        .quantity(100)
+                        .quantity(400)
                         .partName(partName)
                         .build();
                 orderService.saveInventory(inventory);
