@@ -82,7 +82,7 @@ datasets.forEach(data => {
             afterDraw: chart => { // 도넛 중앙에 수치 표시
                 const { ctx, chartArea: { width, height } } = chart;
                 const centerX = width / 2;
-                const centerY = height / 1.3;
+                const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
 
                 // ✅ 여기서 percent 안전하게 추출
                 const dataset = chart.data.datasets[0];
@@ -167,12 +167,11 @@ function updateRealtimeCharts(data) {
                 afterDraw: chart => {
                     const { ctx, chartArea: { width, height } } = chart;
                     const centerX = width / 2;
-                    const centerY = height / 1.3;
 
-                    // ✅ 여기서 percent 안전하게 추출
-                    const dataset = chart.data.datasets[0];
-                    const rawValue = dataset?.data?.[0];
-                    const percent = Number.isFinite(rawValue) ? Math.round(rawValue) : 0;
+                    // 💡 반원 도넛 중앙을 살짝 위로
+                    let centerY = window.innerWidth <= 576 ? height / 1.55 :
+                        window.innerWidth <= 768 ? height / 1.45 :
+                            height / 1.35;
 
 
                     ctx.save();
@@ -181,14 +180,18 @@ function updateRealtimeCharts(data) {
                     ctx.fillStyle = '#ffffff';
                     ctx.fill();
                     ctx.strokeStyle = '#F37221';
+                    ctx.lineWidth = 2;
                     ctx.stroke();
-                    ctx.font = '25px sans-serif';
-                    ctx.fillStyle = 'black';
+
+                    ctx.font = 'bold 25px sans-serif';
+                    ctx.fillStyle = '#000000';
                     ctx.textAlign = 'center';
-                    ctx.fillText(`${percent}%`, centerX, centerY + 10);
+                    ctx.textBaseline = 'middle';  // ✅ 정확한 중앙 정렬
+                    ctx.fillText(`${percent}%`, centerX, centerY);
                     ctx.restore();
                 }
             }]
+
         });
     });
 }
