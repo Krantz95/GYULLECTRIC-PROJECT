@@ -1,3 +1,9 @@
+
+
+
+
+
+
 /* ────────────────────────────  Google Fonts  ──────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
@@ -10,41 +16,17 @@ body {
     font-size: 18px;
     background-color: #FFFBEA;
 }
-/* 영어만 Rubik으로 쓰고 싶다면 en-font로 따로지정, 일부면 <span>으로 활용 */
+/* 영어는 Rubik en-font로 따로지정, 일부면 <span>으로 활용 */
 .en-font {
     font-family: 'Rubik', sans-serif !important;
 }
-
 /* 서브타이틀 ex.페이지 상단 구분선 쪽 */
 .subtitle_css {
     border-bottom: 1px solid #F37221;
-    padding-bottom: 8px; /* pb-2 (아래 여백) */
+    padding-bottom: 8px; /* = pb-2 (아래 여백) */
     font-size: 24px;
 }
 
-/* 경고 메시지 디자인 통일 */
-.warning-box {
-    display: inline-block;          /* 내용 길이 기준 가로 */
-    background-color: #ffe6f0;      /* 연한 분홍 배경 */
-    color: #ff0000;                 /* 빨간 글씨 */
-    font-weight: bold;              /* 굵은 글씨 */
-    font-size: 20px;                /* 글씨 더 크게 */
-    min-height: 50px;               /* 최소 높이 넉넉히 확보 */
-    margin-top: 30px;               /* 위쪽 여백 유지 */
-    padding: 12px 24px;             /* 좌우 여백 더 넓힘 */
-    line-height: 1.5;               /* 줄 간격 */
-    white-space: nowrap;            /* 한 줄 유지 */
-    border-radius: 8px;             /* 살짝 둥글게 (더 세련되게) */
-}
-.warning-placeholder {
-    height: 50px;                   /* 경고 있을 때 높이에 맞춤 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
 /* ────────────────────────────  공통 : 레이아웃  ──────────────────────────── */
 
@@ -153,9 +135,7 @@ nav.d-lg-none {
 
 
 /* ────────────────────────────   576px 모바일 반응형  ──────────────────────────── */
-/* ──────────────── 576px 이하: 모바일 반응형 대응 ──────────────── */
 @media (max-width: 576px) {
-
     /* 공통 카드 레이아웃 */
     .chart-card,
     .product-card,
@@ -166,18 +146,17 @@ nav.d-lg-none {
         box-sizing: border-box;
         width: 100% !important;
     }
-
-    /* KPI 카드 */
-    .kpi-card .kpi-title {
-        font-size: 1.05rem !important;
+    /* 로그인/폼 관련 스타일 */
+    .form_sm_css,
+    .form_lg_css {
+        border-radius: 12px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+        padding: 30px 20px !important;
+        height: auto !important;
     }
-    .kpi-card .kpi-value {
-        font-size: 1.25rem !important;
+    .form-label {
+        font-size: 0.9rem;
     }
-    .kpi-card .kpi-sub {
-        font-size: 0.95rem !important;
-    }
-
     /* 차트 제목 및 기준선 */
     .chart-title {
         font-size: 1.1rem;
@@ -185,7 +164,6 @@ nav.d-lg-none {
     .chart-baseline {
         font-size: 0.9rem;
     }
-
     /* 차트 범례 */
     .bar-legend {
         display: flex;
@@ -199,6 +177,17 @@ nav.d-lg-none {
         min-width: 40%;
         text-align: center;
     }
+    /* KPI 카드 */
+    .kpi-card .kpi-title {
+        font-size: 1.05rem !important;
+    }
+    .kpi-card .kpi-value {
+        font-size: 1.25rem !important;
+    }
+    .kpi-card .kpi-sub {
+        font-size: 0.95rem !important;
+    }
+
 
     /*!* 자전거 썸네일 *!*/
     /*.thumbnail-img {*/
@@ -225,17 +214,6 @@ nav.d-lg-none {
         height: 200px !important;
     }
 
-    /* 로그인/폼 관련 스타일 */
-    .form_sm_css,
-    .form_lg_css {
-        border-radius: 12px;
-        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
-        padding: 30px 20px !important;
-        height: auto !important;
-    }
-    .form-label {
-        font-size: 0.9rem;
-    }
 
     /* sm 일때 버튼크기, a링크제거 */
     .btn_orange,
@@ -721,6 +699,89 @@ nav.d-lg-none {
 
 
 /* ────────────────────────────  페이지별 (대시보드)  ──────────────────────────── */
+
+/* 대시보드 차트3개 sm에서만 1개씩 나오기*/
+@media (max-width: 991.98px) {
+    .chart-body {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .row.text-center {
+        flex-wrap: wrap !important;
+    }
+}
+/* 불량예측 그래프 반응형 조절*/
+
+
+
+/* ───── 경고 메시지 공통 스타일 ───── */
+.warning-box {
+    display: inline-block;
+    background-color: #ffe6f0;
+    color: #ff0000;
+    font-weight: bold;
+    font-size: 20px;
+    min-height: 50px;
+    margin-top: 30px;
+    padding: 12px 24px;
+    line-height: 1.5;
+    white-space: nowrap;
+    border-radius: 8px;
+}
+
+/* 경고창 가운데 정렬 (768px 이상, 아이패드 포함) */
+@media (min-width: 768px) {
+    .warning-box {
+        float: none;              /* 기존 우측 정렬 제거 */
+        display: block;           /* block 요소로 */
+        margin: 0 auto;           /* 가운데 정렬 핵심 */
+        text-align: center;       /* 내부 텍스트도 가운데 (선택) */
+        white-space: nowrap;      /* 한 줄 유지 원하면 유지 */
+    }
+}
+/* 작은 화면(SM 이하) 대응 - 강조/가운데 정렬 */
+@media (max-width: 576px) {
+    #ngWarningMessage {
+        font-size: 0.95rem !important;
+        padding: 8px 14px !important;
+        white-space: normal !important;
+        text-align: center;
+        line-height: 1.6;
+        display: flex;
+        justify-content: center;
+    }
+    .warning-box {
+        font-size: 1rem !important;
+        padding: 12px 20px !important;
+        white-space: normal !important;
+        margin: 0 auto !important;
+        text-align: center;
+        font-weight: 700;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(255, 0, 0, 0.2); /* 경고 느낌 강조 */
+        float: none !important;
+    }
+}
+
+/* 경고 메시지 placeholder (기본 위치 고정용) */
+.warning-placeholder {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+/* 에러 메시지 컨테이너 - 최소 공간 확보 */
+#ngWarningMessage {
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+}
+
+
 /* 차트 1 세로높이고정*/
 #productAchievementChart {
     width: 100% !important;
@@ -755,12 +816,7 @@ nav.d-lg-none {
     padding: 0 16px;            /* 좌우 여백만 */
     box-sizing: border-box;     /* 패딩 포함 너비 계산 */
 }
-/* 대시보드 본문 에러 표시 위치 고정 */
-#ngWarningMessage {
-    min-height: 24px;        /* 한 줄 높이로 공간 확보 */
-    display: flex;           /* flexbox로 정렬 */
-    align-items: center;     /* 세로 방향 가운데 정렬 */
-}
+
 
 
 /* 대시보드 KPI 요약 디자인 */
@@ -801,7 +857,6 @@ nav.d-lg-none {
     padding: 12px;
     height: 100%;
 }
-
 
 .chart-title {
     font-weight: 700;
@@ -1192,13 +1247,7 @@ button[name="processButton"]:disabled {
     animation: blink 1s infinite;
     font-weight: bold;
 }
-/* 차트2 - "주의"문구 전용- 연노랑 배경 + 진한 글씨 */
-.custom-warning {
-    background-color: #fff3cd !important;  /* Bootstrap 연노랑 */
-    color: #856404 !important;             /* 진한 노랑 텍스트 */
-    border: 1px solid #ffeeba;
-    font-weight: bold;
-}
+
 
 
 /* 불량예측 행 flex 정렬 */
@@ -1232,6 +1281,7 @@ button[name="processButton"]:disabled {
     font-size: 18px;                                /* 글자 크기 16px */
     font-weight: bold;                              /* 글자를 굵게 */
     margin-bottom: 8px;                             /* 아래쪽 여백 8px (버튼과 간격) */
+    white-space: nowrap;
 }
 
 .defect-btn {
@@ -1242,6 +1292,7 @@ button[name="processButton"]:disabled {
     font-size: 18px;                                /* 버튼 글자 크기 16px */
     cursor: pointer;                                /* 마우스 올리면 손가락 모양 */
     transition: background-color 0.3s;              /* 배경색 변화에 0.3초 부드러운 효과 */
+    white-space: nowrap;
 }
 .defect-btn:disabled {
     cursor: not-allowed;                            /* 금지 표시 커서 */
@@ -1249,6 +1300,37 @@ button[name="processButton"]:disabled {
     background-color: #666666 !important;           /* 진한 회색으로 강제 */
     color: white !important;                        /* 글씨 색도 보이게 강제 */
 }
+@media (max-width: 576px) {
+    .defect-label {
+        font-size: 17px;         /* 상태 텍스트 더 큼 */
+    }
+
+    .defect-btn {
+        font-size: 0.95rem;
+        padding: 0.6rem 1.1rem;  /* 버튼 크게 */
+    }
+
+    /* 에러 경고와 버튼 사이 간격 */
+    #castingStatus,
+    #weldingStatus {
+        margin-bottom: 10px; /* ⬅ 버튼 아래 간격 */
+    }
+
+    #castingWarning,
+    #weldingWarning {
+        margin: 2px 0 !important;    /* ⬅ 경고 메시지 위 간격 */
+    }
+
+    .defect-box {
+        display: flex;
+        justify-content: center;   /* 👉 가운데 정렬 */
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;                /* 요소 사이 여백 */
+        text-align: center;        /* 텍스트 정렬 */
+    }
+}
+
 
 /* 주조공정 기준 확인용 툴팁 디자인 */
 .tooltip-inner {

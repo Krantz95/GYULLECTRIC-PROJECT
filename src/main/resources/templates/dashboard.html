@@ -63,7 +63,7 @@
                             <!-- 타이틀 -->
                             <div class="mb-2 mb-lg-0 w-100 w-lg-auto">
                                 <p class="fw-bold mb-0 d-flex align-items-center">
-                                    <i class="bi bi-gear" style="color: #fd7e14;"></i> 공정별 현재 상태
+                                    <i class="bi bi-gear" style="color: #fd7e14;"></i>&nbsp;공정별 현재 상태
                                 </p>
                             </div>
                             <!-- 경고 메시지 -->
@@ -74,7 +74,7 @@
                         <div class="chart-body" style="padding: 20px 10px;">
                             <div class="row text-center"><!-- sm 사이즈에서는 차트 1개씩-->
                                 <!-- 프레임 -->
-                                <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
+                                <div class="col-12 col-lg-4 col-md-4 mb-3 d-flex justify-content-center">
                                     <div style="width: 100%; max-width: 320px;">
                                         <p class="text-center">1공정 - 프레임</p>
                                         <canvas id="myChart1" class="w-100" style="height: 240px;" height="240"></canvas>
@@ -82,7 +82,7 @@
                                     </div>
                                 </div>
                                 <!-- 도장 -->
-                                <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
+                                <div class="col-12 col-lg-4 col-md-4 mb-3 d-flex justify-content-center">
                                     <div style="width: 100%; max-width: 320px;">
                                         <p class="text-center">2공정 - 도장</p>
                                         <canvas id="myChart2" class="w-100" style="height: 240px;" height="240"></canvas>
@@ -90,7 +90,7 @@
                                     </div>
                                 </div>
                                 <!-- 검수 -->
-                                <div class="col-12 col-lg-4 mb-3 d-flex justify-content-center">
+                                <div class="col-12 col-lg-4 col-md-4 mb-3 d-flex justify-content-center">
                                     <div style="width: 100%; max-width: 320px;">
                                         <p class="text-center">3공정 - 검수</p>
                                         <canvas id="myChart3" class="w-100" style="height: 240px;" height="240"></canvas>
@@ -152,7 +152,7 @@
                                 공정 예측이 시작되면 실시간 차트가 자동으로 표시됩니다.
                             </div>
                             <div id="chartContainer" style="display: none;">
-                                <div class="chart-body" style="padding: 20px 10px;">
+                                <div class="chart-body" style="padding: 20px 10px; overflow: visible; max-height: none;">
                                     <div class="row justify-content-center">
                                             <!-- 🔶 차트 1: 도장 공정 -->
                                             <div class="col-lg-6 col-12 text-center">
@@ -164,7 +164,7 @@
                                                 </div>
 
                                                 <!-- 🛠 차트 + 상태 고정 wrapper -->
-                                                <div style="display: block; width: 70%; margin: 0 auto; padding: 0; max-height: 340px; overflow: hidden;">
+                                                <div style="display: block; width: 70%; margin: 0 auto; padding: 0; max-height: none; overflow: visible;">
                                                     <!-- 로딩 텍스트 -->
                                                     <div id="castingChartLoading" class="chart-loading-text"
                                                          style="text-align: center; padding: 2rem; font-weight: bold; color: #F37221;">
@@ -172,7 +172,7 @@
                                                     </div>
 
                                                     <!-- 차트 -->
-                                                    <canvas id="castingChart"
+                                                    <canvas id="castingChart" class="defect-chart"
                                                             role="img"
                                                             aria-label="주조 공정 안정성 차트"
                                                             style="display: block; width: 100%; height: 240px; max-height: 280px; margin-bottom: 0;"></canvas>
@@ -201,46 +201,50 @@
                                                 </div>
                                             </div>
 
-                                            <!-- 🔶 차트 2: 용접 공정 -->
-                                            <div class="col-lg-6 col-12 text-center">
-                                                <div id="weldingWarning" class="warning-placeholder">
-                                                    <div th:if="${weldingWarningMsg != null and weldingWarningMsg != ''}"
-                                                         th:class="'alert ' +
-                                                             (${weldingWarningMsg.contains('점검')} ? 'custom-danger' :
-                                                              (${weldingWarningMsg.contains('주의')} ? 'custom-warning' : ''))"
-                                                         style="font-weight: bold;">
-                                                        <i class="bi bi-exclamation-triangle-fill"></i>
-                                                        <span th:text="${weldingWarningMsg}"></span>
-                                                    </div>
+                                        <!-- 🔶 차트 2: 용접 공정 -->
+                                        <div class="col-lg-6 col-12 text-center">
+                                            <!-- 경고 메시지 -->
+                                            <div id="weldingWarning" class="warning-placeholder">
+                                                <div th:if="${weldingWarningMsg != null and weldingWarningMsg != ''}"
+                                                     th:class="'alert ' +
+             (${weldingWarningMsg.contains('점검')} ? 'custom-danger' :
+              (${weldingWarningMsg.contains('주의')} ? 'custom-warning' : ''))"
+                                                     style="font-weight: bold;">
+                                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                                    <span th:text="${weldingWarningMsg}"></span>
+                                                </div>
+                                            </div>
+
+                                            <!-- 🛠 차트 + 상태 고정 wrapper -->
+                                            <div style="display: block; width: 70%; margin: 0 auto; padding: 0; max-height: none; overflow: visible;">
+                                                <!-- 로딩 텍스트 -->
+                                                <div id="weldingChartLoading" class="chart-loading-text"
+                                                     style="text-align: center; padding: 2rem; font-weight: bold; color: #F37221;">
+                                                    실시간 차트를 불러오는 중입니다
                                                 </div>
 
-                                                <!-- 🛠 차트 + 상태 고정 wrapper -->
-                                                <div style="display: block; width: 70%; margin: 0 auto; padding: 0; max-height: 340px; overflow: hidden;">
-                                                    <!-- 로딩 텍스트 -->
-                                                    <div id="weldingChartLoading" class="chart-loading-text"
-                                                         style="text-align: center; padding: 2rem; font-weight: bold; color: #F37221;">
-                                                        실시간 차트를 불러오는 중입니다
-                                                    </div>
-                                                    <!-- 차트 -->
-                                                    <canvas id="weldingChart"
-                                                            role="img"
-                                                            aria-label="용접 공정 안정성 차트"
-                                                            style="display: block; width: 100%; height: 240px; max-height: 280px; margin-bottom: 0;"></canvas>
-                                                    <!-- 상태 -->
-                                                    <div id="weldingStatus" class="d-flex justify-content-between align-items-center mt-2">
-                                                        <div class="defect-box">
-                                                            <span class="defect-label">용접 출력 감지 (0%)</span>
-                                                            <button type="button"
-                                                                    class="defect-btn"
-                                                                    style="background-color: #FF5900; color: white;"
-                                                                    onclick="requestInspection('용접 출력')">
-                                                                점검요청
-                                                            </button>
-                                                        </div>
+                                                <!-- 차트 -->
+                                                <canvas id="weldingChart" class="defect-chart"
+                                                        role="img"
+                                                        aria-label="용접 공정 안정성 차트"
+                                                        style="display: block; width: 100%; height: 240px; max-height: 280px; margin-bottom: 0;"></canvas>
+
+                                                <!-- 상태 -->
+                                                <div id="weldingStatus" class="d-flex justify-content-between align-items-center mt-2">
+                                                    <div class="defect-box">
+                                                        <span class="defect-label">용접 출력 감지 (0%)</span>
+                                                        <button type="button"
+                                                                class="defect-btn"
+                                                                style="background-color: #FF5900; color: white;"
+                                                                onclick="requestInspection('용접 출력')">
+                                                            점검요청
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
-                                            </div>
+                                        </div>
+
+                                    </div>
                                         </div> <!-- inner row -->
                                     </div> <!-- outer row -->
                                 </div> <!-- chart-body -->
@@ -332,7 +336,7 @@
             // 1. ngRates 배열 숫자 필터링 (예: 문자열, NaN 제거)
             const validNgRates = ngRates.filter(v => typeof v === 'number' && !isNaN(v));
 
-// 2. 평균 계산
+            // 2. 평균 계산
             let avgNg = 0;
             if (validNgRates.length > 0) {
                 avgNg = validNgRates.reduce((a, b) => a + b, 0) / validNgRates.length;
@@ -516,7 +520,7 @@
             return target === 0 ? 0.0 : Math.round((actual * 1000.0 / target)) / 10.0;
         });
 
-        /* ---------- 차트 함수 ---------- */
+        /* ────────────────────────────  스크립트 : 실시간 KPI  ──────────────────────────── */
         let productAchievementChart;
         const getBarColor = p => p<40?"#D7263D":p<70?"#FFB627":p<100?"#219EBC":"#005805";
 
