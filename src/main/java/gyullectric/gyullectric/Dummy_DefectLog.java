@@ -24,13 +24,13 @@ public class Dummy_DefectLog {
         dto.setLowerTemp(random.nextInt(180, 230));       // 하단 금형 온도: 180~229
         // [2] 강제로 "에러 조건"을 유도하여 테스트에 활용 (조건문 확률 조정 가능)
         // 현재는 각각 약 10% 확률로 에러 발생
-        if (random.nextInt(2) == 0) {  // 50% 확률로 에러 압력 생성
+        if (random.nextInt(2) == 0) {
             dto.setPressure(random.nextInt(180, 290));    // 기준치(299) 미달 압력
         }
-        if (random.nextInt(2) == 0) {  // 50% 확률로 에러 온도 생성
+        if (random.nextInt(2) == 0) {
             dto.setUpperTemp(random.nextInt(70, 85));     // 기준치(94) 미달 상단 금형 온도
         }
-        if (random.nextInt(2) == 0) {  // 50% 확률로 에러 온도 생성
+        if (random.nextInt(2) == 0) {
             dto.setLowerTemp(random.nextInt(150, 180));   // 기준치(193) 미달 하단 금형 온도
         }
         return dto;
