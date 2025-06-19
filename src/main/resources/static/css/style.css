@@ -281,16 +281,6 @@ nav.d-lg-none {
         font-size: 15px;
         padding: 10px 0;
     }
-
-    /* 불량예측 경고 상자 */
-    .defect-box {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        padding: 0 30px;
-    }
     .defect-label {
         font-size: 14px;
         flex: 0 1 auto;
@@ -337,7 +327,27 @@ nav.d-lg-none {
     padding: 10px;                   /* 안쪽 여백 10px */
     border-radius: 8px;              /* 둥근 테두리 */
 }
+@media (max-width: 576px) {
+    .form-label.small-label {
+        font-size: 0.8rem;         /* 모바일일 때만 작게 */
+        white-space: nowrap;       /* 줄바꿈 방지 */
+    }
+}
+@media (max-width: 576px) {
+    /* 경고 메시지 박스 여백 줄이기 */
+    .warning-placeholder .alert {
+        margin-bottom: 0.3rem !important;
+        margin-top: 0.5rem !important;
+        padding: 0.6rem 1rem !important;
+        font-size: 0.95rem !important;
+        border-radius: 6px;
+    }
 
+    /* 로딩 텍스트 상하 여백 줄이기 */
+    .chart-loading-text {
+        padding: 1rem 0 !important;
+    }
+}
 /* 폼내 입력칸 (라운드 없음) */
 .line2_css {
     width: 100%;                     /* 가로 100% */
@@ -1315,12 +1325,30 @@ button[name="processButton"]:disabled {
     #weldingStatus {
         margin-bottom: 10px; /* ⬅ 버튼 아래 간격 */
     }
-
-    #castingWarning,
-    #weldingWarning {
-        margin: 2px 0 !important;    /* ⬅ 경고 메시지 위 간격 */
+     /**********************************************/
+    #castingWarning .alert,
+    #weldingWarning .alert {
+        margin-bottom: 4px !important;
+    }
+    /* 차트 wrapper 위쪽 여백 제거 */
+    #castingChart,
+    #weldingChart {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+    /* 차트 로딩 텍스트 더 압축 */
+    #castingChartLoading,
+    #weldingChartLoading {
+        padding: 0.5rem 0 !important;
+    }
+    /* wrapper 자체 여백 줄이기 */
+    .defect-chart {
+        margin-top: 0 !important;
     }
 
+    .chart-body {
+        padding-top: 0 !important;
+    }
     .defect-box {
         display: flex;
         justify-content: center;   /* 👉 가운데 정렬 */
